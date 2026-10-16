@@ -21,7 +21,7 @@ export function SiteHeader() {
     <header className="sticky top-0 z-40 bg-pitch text-pitch-foreground">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4">
         <Link to="/" className="flex items-center gap-2">
-          <img src={logo.url} alt="Wednesday United logo" width={40} height={40} className="h-10 w-10" />
+          <img src={logo.url} alt="Wednesday United logo" width={40} height={40} className="h-10 w-10 rounded-full object-cover" />
           <span className="font-display text-2xl tracking-wide">Wednesday United</span>
         </Link>
         <nav className="hidden items-center gap-5 md:flex">
