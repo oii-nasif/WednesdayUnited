@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { PaymentSubmission } from "@/components/PaymentSubmission";
 import { paymentsQuery } from "@/lib/payments";
 import { money, prepaymentTotal } from "@/lib/payment-rules";
+import { VenueMap } from "@/components/VenueMap";
 
 export const Route = createFileRoute("/matches/$id")({
   head: () => ({
@@ -108,6 +109,8 @@ function MatchDetail() {
           <p className="mt-3 text-sm text-pitch-foreground/60">Registration closes {fmtDate(m.registration_deadline)}, {fmtTime(m.registration_deadline)}</p>
         )}
       </div>
+
+      {m.location && <VenueMap venue={m.location} />}
 
       <div className="mt-8 grid gap-8 md:grid-cols-[1fr_320px]">
         <section>

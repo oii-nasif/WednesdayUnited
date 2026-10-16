@@ -16,3 +16,4 @@
 - Payment receipts live in a private owner-folder bucket, with owner/staff reads and short-lived signed URLs; attached receipts cannot be deleted.
 - Verified payment totals represent contributions only until the settlement ledger is implemented, so they must not be presented as spendable balances.
 - Public participant identities are read from a trigger-synchronized, minimal player directory; private profiles remain owner/staff-only, avoiding exposure of email or other private fields through public match reads.
+- Venue creation uses the browser database client under existing super-admin RLS; Google Maps uses the managed browser Embed API with venue name/address queries, keeping server credentials out of the browser.

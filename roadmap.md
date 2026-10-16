@@ -1,5 +1,7 @@
 # Wednesday United roadmap
 
+- [ ] Add venue creation for super admins and embedded Google Maps on match pages
+
 - [x] Phase 1: public match pages, Google sign-in, roles (super admin auto-assigned), join/leave with guests, moderator match management, manual participants, audit log capture
 - [ ] Phase 2: financial management
   - [x] Prepayments: bank details, transaction ID, private screenshot, moderator verification and payment history
