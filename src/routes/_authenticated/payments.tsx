@@ -66,7 +66,7 @@ function PaymentTable({ rows, staff }: { rows: PaymentRow[]; staff: boolean }) {
   const mutation = useMutation({
     mutationFn: async () => {
       if (!review) return;
-      const { error } = await supabase.rpc("review_payment", { payment_id: review.id, decision: review.decision, note: note.trim() || undefined });
+      const { error } = await supabase.rpc("review_payment", { payment_id: review.id, decision: review.decision, note: note.trim() });
       if (error) throw error;
     },
     onSuccess: () => { toast.success("Payment reviewed"); setReview(null); setNote(""); qc.invalidateQueries({ queryKey: ["payments"] }); },

@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export function PaymentSubmission({ matchId, userId, requiredAmount }: { matchId: string; userId: string; requiredAmount: number }) {
+export function PaymentSubmission({ matchId, userId, requiredAmount, canSubmit = true }: { matchId: string; userId: string; requiredAmount: number; canSubmit?: boolean }) {
   const { data: settings, isLoading, error } = useQuery(paymentSettingsQuery);
   const [amount, setAmount] = useState(requiredAmount ? String(requiredAmount) : "");
   const [transactionId, setTransactionId] = useState("");
@@ -50,11 +50,11 @@ export function PaymentSubmission({ matchId, userId, requiredAmount }: { matchId
       <div><dt className="text-muted-foreground">Account number</dt><dd className="font-semibold">{settings.account_number}</dd></div>
     </dl>
     {settings.instructions && <p className="mb-4 whitespace-pre-wrap break-words text-sm">{settings.instructions}</p>}
-    <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); submit.mutate(); }}>
+    {canSubmit && <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); submit.mutate(); }}>
       <div className="grid gap-1.5"><Label htmlFor="payment-amount">Amount (৳)</Label><Input id="payment-amount" type="number" min={requiredAmount || 0.01} step="0.01" required value={amount} onChange={(e) => setAmount(e.target.value)} /></div>
       <div className="grid gap-1.5"><Label htmlFor="transaction-id">Transaction ID</Label><Input id="transaction-id" required maxLength={120} value={transactionId} onChange={(e) => setTransactionId(e.target.value)} /></div>
       <div className="grid gap-1.5"><Label htmlFor="payment-receipt" className="flex items-center gap-2"><Upload className="h-4 w-4" />Screenshot (optional)</Label><Input key={fileKey} id="payment-receipt" type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => { const next = e.target.files?.[0]; if (!next) { setFile(null); return; } try { validateReceipt(next); setFile(next); } catch (error) { toast.error((error as Error).message); setFile(null); setFileKey((key) => key + 1); } }} /></div>
       <Button type="submit" variant="accent" className="w-full" disabled={submit.isPending}>{submit.isPending ? "Submitting…" : "Submit payment"}</Button>
-    </form>
+    </form>}
   </section>;
 }

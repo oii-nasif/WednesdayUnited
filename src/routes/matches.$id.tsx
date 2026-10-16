@@ -175,7 +175,7 @@ function MatchDetail() {
                   Prepayment of {money(prepaymentTotal(Number(m.prepayment_amount ?? 0), guests))} required.
                 </p>
               )}
-              {m.prepayment_required && user && <PaymentSubmission key={`joining-${guests}`} matchId={id} userId={user.id} requiredAmount={prepaymentTotal(Number(m.prepayment_amount ?? 0), guests)} />}
+              {m.prepayment_required && user && <PaymentSubmission canSubmit={false} key={`joining-${guests}`} matchId={id} userId={user.id} requiredAmount={prepaymentTotal(Number(m.prepayment_amount ?? 0), guests)} />}
               <Button variant="accent" className="w-full" disabled={join.isPending} onClick={() => join.mutate()}>Join match</Button>
             </div>
           ) : (
