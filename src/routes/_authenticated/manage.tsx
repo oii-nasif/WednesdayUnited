@@ -131,7 +131,7 @@ function Manage() {
         <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle className="font-display text-3xl">{form?.id ? "Edit match" : "New match"}</DialogTitle></DialogHeader>
           {form && (
-            <form id="mf" className="grid gap-4" onSubmit={(e) => { e.preventDefault(); if (!form.title || !form.starts_at) return toast.error("Title and start time are required"); save.mutate(form); }}>
+            <form id="mf" className="grid gap-4" onSubmit={(e) => { e.preventDefault(); if (!form.title || !form.starts_at) { toast.error("Title and start time are required"); return; } save.mutate(form); }}>
               <div className="grid gap-1.5"><Label>Title</Label><Input value={form.title} maxLength={100} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="grid gap-1.5"><Label>Start (Dhaka time)</Label><Input type="datetime-local" value={form.starts_at} onChange={(e) => setForm({ ...form, starts_at: e.target.value })} /></div>

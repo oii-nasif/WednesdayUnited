@@ -33,7 +33,7 @@ export function SiteHeader() {
           {loading ? null : user ? (
             <>
               <span className="hidden text-sm text-pitch-foreground/70 sm:inline">
-                {user.user_metadata?.full_name ?? user.email}
+                {user.user_metadata?.['full_name'] ?? user.email}
               </span>
               <Button size="sm" variant="secondary" onClick={signOut}>Sign out</Button>
             </>

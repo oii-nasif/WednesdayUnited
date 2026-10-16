@@ -36,7 +36,7 @@ function Dashboard() {
   const guests = data?.reduce((n, r) => n + r.guest_count, 0) ?? 0;
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
-      <h1 className="text-5xl">Hey, {user?.user_metadata?.full_name?.split(" ")[0] ?? "player"}</h1>
+      <h1 className="text-5xl">Hey, {(user?.user_metadata?.['full_name'] as string | undefined)?.split(" ")[0] ?? "player"}</h1>
       <p className="mt-1 text-sm capitalize text-muted-foreground">{roles.map((r) => r.replace("_", " ")).join(" · ")}</p>
       <div className="mt-6 grid gap-4 sm:grid-cols-3">
         {[["Registrations", data?.length ?? 0], ["Matches attended", attended], ["Guests brought", guests]].map(([l, v]) => (
