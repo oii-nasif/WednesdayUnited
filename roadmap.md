@@ -1,6 +1,7 @@
 # Wednesday United roadmap
 
-- [ ] Add venue creation for super admins and embedded Google Maps on match pages
+- [x] Add venue creation for super admins and embedded Google Maps on match pages
+- [ ] Google Maps display verification — requires checking a match with a venue on an authorized deployed origin; live Maps checks are unavailable in the agent sandbox
 
 - [x] Phase 1: public match pages, Google sign-in, roles (super admin auto-assigned), join/leave with guests, moderator match management, manual participants, audit log capture
 - [ ] Phase 2: financial management
