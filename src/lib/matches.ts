@@ -1,0 +1,58 @@
+import { queryOptions } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+
+export const MATCH_SELECT =
+  "*, location:locations(*), registrations(id, user_id, guest_count, added_by_staff, profile:profiles(id, full_name, avatar_url))";
+
+export type MatchRow = Awaited<ReturnType<typeof fetchMatch>>;
+
+async function fetchMatch(id: string) {
+  const { data, error } = await supabase.from("matches").select(MATCH_SELECT).eq("id", id).maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+export const matchQuery = (id: string) =>
+  queryOptions({ queryKey: ["match", id], queryFn: () => fetchMatch(id) });
+
+export const matchesQuery = (kind: "upcoming" | "history" | "all") =>
+  queryOptions({
+    queryKey: ["matches", kind],
+    queryFn: async () => {
+      let q = supabase.from("matches").select(MATCH_SELECT);
+      if (kind === "upcoming") q = q.eq("status", "published").order("starts_at", { ascending: true });
+      else if (kind === "history")
+        q = q.in("status", ["completed", "cancelled"]).order("starts_at", { ascending: false });
+      else q = q.order("starts_at", { ascending: false });
+      const { data, error } = await q;
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+export const locationsQuery = queryOptions({
+  queryKey: ["locations"],
+  queryFn: async () => {
+    const { data, error } = await supabase.from("locations").select("*").order("name");
+    if (error) throw error;
+    return data ?? [];
+  },
+});
+
+export function participantCount(regs: { guest_count: number }[] | null | undefined) {
+  return (regs ?? []).reduce((n, r) => n + 1 + r.guest_count, 0);
+}
+
+export function guestCount(regs: { guest_count: number }[] | null | undefined) {
+  return (regs ?? []).reduce((n, r) => n + r.guest_count, 0);
+}
+
+const TZ = "Asia/Dhaka";
+export const fmtDate = (s: string) =>
+  new Date(s).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric", timeZone: TZ });
+export const fmtTime = (s: string) =>
+  new Date(s).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: TZ });
+
+export function registrationOpen(m: { status: string; registration_deadline: string | null }) {
+  return m.status === "published" && (!m.registration_deadline || new Date(m.registration_deadline) > new Date());
+}
