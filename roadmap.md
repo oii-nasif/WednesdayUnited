@@ -1,8 +1,8 @@
 # Wednesday United roadmap
 
-- [ ] Add confirmed match and venue deletion without removing linked payment history
-- [ ] Refresh the overall design and add interactive match browsing and management
-- [ ] Verify deletion flows and refreshed layouts
+- [x] Add confirmed match and venue deletion without removing linked payment history
+- [x] Refresh the overall design and add interactive match browsing and management
+- [x] Verify deletion flows and refreshed layouts
 
 - [x] Add venue creation for super admins and embedded Google Maps on match pages
 - [ ] Google Maps display verification — requires checking a match with a venue on an authorized deployed origin; live Maps checks are unavailable in the agent sandbox
