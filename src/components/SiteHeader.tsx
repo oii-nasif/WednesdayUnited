@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
+import logo from "@/assets/wu-logo.png.asset.json";
 
 export function SiteHeader() {
   const { user, isStaff, loading } = useAuth();
@@ -20,7 +21,7 @@ export function SiteHeader() {
     <header className="sticky top-0 z-40 bg-pitch text-pitch-foreground">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4">
         <Link to="/" className="flex items-center gap-2">
-          <span className="grid h-9 w-9 place-items-center rounded-full bg-accent font-display text-lg text-accent-foreground">WU</span>
+          <img src={logo.url} alt="Wednesday United logo" width={40} height={40} className="h-10 w-10" />
           <span className="font-display text-2xl tracking-wide">Wednesday United</span>
         </Link>
         <nav className="hidden items-center gap-5 md:flex">

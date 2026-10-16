@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { fmtDate, fmtTime } from "@/lib/matches";
 import { Badge } from "@/components/ui/badge";
-import { statusVariant } from "@/components/MatchCard";
+import { statusVariant, statusLabel } from "@/components/MatchCard";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -55,7 +55,7 @@ function Dashboard() {
                 <span className="font-semibold">{r.match.title}</span>
                 <span className="text-sm text-muted-foreground">{fmtDate(r.match.starts_at)} · {fmtTime(r.match.starts_at)} · {r.match.location?.name}</span>
                 {r.guest_count > 0 && <Badge variant="secondary">+{r.guest_count}</Badge>}
-                <Badge variant={statusVariant[r.match.status]} className="ml-auto capitalize">{r.match.status}</Badge>
+                <Badge variant={statusVariant[r.match.status]} className="ml-auto">{statusLabel[r.match.status]}</Badge>
               </Link>
             </li>
           ))}

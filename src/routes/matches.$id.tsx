@@ -6,7 +6,7 @@ import { CalendarDays, Clock, MapPin, Users, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { matchQuery, fmtDate, fmtTime, participantCount, guestCount, registrationOpen } from "@/lib/matches";
-import { statusVariant } from "@/components/MatchCard";
+import { statusVariant, statusLabel } from "@/components/MatchCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -79,7 +79,7 @@ function MatchDetail() {
       <Link to="/" className="text-sm text-primary hover:text-accent">← All matches</Link>
       <div className="mt-4 overflow-hidden rounded-2xl bg-pitch p-8 text-pitch-foreground shadow-card">
         <div className="flex flex-wrap items-center gap-3">
-          <Badge variant={statusVariant[m.status]} className="capitalize">{m.status}</Badge>
+          <Badge variant={statusVariant[m.status]} >{statusLabel[m.status]}</Badge>
           {m.prepayment_required && <Badge variant="secondary">Prepayment required</Badge>}
         </div>
         <h1 className="mt-3 text-6xl leading-none">{m.title}</h1>
