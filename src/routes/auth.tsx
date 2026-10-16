@@ -5,6 +5,8 @@ import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/wu-logo.png.asset.json";
+import hero from "@/assets/hero.jpg";
+import { ArrowRight } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -39,13 +41,17 @@ function AuthPage() {
   };
 
   return (
-    <div className="mx-auto flex min-h-[70vh] max-w-md flex-col items-center justify-center px-4 text-center">
+    <div className="relative flex min-h-[80vh] items-center justify-center overflow-hidden text-pitch-foreground">
+      <img src={hero} alt="Football pitch under floodlights" className="absolute inset-0 size-full object-cover" /><div className="absolute inset-0 bg-hero-overlay" />
+      <div className="relative mx-auto flex w-full max-w-md flex-col items-center px-6 py-16 text-center page-enter">
       <img src={logo.url} alt="Wednesday United logo" width={112} height={112} className="h-28 w-28 rounded-full object-cover" />
       <h1 className="mt-6 text-5xl">Join the squad</h1>
-      <p className="mt-2 text-muted-foreground">Sign in with your Google account to join matches and bring guests.</p>
-      <Button size="lg" className="mt-8 w-full" onClick={signIn} disabled={busy}>
+      <p className="mt-2 text-pitch-foreground/80">Every Wednesday. After office.</p>
+      <Button variant="accent" size="lg" className="mt-8 w-full" onClick={signIn} disabled={busy}>
         {busy ? "Opening Google…" : "Continue with Google"}
+        <ArrowRight />
       </Button>
+      </div>
     </div>
   );
 }

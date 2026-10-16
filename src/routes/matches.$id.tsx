@@ -83,14 +83,14 @@ function MatchDetail() {
   const total = participantCount(m.registrations);
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10">
+    <div className="mx-auto max-w-5xl px-4 py-10 page-enter">
       <Link to="/" className="text-sm text-primary hover:text-accent">← All matches</Link>
-      <div className="mt-4 overflow-hidden rounded-2xl bg-pitch p-8 text-pitch-foreground shadow-card">
+      <div className="mt-4 border-l-4 border-accent bg-pitch p-5 text-pitch-foreground sm:p-8">
         <div className="flex flex-wrap items-center gap-3">
           <Badge variant={statusVariant[m.status]} >{statusLabel[m.status]}</Badge>
           {m.prepayment_required && <Badge variant="secondary">Prepayment required</Badge>}
         </div>
-        <h1 className="mt-3 text-6xl leading-none">{m.title}</h1>
+        <h1 className="mt-3 text-5xl leading-none sm:text-6xl">{m.title}</h1>
         <div className="mt-6 grid gap-3 text-pitch-foreground/85 sm:grid-cols-2">
           <span className="flex items-center gap-2"><CalendarDays className="h-5 w-5 text-accent" />{fmtDate(m.starts_at)}</span>
           <span className="flex items-center gap-2"><Clock className="h-5 w-5 text-accent" />{fmtTime(m.starts_at)}</span>
