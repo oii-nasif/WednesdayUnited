@@ -50,9 +50,9 @@
 }
 
 :root {
-  --radius: 0.75rem;
-  --background: oklch(0.985 0.004 250);
-  --foreground: oklch(0.22 0.06 262);
+  --radius: 0.5rem;
+  --background: oklch(0.985 0.002 250);
+  --foreground: oklch(0.23 0.015 262);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.22 0.06 262);
   --popover: oklch(1 0 0);
@@ -71,10 +71,10 @@
   --border: oklch(0.91 0.015 255);
   --input: oklch(0.91 0.015 255);
   --ring: oklch(0.7 0.19 48);
-  --pitch: oklch(0.2 0.08 262);
+  --pitch: oklch(0.19 0.02 262);
   --pitch-foreground: oklch(0.98 0 0);
-  --gradient-hero: linear-gradient(100deg, oklch(0.18 0.08 262 / 0.95) 0%, oklch(0.3 0.15 262 / 0.75) 55%, oklch(0.7 0.19 48 / 0.35) 100%);
-  --shadow-card: 0 10px 30px -15px oklch(0.45 0.19 262 / 0.35);
+  --gradient-hero: linear-gradient(90deg, oklch(0.13 0.02 262 / 0.9), oklch(0.16 0.02 262 / 0.42) 65%, oklch(0.16 0.02 262 / 0.12));
+  --shadow-card: 0 8px 24px -16px oklch(0.22 0.015 262 / 0.2);
   --chart-1: oklch(0.45 0.19 262);
   --chart-2: oklch(0.7 0.19 48);
   --chart-3: oklch(0.6 0.12 230);
@@ -101,8 +101,18 @@
   }
   h1, h2, h3 {
     font-family: var(--font-display);
-    letter-spacing: 0.02em;
+    letter-spacing: 0;
   }
+  body { letter-spacing: 0; }
+  button, a, input { -webkit-tap-highlight-color: transparent; }
+  h1 { overflow-wrap: anywhere; }
+  ::selection { background: var(--primary); color: var(--primary-foreground); }
+}
+
+.page-enter { animation: page-enter 400ms ease-out both; }
+@keyframes page-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
 
 @utility bg-hero-overlay {

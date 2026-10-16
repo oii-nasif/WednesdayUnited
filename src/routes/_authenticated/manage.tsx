@@ -16,7 +16,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AddVenueDialog } from "@/components/AddVenueDialog";
-import { Plus } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, CalendarDays, MapPin, Users } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { VenueManagement } from "@/components/VenueManagement";
+import { DeleteConfirmation, type DeleteTarget } from "@/components/DeleteConfirmation";
 
 export const Route = createFileRoute("/_authenticated/manage")({
   head: () => ({
@@ -58,6 +61,10 @@ function Manage() {
   const [form, setForm] = useState<Form | null>(null);
   const [cancelId, setCancelId] = useState<string | null>(null);
   const [venueOpen, setVenueOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("all");
+  const visible = (matches ?? []).filter((m) => (filter === "all" || m.status === filter) && `${m.title} ${m.location?.name ?? ""}`.toLowerCase().includes(search.toLowerCase()));
 
   const refresh = () => qc.invalidateQueries({ queryKey: ["matches"] });
 
@@ -95,54 +102,69 @@ function Manage() {
   if (!isStaff) return <div className="mx-auto max-w-xl px-4 py-20 text-center text-muted-foreground">Only moderators can manage matches.</div>;
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10">
+    <div className="mx-auto max-w-6xl px-4 py-10 page-enter">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <h1 className="text-5xl">Match management</h1>
+        <div><p className="mb-2 text-xs font-semibold uppercase text-primary">Wednesday United / Team operations</p><h1 className="text-5xl">Match management</h1></div>
         <div className="flex gap-2">
           {isAdmin && <Button variant="outline" onClick={() => setVenueOpen(true)}><Plus className="h-4 w-4" />Add venue</Button>}
-          <Button variant="accent" onClick={() => setForm({ ...empty })}>+ New match</Button>
+          <Button variant="accent" onClick={() => setForm({ ...empty })}><Plus />New match</Button>
         </div>
       </div>
 
-      <div className="mt-6 overflow-x-auto rounded-xl border bg-card">
+      <div className="my-8 grid grid-cols-3 gap-4 border-y py-5">
+        {[[CalendarDays, "Booked matches", (matches ?? []).filter((m) => m.status === "published").length], [Users, "Participants", (matches ?? []).reduce((n, m) => n + participantCount(m.registrations), 0)], [MapPin, "Venues", locations?.length ?? 0]].map(([Icon, label, value]) => { const StatIcon = Icon as typeof CalendarDays; return <div key={String(label)}><StatIcon className="mb-2 size-4 text-primary" /><p className="font-display text-4xl">{String(value)}</p><p className="text-xs text-muted-foreground">{String(label)}</p></div>; })}
+      </div>
+      <Tabs defaultValue="matches">
+        <TabsList><TabsTrigger value="matches">Matches</TabsTrigger>{isAdmin && <TabsTrigger value="venues">Venues</TabsTrigger>}</TabsList>
+        <TabsContent value="matches">
+      <div className="mt-6 flex flex-wrap gap-3">
+        <div className="relative min-w-0 flex-1"><Search className="absolute left-3 top-3 size-4 text-muted-foreground" /><Input aria-label="Search matches" placeholder="Search matches or venues" className="pl-10" value={search} onChange={(e) => setSearch(e.target.value)} /></div>
+        <Select value={filter} onValueChange={setFilter}><SelectTrigger className="w-40" aria-label="Match status"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">All statuses</SelectItem>{Object.entries(statusLabel).map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent></Select>
+      </div>
+      <div className="mt-5 overflow-x-auto border-y bg-card">
         <table className="w-full text-sm">
           <thead className="bg-muted text-left text-muted-foreground">
             <tr><th className="p-3">Match</th><th className="p-3">When</th><th className="p-3">Venue</th><th className="p-3">Players</th><th className="p-3">Status</th><th className="p-3 text-right">Actions</th></tr>
           </thead>
           <tbody className="divide-y">
-            {(matches ?? []).map((m) => (
-              <tr key={m.id}>
+            {visible.map((m) => (
+              <tr key={m.id} className="transition-colors hover:bg-muted/60">
                 <td className="p-3 font-medium"><Link to="/matches/$id" params={{ id: m.id }} className="hover:text-accent">{m.title}</Link></td>
                 <td className="p-3">{fmtDate(m.starts_at)} · {fmtTime(m.starts_at)}</td>
                 <td className="p-3">{m.location?.name ?? "—"}</td>
                 <td className="p-3">{participantCount(m.registrations)}{m.player_limit ? `/${m.player_limit}` : ""}</td>
                 <td className="p-3"><Badge variant={statusVariant[m.status]} >{statusLabel[m.status]}</Badge></td>
                 <td className="space-x-1 whitespace-nowrap p-3 text-right">
-                  <Button size="sm" variant="ghost" onClick={() => setForm({
+                  <Button size="icon" variant="ghost" title="Edit match" aria-label={`Edit match ${m.title}`} onClick={() => setForm({
                     id: m.id, title: m.title, starts_at: toLocal(m.starts_at), location_id: m.location_id ?? "",
                     description: m.description ?? "", registration_deadline: toLocal(m.registration_deadline),
                     player_limit: m.player_limit?.toString() ?? "", prepayment_required: m.prepayment_required,
                     prepayment_amount: m.prepayment_amount?.toString() ?? "",
-                  })}>Edit</Button>
+                  })}><Pencil /></Button>
                   {m.status === "draft" && <Button size="sm" onClick={() => setStatus.mutate({ id: m.id, status: "published" })}>Book</Button>}
                   {m.status === "published" && <Button size="sm" variant="secondary" onClick={() => setStatus.mutate({ id: m.id, status: "completed" })}>Mark played</Button>}
                   {(m.status === "draft" || m.status === "published") && <Button size="sm" variant="ghost" className="text-destructive" onClick={() => setCancelId(m.id)}>Cancel</Button>}
+                  <Button size="icon" variant="ghost" className="text-destructive" title="Delete match" aria-label={`Delete match ${m.title}`} onClick={() => setDeleteTarget({ entity: "match", id: m.id, name: m.title })}><Trash2 /></Button>
                 </td>
               </tr>
             ))}
-            {matches?.length === 0 && <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">No matches yet. Create the first one.</td></tr>}
+            {visible.length === 0 && <tr><td colSpan={6} className="p-12 text-center text-muted-foreground">{search || filter !== "all" ? "No matching games." : "No matches yet."}</td></tr>}
           </tbody>
         </table>
       </div>
+        </TabsContent>
+        {isAdmin && <TabsContent value="venues"><VenueManagement onAdd={() => setVenueOpen(true)} /></TabsContent>}
+      </Tabs>
+      <DeleteConfirmation target={deleteTarget} onClose={() => setDeleteTarget(null)} />
 
       <Dialog open={!!form} onOpenChange={(o) => !o && setForm(null)}>
         <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle className="font-display text-3xl">{form?.id ? "Edit match" : "New match"}</DialogTitle></DialogHeader>
           {form && (
             <form id="mf" className="grid gap-4" onSubmit={(e) => { e.preventDefault(); if (!form.title || !form.starts_at) { toast.error("Title and start time are required"); return; } save.mutate(form); }}>
-              <div className="grid gap-1.5"><Label>Title</Label><Input value={form.title} maxLength={100} placeholder="Match title" onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
+              <div className="grid gap-1.5"><Label htmlFor="match-title">Title</Label><Input id="match-title" value={form.title} maxLength={100} placeholder="Match title" onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
               <div className="grid grid-cols-2 gap-3">
-                <div className="grid gap-1.5"><Label>Start (Dhaka time)</Label><Input type="datetime-local" value={form.starts_at} onChange={(e) => setForm({ ...form, starts_at: e.target.value })} /></div>
+                <div className="grid gap-1.5"><Label htmlFor="match-start">Start (Dhaka time)</Label><Input id="match-start" type="datetime-local" value={form.starts_at} onChange={(e) => setForm({ ...form, starts_at: e.target.value })} /></div>
                 <div className="grid gap-1.5"><Label>Registration deadline</Label><Input type="datetime-local" value={form.registration_deadline} onChange={(e) => setForm({ ...form, registration_deadline: e.target.value })} /></div>
               </div>
               <div className="grid gap-1.5"><div className="flex items-center justify-between"><Label>Location</Label>{isAdmin && <Button type="button" variant="ghost" size="sm" onClick={() => setVenueOpen(true)}><Plus className="h-4 w-4" />Add venue</Button>}</div>

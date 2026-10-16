@@ -40,7 +40,8 @@ function Payments() {
   const { data: mine } = useSuspenseQuery(paymentsQuery(userId));
   const { data: team, isLoading, error } = useQuery({ ...paymentsQuery(userId, true), enabled: isStaff });
   const pending = mine.filter((p) => p.status === "pending");
-  return <div className="mx-auto max-w-6xl px-4 py-10">
+  return <div className="mx-auto max-w-6xl px-4 py-10 page-enter">
+    <p className="mb-2 text-xs font-semibold uppercase text-primary">Wednesday United / Contributions</p>
     <div className="flex flex-wrap items-end justify-between gap-3"><h1 className="text-5xl">Payments</h1>{isAdmin && <BankSettings />}</div>
     <div className="my-8 grid gap-6 border-y py-6 sm:grid-cols-3">
       <div><p className="text-sm text-muted-foreground">Verified contributions</p><p className="mt-2 font-display text-4xl text-success">{money(verifiedTotal(mine))}</p></div>
