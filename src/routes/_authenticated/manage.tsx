@@ -15,6 +15,8 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AddVenueDialog } from "@/components/AddVenueDialog";
+import { Plus } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/manage")({
   head: () => ({
@@ -49,12 +51,13 @@ type Form = {
 const empty: Form = { title: "", starts_at: "", location_id: "", description: "", registration_deadline: "", player_limit: "", prepayment_required: false, prepayment_amount: "" };
 
 function Manage() {
-  const { isStaff, loading } = useAuth();
+  const { isStaff, isAdmin, loading } = useAuth();
   const qc = useQueryClient();
   const { data: matches } = useQuery({ ...matchesQuery("all"), enabled: isStaff });
   const { data: locations } = useQuery(locationsQuery);
   const [form, setForm] = useState<Form | null>(null);
   const [cancelId, setCancelId] = useState<string | null>(null);
+  const [venueOpen, setVenueOpen] = useState(false);
 
   const refresh = () => qc.invalidateQueries({ queryKey: ["matches"] });
 
@@ -62,7 +65,7 @@ function Manage() {
     mutationFn: async (f: Form) => {
       const row = {
         title: f.title.trim(),
-        starts_at: toIso(f.starts_at)!,
+        starts_at: toIso(f.starts_at) ?? "",
         location_id: f.location_id || null,
         description: f.description || null,
         registration_deadline: toIso(f.registration_deadline),
@@ -95,7 +98,10 @@ function Manage() {
     <div className="mx-auto max-w-6xl px-4 py-10">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <h1 className="text-5xl">Match management</h1>
-        <Button variant="accent" onClick={() => setForm({ ...empty })}>+ New match</Button>
+        <div className="flex gap-2">
+          {isAdmin && <Button variant="outline" onClick={() => setVenueOpen(true)}><Plus className="h-4 w-4" />Add venue</Button>}
+          <Button variant="accent" onClick={() => setForm({ ...empty })}>+ New match</Button>
+        </div>
       </div>
 
       <div className="mt-6 overflow-x-auto rounded-xl border bg-card">
@@ -139,7 +145,7 @@ function Manage() {
                 <div className="grid gap-1.5"><Label>Start (Dhaka time)</Label><Input type="datetime-local" value={form.starts_at} onChange={(e) => setForm({ ...form, starts_at: e.target.value })} /></div>
                 <div className="grid gap-1.5"><Label>Registration deadline</Label><Input type="datetime-local" value={form.registration_deadline} onChange={(e) => setForm({ ...form, registration_deadline: e.target.value })} /></div>
               </div>
-              <div className="grid gap-1.5"><Label>Location</Label>
+              <div className="grid gap-1.5"><div className="flex items-center justify-between"><Label>Location</Label>{isAdmin && <Button type="button" variant="ghost" size="sm" onClick={() => setVenueOpen(true)}><Plus className="h-4 w-4" />Add venue</Button>}</div>
                 <Select value={form.location_id} onValueChange={(v) => setForm({ ...form, location_id: v })}>
                   <SelectTrigger><SelectValue placeholder="Choose venue" /></SelectTrigger>
                   <SelectContent>{(locations ?? []).map((l) => <SelectItem key={l.id} value={l.id}>{l.name}{l.area ? `, ${l.area}` : ""}</SelectItem>)}</SelectContent>
@@ -162,6 +168,8 @@ function Manage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {isAdmin && <AddVenueDialog open={venueOpen} onOpenChange={setVenueOpen} onSaved={(id) => setForm((current) => current ? { ...current, location_id: id } : null)} />}
 
       <AlertDialog open={!!cancelId} onOpenChange={(o) => !o && setCancelId(null)}>
         <AlertDialogContent>
