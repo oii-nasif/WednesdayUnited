@@ -15,6 +15,13 @@
       "when": 1792189190586,
       "tag": "0001_prepayments_and_verification",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792189665066,
+      "tag": "0002_restrict_selected_data_visibility",
+      "breakpoints": true
     }
   ]
 }
