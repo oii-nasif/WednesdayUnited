@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { matchesQuery, locationsQuery, fmtDate, fmtTime, participantCount } from "@/lib/matches";
-import { statusVariant } from "@/components/MatchCard";
+import { statusVariant, statusLabel } from "@/components/MatchCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -108,7 +108,7 @@ function Manage() {
                 <td className="p-3">{fmtDate(m.starts_at)} · {fmtTime(m.starts_at)}</td>
                 <td className="p-3">{m.location?.name ?? "—"}</td>
                 <td className="p-3">{participantCount(m.registrations)}{m.player_limit ? `/${m.player_limit}` : ""}</td>
-                <td className="p-3"><Badge variant={statusVariant[m.status]} className="capitalize">{m.status}</Badge></td>
+                <td className="p-3"><Badge variant={statusVariant[m.status]} >{statusLabel[m.status]}</Badge></td>
                 <td className="space-x-1 whitespace-nowrap p-3 text-right">
                   <Button size="sm" variant="ghost" onClick={() => setForm({
                     id: m.id, title: m.title, starts_at: toLocal(m.starts_at), location_id: m.location_id ?? "",
@@ -116,7 +116,7 @@ function Manage() {
                     player_limit: m.player_limit?.toString() ?? "", prepayment_required: m.prepayment_required,
                     prepayment_amount: m.prepayment_amount?.toString() ?? "",
                   })}>Edit</Button>
-                  {m.status === "draft" && <Button size="sm" onClick={() => setStatus.mutate({ id: m.id, status: "published" })}>Publish</Button>}
+                  {m.status === "draft" && <Button size="sm" onClick={() => setStatus.mutate({ id: m.id, status: "published" })}>Book</Button>}
                   {m.status === "published" && <Button size="sm" variant="secondary" onClick={() => setStatus.mutate({ id: m.id, status: "completed" })}>Mark played</Button>}
                   {(m.status === "draft" || m.status === "published") && <Button size="sm" variant="ghost" className="text-destructive" onClick={() => setCancelId(m.id)}>Cancel</Button>}
                 </td>

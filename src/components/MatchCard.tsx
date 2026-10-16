@@ -22,6 +22,8 @@ export const statusVariant: Record<string, "default" | "secondary" | "destructiv
   cancelled: "destructive",
 };
 
+export const statusLabel: Record<string, string> = { published: "Booked", draft: "Draft", completed: "Completed", cancelled: "Cancelled" };
+
 export function MatchCard({ match }: Props) {
   const total = participantCount(match.registrations);
   return (
@@ -33,7 +35,7 @@ export function MatchCard({ match }: Props) {
       <div className="absolute inset-y-0 left-0 w-1.5 bg-primary transition group-hover:bg-accent" />
       <div className="flex items-start justify-between gap-3">
         <h3 className="text-2xl leading-none">{match.title}</h3>
-        <Badge variant={statusVariant[match.status]} className="capitalize">{match.status}</Badge>
+        <Badge variant={statusVariant[match.status]} >{statusLabel[match.status]}</Badge>
       </div>
       <div className="mt-4 grid gap-2 text-sm text-muted-foreground">
         <span className="flex items-center gap-2"><CalendarDays className="h-4 w-4 text-primary" />{fmtDate(match.starts_at)}</span>

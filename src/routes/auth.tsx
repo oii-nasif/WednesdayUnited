@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
+import logo from "@/assets/wu-logo.png.asset.json";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -37,7 +38,7 @@ function AuthPage() {
 
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-md flex-col items-center justify-center px-4 text-center">
-      <span className="grid h-16 w-16 place-items-center rounded-full bg-accent font-display text-3xl text-accent-foreground">WU</span>
+      <img src={logo.url} alt="Wednesday United logo" width={112} height={112} className="h-28 w-28" />
       <h1 className="mt-6 text-5xl">Join the squad</h1>
       <p className="mt-2 text-muted-foreground">Sign in with your Google account to join matches and bring guests.</p>
       <Button size="lg" className="mt-8 w-full" onClick={signIn} disabled={busy}>
