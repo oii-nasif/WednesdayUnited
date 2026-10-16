@@ -8,6 +8,13 @@
       "when": 1792188312119,
       "tag": "0000_phase1_core",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792189190586,
+      "tag": "0001_prepayments_and_verification",
+      "breakpoints": true
     }
   ]
 }
