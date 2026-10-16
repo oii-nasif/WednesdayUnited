@@ -14,10 +14,15 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PaymentSubmission } from "@/components/PaymentSubmission";
+import { paymentsQuery } from "@/lib/payments";
+import { money, prepaymentTotal } from "@/lib/payment-rules";
 
 export const Route = createFileRoute("/matches/$id")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Match Details — Wednesday United" },
       { name: "description", content: "Match details, venue and who's playing for Wednesday United." },
       { property: "og:title", content: "Match Details — Wednesday United" },
@@ -35,6 +40,7 @@ function MatchDetail() {
   const qc = useQueryClient();
   const { data: m, isLoading } = useQuery(matchQuery(id));
   const [guests, setGuests] = useState(0);
+  const { data: payments } = useQuery({ ...paymentsQuery(user?.id ?? ""), enabled: !!user });
 
   const refresh = () => {
     qc.invalidateQueries({ queryKey: ["match", id] });
@@ -45,7 +51,8 @@ function MatchDetail() {
 
   const join = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("registrations").insert({ match_id: id, user_id: user!.id, guest_count: guests });
+      if (!user) throw new Error("Sign in to join this match");
+      const { error } = await supabase.from("registrations").insert({ match_id: id, user_id: user.id, guest_count: guests });
       if (error) throw error;
     },
     onSuccess: () => { toast.success("You're in!"); refresh(); },
@@ -153,6 +160,11 @@ function MatchDetail() {
                   <Button variant="outline" className="w-full" onClick={() => leave.mutate(mine.id)}>Leave match</Button>
                 </>
               )}
+              {m.prepayment_required && user && (m.status === "published" || m.status === "completed") && <>
+                {(payments ?? []).filter((p) => p.match_id === id).map((p) => <p key={p.id} className="text-sm"><Badge variant={p.status === "rejected" ? "destructive" : "secondary"} className="capitalize">{p.status}</Badge> {money(Number(p.amount))}{p.review_note && <span className="mt-1 block break-words text-muted-foreground">{p.review_note}</span>}</p>)}
+                <PaymentSubmission key={`${id}-${mine.guest_count}`} matchId={id} userId={user.id} requiredAmount={prepaymentTotal(Number(m.prepayment_amount ?? 0), mine.guest_count)} />
+                <Button variant="link" className="px-0" asChild><Link to="/payments">Payment history</Link></Button>
+              </>}
             </div>
           ) : open ? (
             <div className="mt-3 space-y-3">
@@ -162,9 +174,10 @@ function MatchDetail() {
               {m.prepayment_required && (
                 <p className="flex gap-2 rounded-md bg-secondary p-3 text-xs text-secondary-foreground">
                   <Wallet className="h-4 w-4 shrink-0" />
-                  Prepayment of ৳{Number(m.prepayment_amount ?? 0) * (1 + guests)} required. Payment details will be shown here soon.
+                  Prepayment of {money(prepaymentTotal(Number(m.prepayment_amount ?? 0), guests))} required.
                 </p>
               )}
+              {m.prepayment_required && user && <PaymentSubmission canSubmit={false} key={`joining-${guests}`} matchId={id} userId={user.id} requiredAmount={prepaymentTotal(Number(m.prepayment_amount ?? 0), guests)} />}
               <Button variant="accent" className="w-full" disabled={join.isPending} onClick={() => join.mutate()}>Join match</Button>
             </div>
           ) : (

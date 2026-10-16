@@ -19,6 +19,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 export const Route = createFileRoute("/_authenticated/manage")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Match Management — Wednesday United" },
       { name: "description", content: "Create, publish and manage Wednesday United matches." },
       { property: "og:title", content: "Match Management — Wednesday United" },

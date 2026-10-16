@@ -7,6 +7,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 export const Route = createFileRoute("/history")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Match History — Wednesday United" },
       { name: "description", content: "Past Wednesday United matches and attendance." },
       { property: "og:title", content: "Match History — Wednesday United" },

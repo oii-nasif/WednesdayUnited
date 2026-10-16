@@ -9,6 +9,8 @@ import { statusVariant, statusLabel } from "@/components/MatchCard";
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "My Games — Wednesday United" },
       { name: "description", content: "Your Wednesday United registrations and match history." },
       { property: "og:title", content: "My Games — Wednesday United" },
@@ -65,7 +67,7 @@ function Dashboard() {
           You haven't joined a match yet. <Link to="/" className="text-primary underline">Find one</Link>
         </div>
       )}
-      <p className="mt-8 text-xs text-muted-foreground">Balance and payment history arrive in the next phase.</p>
+      <Link to="/payments" className="mt-8 inline-block text-sm font-medium text-primary hover:underline">View payment history →</Link>
     </div>
   );
 }

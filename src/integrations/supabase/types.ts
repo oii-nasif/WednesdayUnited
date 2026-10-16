@@ -130,6 +130,100 @@ export type Database = {
           },
         ]
       }
+      payment_settings: {
+        Row: {
+          account_name: string
+          account_number: string
+          bank_name: string
+          id: string
+          instructions: string
+          singleton: boolean
+          updated_at: string
+        }
+        Insert: {
+          account_name: string
+          account_number: string
+          bank_name: string
+          id?: string
+          instructions?: string
+          singleton?: boolean
+          updated_at?: string
+        }
+        Update: {
+          account_name?: string
+          account_number?: string
+          bank_name?: string
+          id?: string
+          instructions?: string
+          singleton?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          match_id: string
+          receipt_path: string | null
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          transaction_id: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          match_id: string
+          receipt_path?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          transaction_id: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          match_id?: string
+          receipt_path?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          transaction_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -230,6 +324,10 @@ export type Database = {
         Returns: boolean
       }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
+      review_payment: {
+        Args: { decision: string; note?: string; payment_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "player" | "moderator" | "super_admin"
