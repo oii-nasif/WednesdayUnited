@@ -9,6 +9,8 @@ import { statusVariant, statusLabel } from "@/components/MatchCard";
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "My Games — Wednesday United" },
       { name: "description", content: "Your Wednesday United registrations and match history." },
       { property: "og:title", content: "My Games — Wednesday United" },

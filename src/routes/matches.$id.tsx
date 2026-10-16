@@ -21,6 +21,8 @@ import { money, prepaymentTotal } from "@/lib/payment-rules";
 export const Route = createFileRoute("/matches/$id")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Match Details — Wednesday United" },
       { name: "description", content: "Match details, venue and who's playing for Wednesday United." },
       { property: "og:title", content: "Match Details — Wednesday United" },

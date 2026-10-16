@@ -9,6 +9,8 @@ import logo from "@/assets/wu-logo.png.asset.json";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Sign in — Wednesday United" },
       { name: "description", content: "Sign in with Google to join Wednesday United matches." },
       { property: "og:title", content: "Sign in — Wednesday United" },

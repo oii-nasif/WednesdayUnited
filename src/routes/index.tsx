@@ -10,6 +10,8 @@ import { useAuth } from "@/lib/auth";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Wednesday United — Upcoming Matches" },
       { name: "description", content: "See upcoming Wednesday United games, who's playing, and join the next match." },
       { property: "og:title", content: "Wednesday United — Upcoming Matches" },
