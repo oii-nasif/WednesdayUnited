@@ -44,7 +44,7 @@ type Form = {
   prepayment_required: boolean;
   prepayment_amount: string;
 };
-const empty: Form = { title: "Wednesday Football", starts_at: "", location_id: "", description: "", registration_deadline: "", player_limit: "", prepayment_required: false, prepayment_amount: "" };
+const empty: Form = { title: "", starts_at: "", location_id: "", description: "", registration_deadline: "", player_limit: "", prepayment_required: false, prepayment_amount: "" };
 
 function Manage() {
   const { isStaff, loading } = useAuth();
@@ -132,7 +132,7 @@ function Manage() {
           <DialogHeader><DialogTitle className="font-display text-3xl">{form?.id ? "Edit match" : "New match"}</DialogTitle></DialogHeader>
           {form && (
             <form id="mf" className="grid gap-4" onSubmit={(e) => { e.preventDefault(); if (!form.title || !form.starts_at) { toast.error("Title and start time are required"); return; } save.mutate(form); }}>
-              <div className="grid gap-1.5"><Label>Title</Label><Input value={form.title} maxLength={100} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
+              <div className="grid gap-1.5"><Label>Title</Label><Input value={form.title} maxLength={100} placeholder="Match title" onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="grid gap-1.5"><Label>Start (Dhaka time)</Label><Input type="datetime-local" value={form.starts_at} onChange={(e) => setForm({ ...form, starts_at: e.target.value })} /></div>
                 <div className="grid gap-1.5"><Label>Registration deadline</Label><Input type="datetime-local" value={form.registration_deadline} onChange={(e) => setForm({ ...form, registration_deadline: e.target.value })} /></div>
