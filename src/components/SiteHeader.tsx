@@ -28,6 +28,7 @@ export function SiteHeader() {
           <Link to="/" className={link} activeProps={active} activeOptions={{ exact: true }}>Matches</Link>
           <Link to="/history" className={link} activeProps={active}>History</Link>
           {user && <Link to="/dashboard" className={link} activeProps={active}>My games</Link>}
+          {user && <Link to="/payments" className={link} activeProps={active}>Payments</Link>}
           {isStaff && <Link to="/manage" className={link} activeProps={active}>Manage</Link>}
         </nav>
         <div className="ml-auto flex items-center gap-3">
@@ -49,6 +50,7 @@ export function SiteHeader() {
         <Link to="/" className={link} activeProps={active} activeOptions={{ exact: true }}>Matches</Link>
         <Link to="/history" className={link} activeProps={active}>History</Link>
         {user && <Link to="/dashboard" className={link} activeProps={active}>My games</Link>}
+        {user && <Link to="/payments" className={link} activeProps={active}>Payments</Link>}
         {isStaff && <Link to="/manage" className={link} activeProps={active}>Manage</Link>}
       </nav>
     </header>

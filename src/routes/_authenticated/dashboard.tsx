@@ -65,7 +65,7 @@ function Dashboard() {
           You haven't joined a match yet. <Link to="/" className="text-primary underline">Find one</Link>
         </div>
       )}
-      <p className="mt-8 text-xs text-muted-foreground">Balance and payment history arrive in the next phase.</p>
+      <Link to="/payments" className="mt-8 inline-block text-sm font-medium text-primary hover:underline">View payment history →</Link>
     </div>
   );
 }

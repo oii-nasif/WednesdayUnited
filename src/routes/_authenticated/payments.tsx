@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Check, X, Image, Landmark, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { paymentsQuery, paymentSettingsQuery } from "@/lib/payments";
+import { paymentsQuery, paymentSettingsQuery, type PaymentRow } from "@/lib/payments";
 import { money, verifiedTotal } from "@/lib/payment-rules";
 import { fmtDate, fmtTime } from "@/lib/matches";
 import { Button } from "@/components/ui/button";
@@ -34,8 +34,6 @@ export const Route = createFileRoute("/_authenticated/payments")({
   component: Payments,
 });
 
-type Payment = Awaited<ReturnType<ReturnType<typeof paymentsQuery>["queryFn"]>>;
-
 function Payments() {
   const { userId } = Route.useLoaderData();
   const { isStaff, isAdmin } = useAuth();
@@ -55,13 +53,6 @@ function Payments() {
       {isStaff && <TabsContent value="team" className="mt-5">{error ? <p className="text-destructive">Could not load payment reviews.</p> : isLoading ? <p className="text-muted-foreground">Loading payments…</p> : <PaymentTable rows={team ?? []} staff />}</TabsContent>}
     </Tabs>
   </div>;
-}
-
-type PaymentRow = Awaited<ReturnType<typeof fetchPaymentRows>>[number];
-async function fetchPaymentRows() {
-  const options = paymentsQuery("");
-  // Used only to infer the shared row shape from the query options.
-  return (await supabase.from("payments").select("*, profile:profiles!payments_user_id_fkey(full_name), match:matches(starts_at, location:locations(name))")).data ?? [];
 }
 
 function PaymentTable({ rows, staff }: { rows: PaymentRow[]; staff: boolean }) {
