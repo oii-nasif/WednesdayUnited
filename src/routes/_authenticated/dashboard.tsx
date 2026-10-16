@@ -44,11 +44,11 @@ function Dashboard() {
       <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="mb-2 text-xs font-semibold uppercase text-primary">Wednesday United / My squad</p><h1 className="text-5xl">Hey, {(user?.user_metadata?.['full_name'] as string | undefined)?.split(" ")[0] ?? "player"}</h1></div><Button variant="accent" asChild><Link to="/">Find a match<ArrowUpRight /></Link></Button></div>
       <p className="mt-1 text-sm capitalize text-muted-foreground">{roles.map((r) => r.replace("_", " ")).join(" · ")}</p>
       <div className="mt-6 grid grid-cols-3 gap-4 border-y py-6">
-        {[["Registrations", data?.length ?? 0, CalendarDays], ["Matches attended", attended, Trophy], ["Guests brought", guests, Users]].map(([l, v, Icon]) => { const StatIcon = Icon as typeof Users; return (
-          <div key={String(l)}>
-            <StatIcon className="mb-3 size-5 text-primary" />
-            <p className="text-sm text-muted-foreground">{l}</p>
-            <p className="font-display text-5xl text-primary">{v}</p>
+        {[{ label: "Registrations", value: data?.length ?? 0, icon: CalendarDays }, { label: "Matches attended", value: attended, icon: Trophy }, { label: "Guests brought", value: guests, icon: Users }].map(({ label, value, icon: Icon }) => { return (
+          <div key={label}>
+            <Icon className="mb-3 size-5 text-primary" />
+            <p className="text-sm text-muted-foreground">{label}</p>
+            <p className="font-display text-5xl text-primary">{value}</p>
           </div>
         ); })}
       </div>
