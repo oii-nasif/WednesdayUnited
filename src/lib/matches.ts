@@ -2,14 +2,30 @@ import { queryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 export const MATCH_SELECT =
-  "*, location:locations(*), registrations(id, user_id, guest_count, added_by_staff, profile:profiles(id, full_name, avatar_url))";
+  "*, location:locations(*), registrations(id, user_id, guest_count, added_by_staff)";
+
+type RawMatch = NonNullable<Awaited<ReturnType<typeof fetchRawMatch>>>;
+async function withPublicPlayers(matches: RawMatch[]) {
+  const ids = [...new Set(matches.flatMap((m) => m.registrations.map((r) => r.user_id)))];
+  const { data, error } = ids.length
+    ? await supabase.from("player_directory").select("id, full_name, avatar_url").in("id", ids)
+    : { data: [], error: null };
+  if (error) throw error;
+  const profiles = new Map((data ?? []).map((p) => [p.id, p]));
+  return matches.map((m) => ({ ...m, registrations: m.registrations.map((r) => ({ ...r, profile: profiles.get(r.user_id) ?? null })) }));
+}
 
 export type MatchRow = Awaited<ReturnType<typeof fetchMatch>>;
 
-async function fetchMatch(id: string) {
+async function fetchRawMatch(id: string) {
   const { data, error } = await supabase.from("matches").select(MATCH_SELECT).eq("id", id).maybeSingle();
   if (error) throw error;
   return data;
+}
+
+async function fetchMatch(id: string) {
+  const match = await fetchRawMatch(id);
+  return match ? (await withPublicPlayers([match]))[0] ?? null : null;
 }
 
 export const matchQuery = (id: string) =>
@@ -26,7 +42,7 @@ export const matchesQuery = (kind: "upcoming" | "history" | "all") =>
       else q = q.order("starts_at", { ascending: false });
       const { data, error } = await q;
       if (error) throw error;
-      return data ?? [];
+      return withPublicPlayers(data ?? []);
     },
   });
 
