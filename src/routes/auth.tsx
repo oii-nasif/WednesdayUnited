@@ -40,7 +40,7 @@ function AuthPage() {
 
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-md flex-col items-center justify-center px-4 text-center">
-      <img src={logo.url} alt="Wednesday United logo" width={112} height={112} className="h-28 w-28" />
+      <img src={logo.url} alt="Wednesday United logo" width={112} height={112} className="h-28 w-28 rounded-full object-cover" />
       <h1 className="mt-6 text-5xl">Join the squad</h1>
       <p className="mt-2 text-muted-foreground">Sign in with your Google account to join matches and bring guests.</p>
       <Button size="lg" className="mt-8 w-full" onClick={signIn} disabled={busy}>
