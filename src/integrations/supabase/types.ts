@@ -14,16 +14,226 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      audit_logs: {
+        Row: {
+          action: string
+          actor_id: string | null
+          after_data: Json | null
+          before_data: Json | null
+          created_at: string
+          entity: string
+          entity_id: string | null
+          id: number
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          after_data?: Json | null
+          before_data?: Json | null
+          created_at?: string
+          entity: string
+          entity_id?: string | null
+          id?: never
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          after_data?: Json | null
+          before_data?: Json | null
+          created_at?: string
+          entity?: string
+          entity_id?: string | null
+          id?: never
+        }
+        Relationships: []
+      }
+      locations: {
+        Row: {
+          address: string | null
+          area: string | null
+          created_at: string
+          id: string
+          maps_url: string | null
+          name: string
+        }
+        Insert: {
+          address?: string | null
+          area?: string | null
+          created_at?: string
+          id?: string
+          maps_url?: string | null
+          name: string
+        }
+        Update: {
+          address?: string | null
+          area?: string | null
+          created_at?: string
+          id?: string
+          maps_url?: string | null
+          name?: string
+        }
+        Relationships: []
+      }
+      matches: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          location_id: string | null
+          player_limit: number | null
+          prepayment_amount: number | null
+          prepayment_required: boolean
+          registration_deadline: string | null
+          starts_at: string
+          status: Database["public"]["Enums"]["match_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          location_id?: string | null
+          player_limit?: number | null
+          prepayment_amount?: number | null
+          prepayment_required?: boolean
+          registration_deadline?: string | null
+          starts_at: string
+          status?: Database["public"]["Enums"]["match_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          location_id?: string | null
+          player_limit?: number | null
+          prepayment_amount?: number | null
+          prepayment_required?: boolean
+          registration_deadline?: string | null
+          starts_at?: string
+          status?: Database["public"]["Enums"]["match_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matches_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          status: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          status?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      registrations: {
+        Row: {
+          added_by_staff: boolean
+          created_at: string
+          guest_count: number
+          id: string
+          match_id: string
+          user_id: string
+        }
+        Insert: {
+          added_by_staff?: boolean
+          created_at?: string
+          guest_count?: number
+          id?: string
+          match_id: string
+          user_id: string
+        }
+        Update: {
+          added_by_staff?: boolean
+          created_at?: string
+          guest_count?: number
+          id?: string
+          match_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "registrations_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "registrations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_staff: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "player" | "moderator" | "super_admin"
+      match_status: "draft" | "published" | "completed" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +360,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["player", "moderator", "super_admin"],
+      match_status: ["draft", "published", "completed", "cancelled"],
+    },
   },
 } as const
