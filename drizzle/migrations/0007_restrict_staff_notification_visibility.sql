@@ -1,0 +1,2 @@
+DROP POLICY "Owners read notifications" ON public.notifications;
+CREATE POLICY "Owners read notifications" ON public.notifications FOR SELECT TO authenticated USING (user_id = auth.uid() AND (kind <> 'approval_pending' OR public.is_staff(auth.uid())));
