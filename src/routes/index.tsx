@@ -156,14 +156,10 @@ function Index() {
       <section className="mx-auto max-w-6xl px-4 pb-20">
         <div className="relative overflow-hidden rounded-3xl bg-accent px-8 py-12 text-accent-foreground md:px-14">
           <PitchLines className="text-white/15" />
-          <div className="relative flex flex-wrap items-center justify-between gap-6">
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-accent-foreground/80">Boots on?</p>
-              <p className="mt-2 font-display text-5xl leading-none md:text-6xl">Wednesday's waiting.</p>
-            </div>
-            <Button size="lg" className="bg-pitch text-pitch-foreground hover:bg-pitch-deep" asChild>
-              {next ? <Link to="/matches/$id" params={{ id: next.id }}>Join the next match<ArrowUpRight /></Link> : <Link to={user ? "/dashboard" : "/auth"}>{user ? "My games" : "Join the squad"}<ArrowUpRight /></Link>}
-            </Button>
+          <div className="relative">
+            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-accent-foreground/80">On the training ground</p>
+            <p className="mt-2 font-display text-5xl leading-none md:text-6xl">New features are warming up.</p>
+            <p className="mt-3 max-w-xl text-accent-foreground/85">Some parts of the website are still in development. Hang tight.</p>
           </div>
         </div>
       </section>
