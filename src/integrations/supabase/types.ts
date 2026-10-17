@@ -252,6 +252,9 @@ export type Database = {
       }
       profiles: {
         Row: {
+          approval_status: string
+          approved_at: string | null
+          approved_by: string | null
           avatar_url: string | null
           created_at: string
           email: string | null
@@ -260,6 +263,9 @@ export type Database = {
           status: string
         }
         Insert: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           avatar_url?: string | null
           created_at?: string
           email?: string | null
@@ -268,6 +274,9 @@ export type Database = {
           status?: string
         }
         Update: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           avatar_url?: string | null
           created_at?: string
           email?: string | null
@@ -342,6 +351,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      decide_player_approval: {
+        Args: { decision: string; player_id: string }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -349,6 +362,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_approved: { Args: { _user_id: string }; Returns: boolean }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
       review_payment: {
         Args: { decision: string; note?: string; payment_id: string }
