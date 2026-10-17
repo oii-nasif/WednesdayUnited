@@ -1,5 +1,7 @@
 # Wednesday United roadmap
 
+- [ ] Show player approval status and explain closed registration deadlines
+
 - [x] Add confirmed match and venue deletion without removing linked payment history
 - [x] Refresh the overall design and add interactive match browsing and management
 - [x] Verify deletion flows and refreshed layouts
