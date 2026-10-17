@@ -2,7 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Check, X, Image, Landmark, Search } from "lucide-react";
+import { BadgeCheck, Check, Hourglass, Image, Landmark, Receipt, Search, X } from "lucide-react";
+import { PageHeader, Stat } from "@/components/PageHeader";
+import { CountUp } from "@/components/CountUp";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { paymentsQuery, paymentSettingsQuery, type PaymentRow } from "@/lib/payments";
@@ -40,19 +42,22 @@ function Payments() {
   const { data: mine } = useSuspenseQuery(paymentsQuery(userId));
   const { data: team, isLoading, error } = useQuery({ ...paymentsQuery(userId, true), enabled: isStaff });
   const pending = mine.filter((p) => p.status === "pending");
-  return <div className="mx-auto max-w-6xl px-4 py-10 page-enter">
-    <p className="mb-2 text-xs font-semibold uppercase text-primary">Wednesday United / Contributions</p>
-    <div className="flex flex-wrap items-end justify-between gap-3"><h1 className="text-5xl">Payments</h1>{isAdmin && <BankSettings />}</div>
-    <div className="my-8 grid gap-6 border-y py-6 sm:grid-cols-3">
-      <div><p className="text-sm text-muted-foreground">Verified contributions</p><p className="mt-2 font-display text-4xl text-success">{money(verifiedTotal(mine))}</p></div>
-      <div><p className="text-sm text-muted-foreground">Awaiting verification</p><p className="mt-2 font-display text-4xl text-accent">{money(pending.reduce((sum, p) => sum + Number(p.amount), 0))}</p></div>
-      <div><p className="text-sm text-muted-foreground">Payments submitted</p><p className="mt-2 font-display text-4xl text-primary">{mine.length}</p></div>
+  return <div className="page-enter">
+    <PageHeader kicker="Contributions" title={<>Pay<span className="text-accent">ments</span></>} actions={isAdmin ? <BankSettings /> : undefined}>
+      Prepayments you've sent and where each one stands with the moderators.
+    </PageHeader>
+    <div className="mx-auto max-w-6xl px-4 pb-14">
+    <div className="relative z-10 -mt-8 mb-10 grid grid-cols-3 divide-x rounded-2xl border bg-card px-1 py-5 shadow-lift sm:p-6">
+      <div className="px-3 sm:px-6"><Stat icon={<BadgeCheck />} tone="success" label="Verified contributions" value={<CountUp value={verifiedTotal(mine)} format={money} />} /></div>
+      <div className="px-3 sm:px-6"><Stat icon={<Hourglass />} tone="accent" label="Awaiting verification" value={<CountUp value={pending.reduce((sum, p) => sum + Number(p.amount), 0)} format={money} />} /></div>
+      <div className="px-3 sm:px-6"><Stat icon={<Receipt />} label="Payments submitted" value={<CountUp value={mine.length} />} /></div>
     </div>
     <Tabs defaultValue="mine">
       <TabsList><TabsTrigger value="mine">My history</TabsTrigger>{isStaff && <TabsTrigger value="team">Payment reviews{team ? ` (${team.filter((p) => p.status === "pending").length})` : ""}</TabsTrigger>}</TabsList>
       <TabsContent value="mine" className="mt-5"><PaymentTable rows={mine} staff={false} /></TabsContent>
       {isStaff && <TabsContent value="team" className="mt-5">{error ? <p className="text-destructive">Could not load payment reviews.</p> : isLoading ? <p className="text-muted-foreground">Loading payments…</p> : <PaymentTable rows={team ?? []} staff />}</TabsContent>}
     </Tabs>
+    </div>
   </div>;
 }
 
