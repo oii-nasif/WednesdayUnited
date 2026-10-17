@@ -19,6 +19,8 @@ import { AddVenueDialog } from "@/components/AddVenueDialog";
 import { Plus, Pencil, Trash2, Search, CalendarDays, MapPin, Users } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { VenueManagement } from "@/components/VenueManagement";
+import { PlayerApprovals } from "@/components/PlayerApprovals";
+import { usePendingPlayerCount } from "@/lib/approval";
 import { DeleteConfirmation, type DeleteTarget } from "@/components/DeleteConfirmation";
 import { PageHeader, Stat } from "@/components/PageHeader";
 import { CountUp } from "@/components/CountUp";
@@ -57,6 +59,7 @@ const empty: Form = { title: "", starts_at: "", location_id: "", description: ""
 
 function Manage() {
   const { isStaff, isAdmin, loading } = useAuth();
+  const pendingPlayers = usePendingPlayerCount();
   const qc = useQueryClient();
   const { data: matches } = useQuery({ ...matchesQuery("all"), enabled: isStaff });
   const { data: locations } = useQuery(locationsQuery);
@@ -118,7 +121,7 @@ function Manage() {
         <div className="px-3 sm:px-6"><Stat icon={<MapPin />} label="Venues" value={<CountUp value={locations?.length ?? 0} />} /></div>
       </div>
       <Tabs defaultValue="matches">
-        <TabsList><TabsTrigger value="matches">Matches</TabsTrigger>{isAdmin && <TabsTrigger value="venues">Venues</TabsTrigger>}</TabsList>
+        <TabsList><TabsTrigger value="matches">Matches</TabsTrigger><TabsTrigger value="players">Players{pendingPlayers > 0 && <span className="rounded-full bg-accent px-1.5 text-[11px] font-bold text-accent-foreground tabular">{pendingPlayers}</span>}</TabsTrigger>{isAdmin && <TabsTrigger value="venues">Venues</TabsTrigger>}</TabsList>
         <TabsContent value="matches">
       <div className="mt-6 flex flex-wrap gap-3">
         <div className="relative min-w-0 flex-1"><Search className="absolute left-3 top-3 size-4 text-muted-foreground" /><Input aria-label="Search matches" placeholder="Search matches or venues" className="pl-10" value={search} onChange={(e) => setSearch(e.target.value)} /></div>
@@ -156,6 +159,7 @@ function Manage() {
         </table>
       </div>
         </TabsContent>
+        <TabsContent value="players"><PlayerApprovals /></TabsContent>
         {isAdmin && <TabsContent value="venues"><VenueManagement onAdd={() => setVenueOpen(true)} /></TabsContent>}
       </Tabs>
       <DeleteConfirmation target={deleteTarget} onClose={() => setDeleteTarget(null)} />

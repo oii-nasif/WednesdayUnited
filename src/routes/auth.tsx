@@ -8,6 +8,7 @@ import { TeamBadge } from "@/components/TeamBadge";
 import hero from "@/assets/hero.jpg";
 import { ArrowRight } from "lucide-react";
 import { PitchLines } from "@/components/PitchLines";
+import { Moon } from "@/components/Moon";
 import { Kicker } from "@/components/PageHeader";
 import { KickAbout } from "@/components/KickAbout";
 import { Football } from "@/components/Football";
@@ -61,7 +62,7 @@ function AuthPage() {
         <img src={hero} alt="" className="absolute inset-0 size-full object-cover opacity-35 mix-blend-luminosity" />
         <div className="absolute inset-0 bg-gradient-to-t from-pitch-deep via-pitch/50 to-transparent" />
         <PitchLines className="moonrise text-white/[0.08]" />
-        <span aria-hidden="true" className="moonrise pointer-events-none absolute right-10 top-16 size-14 md:size-20 rounded-full bg-[radial-gradient(circle_at_38%_36%,#f7f8fc,#d9deeb_55%,#aab3cb)] opacity-90 shadow-[0_0_60px_18px_oklch(0.92_0.03_250/0.28),0_0_160px_60px_oklch(0.8_0.06_255/0.18)]" />
+        <Moon className="right-8 top-12 size-20 md:size-28" />
         <div className="relative flex h-full flex-col justify-end p-8 pb-16 md:p-14">
           <Kicker className="text-pitch-foreground/75">Every Wednesday · After office</Kicker>
           <p className="mt-4 font-display text-7xl leading-[0.85] md:text-8xl">Moonlight<br />on. <span className="text-accent">Boots on.</span></p>
