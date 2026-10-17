@@ -6,8 +6,8 @@ export function canManageRole(actorRoles: Role[], targetRoles: Role[]) {
   return actorRoles.includes("super_admin") && !targetRoles.includes("super_admin");
 }
 
-export const usersQuery = queryOptions({
-  queryKey: ["staff-users"],
+export const usersQuery = (actorId: string) => queryOptions({
+  queryKey: ["staff-users", actorId],
   queryFn: async () => {
     const [{ data: profiles, error }, { data: roles, error: roleError }] = await Promise.all([
       supabase.from("profiles").select("id,full_name,email,avatar_url,approval_status,created_at").order("created_at", { ascending: false }),
