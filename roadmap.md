@@ -1,7 +1,7 @@
 # Wednesday United roadmap
 
-- [ ] Add staff user approvals, super-admin moderator management, and private in-app notifications
-- [ ] Transfer super-admin access to nasif.ishtiaque.islam@gmail.com and make nasif.bs1062@gmail.com a player
+- [x] Add staff user approvals, super-admin moderator management, and private in-app notifications
+- [x] Transfer super-admin access to nasif.ishtiaque.islam@gmail.com and make nasif.bs1062@gmail.com a player
 
 - [x] Show player approval status and explain closed registration deadlines
 
