@@ -15,6 +15,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/lib/auth";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
+import { ApprovalNotice } from "@/components/ApprovalNotice";
 import { PitchLines } from "@/components/PitchLines";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -119,6 +120,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <SiteHeader />
+        <ApprovalNotice />
         <main className="min-h-[calc(100vh-4rem)]">
           <Outlet />
         </main>

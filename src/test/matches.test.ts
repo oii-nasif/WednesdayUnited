@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { participantCount, guestCount, registrationOpen, spotsLabel } from "@/lib/matches";
 
 describe("match rules", () => {
@@ -16,5 +16,14 @@ describe("match rules", () => {
     expect(spotsLabel(4, 10)).toBe("6 spots left");
     expect(spotsLabel(12, 10)).toBe("Full");
     expect(spotsLabel(3, null)).toBeNull();
+  });
+  it("the October 6 deadline is closed on October 17 even for a booked match", () => {
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(new Date("2026-10-17T18:04:00Z"));
+      expect(registrationOpen({ status: "published", registration_deadline: "2026-10-06T17:53:00Z" })).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
