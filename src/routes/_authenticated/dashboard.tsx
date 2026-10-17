@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, ArrowUpRight, CalendarDays, Users, Trophy } from "lucide-react";
 import { PageHeader, SectionHeading, Stat } from "@/components/PageHeader";
 import { PlayerCard } from "@/components/PlayerCard";
-import { SquadStatusNotice } from "@/components/SquadStatusNotice";
 import { CountUp } from "@/components/CountUp";
 import { Football } from "@/components/Football";
 import { cn } from "@/lib/utils";
@@ -29,7 +28,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 });
 
 function Dashboard() {
-  const { user, roles, approval } = useAuth();
+  const { user, roles } = useAuth();
   const { data } = useQuery({
     queryKey: ["my-regs", user?.id],
     enabled: !!user,
@@ -53,7 +52,6 @@ function Dashboard() {
       <PageHeader kicker="My squad" title={<>Hey, <span className="text-accent">{fullName.split(" ")[0]}</span></>} actions={<Button variant="accent" size="lg" asChild><Link to="/">Find a match<ArrowUpRight /></Link></Button>}>
         Your season so far, and every fixture you've signed up for.
       </PageHeader>
-      {(approval === "pending" || approval === "rejected") && <div className="mx-auto max-w-6xl px-4 pt-10"><SquadStatusNotice status={approval} /></div>}
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 lg:grid-cols-[340px_1fr]">
         <div className="space-y-4 lg:sticky lg:top-24 lg:self-start">
           <PlayerCard name={fullName} avatar={avatar} role={role} rating={attended} stats={[{ label: "Apps", value: attended }, { label: "Signed", value: data?.length ?? 0 }, { label: "Guests", value: guests }]} />
