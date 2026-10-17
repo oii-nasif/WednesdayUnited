@@ -8,9 +8,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Football } from "@/components/Football";
 import { cn } from "@/lib/utils";
 import { TeamBadge } from "@/components/TeamBadge";
+import { NotificationBell } from "@/components/NotificationBell";
 import { CalendarDays, History, Users, Wallet, Settings2, LogOut, ArrowUpRight, LogIn } from "lucide-react";
 
-type NavItem = { to: "/" | "/history" | "/dashboard" | "/payments" | "/manage" | "/auth"; label: string; icon: ComponentType<{ className?: string }>; active: (path: string) => boolean };
+type NavItem = { to: "/" | "/history" | "/dashboard" | "/payments" | "/manage" | "/users" | "/auth"; label: string; icon: ComponentType<{ className?: string }>; active: (path: string) => boolean };
 
 function useNavItems(signedIn: boolean, staff: boolean): NavItem[] {
   return [
@@ -22,7 +23,7 @@ function useNavItems(signedIn: boolean, staff: boolean): NavItem[] {
           { to: "/payments", label: "Payments", icon: Wallet, active: (p: string) => p.startsWith("/payments") },
         ] as NavItem[]
       : []),
-    ...(staff ? [{ to: "/manage", label: "Manage", icon: Settings2, active: (p: string) => p.startsWith("/manage") }] as NavItem[] : []),
+    ...(staff ? [{ to: "/manage", label: "Manage", icon: Settings2, active: (p: string) => p.startsWith("/manage") }, { to: "/users", label: "Users", icon: Users, active: (p: string) => p.startsWith("/users") }] as NavItem[] : []),
   ];
 }
 
@@ -93,6 +94,7 @@ export function SiteHeader() {
           <div className="ml-auto flex items-center gap-2">
             {loading ? null : user ? (
               <>
+                <NotificationBell />
                 <span className="hidden items-center gap-2.5 rounded-full bg-white/5 py-1 pl-1 pr-3.5 ring-1 ring-white/10 sm:flex">
                   <Avatar className="size-7"><AvatarImage src={avatar} alt="" /><AvatarFallback className="bg-primary text-xs text-primary-foreground">{name.slice(0, 1)}</AvatarFallback></Avatar>
                   <span className="max-w-32 truncate text-sm font-semibold">{name.split(" ")[0]}</span>
