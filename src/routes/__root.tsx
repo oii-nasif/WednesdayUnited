@@ -14,18 +14,22 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/lib/auth";
 import { SiteHeader } from "@/components/SiteHeader";
+import { SiteFooter } from "@/components/SiteFooter";
+import { PitchLines } from "@/components/PitchLines";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-[60vh] items-center justify-center px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-7xl text-foreground">404</h1>
-        <h2 className="mt-4 text-xl text-foreground">Page not found</h2>
-        <div className="mt-6">
-          <Link to="/" className="inline-flex rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
-            Go home
+    <div className="bg-moonlight relative flex min-h-[70vh] items-center justify-center overflow-hidden px-4 text-pitch-foreground">
+      <PitchLines className="text-white/[0.06]" />
+      <div className="rise relative max-w-md text-center">
+        <span className="inline-block rounded-md bg-accent px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-accent-foreground shadow-glow">Flag's up · 404</span>
+        <h1 className="mt-5 text-8xl leading-none md:text-9xl">Offside<span className="text-accent">!</span></h1>
+        <p className="mt-3 text-pitch-foreground/75">This page strayed beyond the last defender.</p>
+        <div className="mt-8">
+          <Link to="/" className="inline-flex h-12 items-center rounded-xl bg-accent px-7 font-semibold text-accent-foreground shadow-glow transition hover:-translate-y-px">
+            Back onside
           </Link>
         </div>
       </div>
@@ -42,14 +46,14 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
   return (
     <div className="flex min-h-[60vh] items-center justify-center px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-3xl text-foreground">This page didn't load</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Something went wrong. Try again.</p>
+        <h1 className="text-5xl text-foreground">Half-time hiccup</h1>
+        <p className="mt-2 text-sm text-muted-foreground">This page didn't load. Something went wrong. Try again.</p>
         <button
           onClick={() => {
             router.invalidate();
             reset();
           }}
-          className="mt-6 inline-flex rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+          className="mt-6 inline-flex h-10 items-center rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground"
         >
           Try again
         </button>
@@ -118,10 +122,8 @@ function RootComponent() {
         <main className="min-h-[calc(100vh-4rem)]">
           <Outlet />
         </main>
-        <footer className="border-t py-6 text-center text-xs text-muted-foreground">
-          Wednesday United · after-office football
-        </footer>
-        <Toaster richColors />
+        <SiteFooter />
+        <Toaster richColors position="top-center" />
       </AuthProvider>
     </QueryClientProvider>
   );

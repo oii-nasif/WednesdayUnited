@@ -34,6 +34,10 @@
   --color-ring: var(--ring);
   --color-pitch: var(--pitch);
   --color-pitch-foreground: var(--pitch-foreground);
+  --color-pitch-deep: var(--pitch-deep);
+  --color-primary-soft: var(--primary-soft);
+  --color-accent-soft: var(--accent-soft);
+  --color-grass: var(--grass);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
@@ -50,8 +54,8 @@
 }
 
 :root {
-  --radius: 0.5rem;
-  --background: oklch(0.985 0.002 250);
+  --radius: 0.75rem;
+  --background: oklch(0.982 0.005 255);
   --foreground: oklch(0.23 0.015 262);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.22 0.06 262);
@@ -71,10 +75,17 @@
   --border: oklch(0.91 0.015 255);
   --input: oklch(0.91 0.015 255);
   --ring: oklch(0.7 0.19 48);
-  --pitch: oklch(0.19 0.02 262);
+  --pitch: oklch(0.2 0.055 264);
+  --pitch-deep: oklch(0.15 0.045 264);
+  --primary-soft: oklch(0.93 0.04 262);
+  --accent-soft: oklch(0.95 0.04 55);
   --pitch-foreground: oklch(0.98 0 0);
+  --grass: oklch(0.55 0.13 148);
+  --grass-dark: oklch(0.5 0.13 148);
   --gradient-hero: linear-gradient(90deg, oklch(0.13 0.02 262 / 0.9), oklch(0.16 0.02 262 / 0.42) 65%, oklch(0.16 0.02 262 / 0.12));
-  --shadow-card: 0 8px 24px -16px oklch(0.22 0.015 262 / 0.2);
+  --shadow-card: 0 1px 2px oklch(0.22 0.04 262 / 0.06), 0 12px 32px -18px oklch(0.22 0.06 262 / 0.28);
+  --shadow-lift: 0 2px 4px oklch(0.22 0.04 262 / 0.06), 0 24px 48px -20px oklch(0.3 0.12 262 / 0.38);
+  --shadow-glow: 0 10px 30px -10px oklch(0.7 0.19 48 / 0.6);
   --chart-1: oklch(0.45 0.19 262);
   --chart-2: oklch(0.7 0.19 48);
   --chart-3: oklch(0.6 0.12 230);
@@ -101,7 +112,8 @@
   }
   h1, h2, h3 {
     font-family: var(--font-display);
-    letter-spacing: 0;
+    font-weight: 400;
+    letter-spacing: 0.01em;
   }
   body { letter-spacing: 0; }
   button, a, input { -webkit-tap-highlight-color: transparent; }
@@ -110,6 +122,11 @@
 }
 
 .page-enter { animation: page-enter 400ms ease-out both; }
+.rise { animation: page-enter 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.moonrise { animation: moonrise 2.4s ease-out both; }
+@keyframes moonrise { from { opacity: 0; } to { opacity: 1; } }
+.tick { animation: tick 300ms ease-out; }
+@keyframes tick { from { transform: translateY(-30%); opacity: 0.3; } to { transform: translateY(0); opacity: 1; } }
 @keyframes page-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
@@ -121,6 +138,84 @@
 @utility shadow-card {
   box-shadow: var(--shadow-card);
 }
+@utility shadow-lift {
+  box-shadow: var(--shadow-lift);
+}
+@utility shadow-glow {
+  box-shadow: var(--shadow-glow);
+}
+@utility text-outline {
+  color: transparent;
+  -webkit-text-stroke: 1.5px currentColor;
+}
+/* Moonlit night: a blue wash from the top-left and a cool silver moon glow from the top-right. */
+@utility bg-moonlight {
+  background-color: var(--pitch);
+  background-image:
+    radial-gradient(55% 70% at 12% -10%, oklch(0.45 0.19 262 / 0.75), transparent 70%),
+    radial-gradient(38% 55% at 88% -8%, oklch(0.92 0.03 250 / 0.2), transparent 70%),
+    radial-gradient(12% 18% at 88% 6%, oklch(0.95 0.02 250 / 0.12), transparent 70%),
+    linear-gradient(180deg, var(--pitch) 0%, var(--pitch-deep) 100%);
+}
+/* Matchday ticket: semicircle notches punched out of the top and bottom edge at --notch. */
+@utility ticket {
+  --notch-r: 11px;
+  mask:
+    radial-gradient(circle var(--notch-r) at var(--notch, 88px) 0, transparent 98%, #000) top / 100% 51% no-repeat,
+    radial-gradient(circle var(--notch-r) at var(--notch, 88px) 100%, transparent 98%, #000) bottom / 100% 51% no-repeat;
+}
+@utility perforation {
+  background-image: linear-gradient(to bottom, var(--color-border) 50%, transparent 50%);
+  background-size: 2px 10px;
+  background-repeat: repeat-y;
+}
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+@utility bg-grass-stripes {
+  background-color: var(--grass);
+  background-image: repeating-linear-gradient(90deg, var(--grass) 0 10%, var(--grass-dark) 10% 20%);
+}
+
+/* Football interactions */
+.ball-bounce { animation: ball-bounce 0.55s cubic-bezier(0.5, 0, 0.5, 1) infinite alternate, ball-roll 1.6s linear infinite; }
+.ball-bounce-shadow { animation: ball-bounce-shadow 0.55s cubic-bezier(0.5, 0, 0.5, 1) infinite alternate; }
+/* Bounce and spin use separate translate/rotate properties so the ball keeps turning one way instead of rocking. */
+@keyframes ball-bounce { from { translate: 0 -40px; } to { translate: 0 0; } }
+@keyframes ball-roll { to { rotate: 360deg; } }
+@keyframes ball-bounce-shadow { from { transform: scale(0.5); opacity: 0.4; } to { transform: scale(1); opacity: 1; } }
+
+.goal-overlay { animation: goal-overlay 2.8s ease-out both; }
+.goal-net { animation: goal-net 2.8s ease-out both; }
+.goal-ball { animation: goal-ball 2.8s cubic-bezier(0.2, 0.7, 0.3, 1) both; }
+.goal-text { animation: goal-text 2.8s cubic-bezier(0.2, 1.4, 0.4, 1) both; }
+.goal-sub { animation: goal-sub 2.8s ease-out both; }
+.confetti { animation: confetti 1.5s cubic-bezier(0.1, 0.8, 0.3, 1) both; }
+@keyframes goal-overlay { 0% { opacity: 0; } 8%, 85% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes goal-net {
+  0%, 36% { transform: scale(1); }
+  42% { transform: scale(1.08, 0.94); }
+  50% { transform: scale(0.97, 1.03); }
+  58%, 100% { transform: scale(1); }
+}
+@keyframes goal-ball {
+  0% { transform: translate(-45vw, 55vh) scale(1.8) rotate(0deg); opacity: 0; }
+  6% { opacity: 1; }
+  38% { transform: translate(0, 0) scale(0.75) rotate(900deg); }
+  48% { transform: translate(0, 8px) scale(0.8) rotate(960deg); }
+  100% { transform: translate(0, 46px) scale(0.8) rotate(1000deg); }
+}
+@keyframes goal-text {
+  0%, 38% { transform: scale(2.6); opacity: 0; }
+  50%, 100% { transform: scale(1); opacity: 1; }
+}
+@keyframes goal-sub { 0%, 50% { transform: translateY(8px); opacity: 0; } 62%, 100% { transform: translateY(0); opacity: 1; } }
+@keyframes confetti {
+  0% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+  5% { opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)) rotate(var(--r)); opacity: 0; }
+}
+
 @utility stripe-accent {
   background-image: repeating-linear-gradient(-45deg, var(--color-accent) 0 8px, transparent 8px 16px);
 }

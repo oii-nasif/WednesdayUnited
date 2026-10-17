@@ -20,6 +20,8 @@ import { Plus, Pencil, Trash2, Search, CalendarDays, MapPin, Users } from "lucid
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { VenueManagement } from "@/components/VenueManagement";
 import { DeleteConfirmation, type DeleteTarget } from "@/components/DeleteConfirmation";
+import { PageHeader, Stat } from "@/components/PageHeader";
+import { CountUp } from "@/components/CountUp";
 
 export const Route = createFileRoute("/_authenticated/manage")({
   head: () => ({
@@ -102,17 +104,18 @@ function Manage() {
   if (!isStaff) return <div className="mx-auto max-w-xl px-4 py-20 text-center text-muted-foreground">Only moderators can manage matches.</div>;
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10 page-enter">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div><p className="mb-2 text-xs font-semibold uppercase text-primary">Wednesday United / Team operations</p><h1 className="text-5xl">Match management</h1></div>
-        <div className="flex gap-2">
-          {isAdmin && <Button variant="outline" onClick={() => setVenueOpen(true)}><Plus className="h-4 w-4" />Add venue</Button>}
-          <Button variant="accent" onClick={() => setForm({ ...empty })}><Plus />New match</Button>
-        </div>
-      </div>
-
-      <div className="my-8 grid grid-cols-3 gap-4 border-y py-5">
-        {[[CalendarDays, "Booked matches", (matches ?? []).filter((m) => m.status === "published").length], [Users, "Participants", (matches ?? []).reduce((n, m) => n + participantCount(m.registrations), 0)], [MapPin, "Venues", locations?.length ?? 0]].map(([Icon, label, value]) => { const StatIcon = Icon as typeof CalendarDays; return <div key={String(label)}><StatIcon className="mb-2 size-4 text-primary" /><p className="font-display text-4xl">{String(value)}</p><p className="text-xs text-muted-foreground">{String(label)}</p></div>; })}
+    <div className="page-enter">
+      <PageHeader kicker="Team operations" title={<>Match <span className="text-accent">management</span></>} actions={<>
+        {isAdmin && <Button variant="outline" size="lg" className="border-white/25 bg-white/5 text-pitch-foreground hover:border-white/50 hover:bg-white/10 hover:text-pitch-foreground" onClick={() => setVenueOpen(true)}><Plus className="h-4 w-4" />Add venue</Button>}
+        <Button variant="accent" size="lg" onClick={() => setForm({ ...empty })}><Plus />New match</Button>
+      </>}>
+        Schedule fixtures, publish them to the squad and keep the team sheet tidy.
+      </PageHeader>
+    <div className="mx-auto max-w-6xl px-4 pb-14">
+      <div className="relative z-10 -mt-8 mb-10 grid grid-cols-3 divide-x rounded-2xl border bg-card px-1 py-5 shadow-lift sm:p-6">
+        <div className="px-3 sm:px-6"><Stat icon={<CalendarDays />} label="Booked matches" value={<CountUp value={(matches ?? []).filter((m) => m.status === "published").length} />} /></div>
+        <div className="px-3 sm:px-6"><Stat icon={<Users />} tone="accent" label="Participants" value={<CountUp value={(matches ?? []).reduce((n, m) => n + participantCount(m.registrations), 0)} />} /></div>
+        <div className="px-3 sm:px-6"><Stat icon={<MapPin />} label="Venues" value={<CountUp value={locations?.length ?? 0} />} /></div>
       </div>
       <Tabs defaultValue="matches">
         <TabsList><TabsTrigger value="matches">Matches</TabsTrigger>{isAdmin && <TabsTrigger value="venues">Venues</TabsTrigger>}</TabsList>
@@ -205,6 +208,7 @@ function Manage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </div>
     </div>
   );
 }

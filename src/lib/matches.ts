@@ -72,3 +72,9 @@ export const fmtTime = (s: string) =>
 export function registrationOpen(m: { status: string; registration_deadline: string | null }) {
   return m.status === "published" && (!m.registration_deadline || new Date(m.registration_deadline) > new Date());
 }
+
+export function spotsLabel(total: number, limit: number | null) {
+  if (!limit) return null;
+  const left = limit - total;
+  return left <= 0 ? "Full" : `${left} spot${left === 1 ? "" : "s"} left`;
+}

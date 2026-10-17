@@ -2,22 +2,28 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { CalendarDays, Clock, MapPin, Users, Wallet } from "lucide-react";
+import { ArrowLeft, CalendarDays, Clock, MapPin, Users, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { matchQuery, fmtDate, fmtTime, participantCount, guestCount, registrationOpen } from "@/lib/matches";
+import { matchQuery, fmtDate, fmtTime, participantCount, guestCount, registrationOpen, spotsLabel } from "@/lib/matches";
 import { statusVariant, statusLabel } from "@/components/MatchCard";
+import { PitchLines } from "@/components/PitchLines";
+import { Countdown } from "@/components/Countdown";
+import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PaymentSubmission } from "@/components/PaymentSubmission";
 import { paymentsQuery } from "@/lib/payments";
 import { money, prepaymentTotal } from "@/lib/payment-rules";
 import { VenueMap } from "@/components/VenueMap";
+import { BallLoader, Football } from "@/components/Football";
+import { GoalCelebration } from "@/components/GoalCelebration";
+import { GuestStepper } from "@/components/GuestStepper";
+import { PitchLineup } from "@/components/PitchLineup";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/matches/$id")({
   head: () => ({
@@ -41,6 +47,7 @@ function MatchDetail() {
   const qc = useQueryClient();
   const { data: m, isLoading } = useQuery(matchQuery(id));
   const [guests, setGuests] = useState(0);
+  const [celebrating, setCelebrating] = useState(false);
   const { data: payments } = useQuery({ ...paymentsQuery(user?.id ?? ""), enabled: !!user });
 
   const refresh = () => {
@@ -56,7 +63,7 @@ function MatchDetail() {
       const { error } = await supabase.from("registrations").insert({ match_id: id, user_id: user.id, guest_count: guests });
       if (error) throw error;
     },
-    onSuccess: () => { toast.success("You're in!"); refresh(); },
+    onSuccess: () => { setCelebrating(true); toast.success("You're in!"); refresh(); },
     onError: (e) => toast.error(errMsg(e).includes("duplicate") ? "You're already registered." : errMsg(e)),
   });
   const updateGuests = useMutation({
@@ -76,74 +83,107 @@ function MatchDetail() {
     onError: (e) => toast.error(errMsg(e)),
   });
 
-  if (isLoading) return <div className="mx-auto max-w-5xl px-4 py-12"><Skeleton className="h-80 rounded-xl" /></div>;
+  if (isLoading) return <div className="mx-auto max-w-5xl px-4 py-12"><BallLoader label="Warming up" /></div>;
   if (!m) return <div className="mx-auto max-w-5xl px-4 py-20 text-center text-muted-foreground">Match not found.</div>;
 
   const open = registrationOpen(m);
   const total = participantCount(m.registrations);
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10 page-enter">
-      <Link to="/" className="text-sm text-primary hover:text-accent">← All matches</Link>
-      <div className="mt-4 border-l-4 border-accent bg-pitch p-5 text-pitch-foreground sm:p-8">
-        <div className="flex flex-wrap items-center gap-3">
-          <Badge variant={statusVariant[m.status]} >{statusLabel[m.status]}</Badge>
-          {m.prepayment_required && <Badge variant="secondary">Prepayment required</Badge>}
-        </div>
-        <h1 className="mt-3 text-5xl leading-none sm:text-6xl">{m.title}</h1>
-        <div className="mt-6 grid gap-3 text-pitch-foreground/85 sm:grid-cols-2">
-          <span className="flex items-center gap-2"><CalendarDays className="h-5 w-5 text-accent" />{fmtDate(m.starts_at)}</span>
-          <span className="flex items-center gap-2"><Clock className="h-5 w-5 text-accent" />{fmtTime(m.starts_at)}</span>
-          <span className="flex items-center gap-2"><MapPin className="h-5 w-5 text-accent" />
-            {m.location ? (
-              m.location.maps_url ? <a href={m.location.maps_url} target="_blank" rel="noreferrer" className="underline">{m.location.name}, {m.location.area}</a>
-                : `${m.location.name}${m.location.area ? `, ${m.location.area}` : ""}`
-            ) : "TBA"}
-          </span>
-          <span className="flex items-center gap-2"><Users className="h-5 w-5 text-accent" />
-            {total}{m.player_limit ? ` / ${m.player_limit}` : ""} participants ({m.registrations.length} players, {guestCount(m.registrations)} guests)
-          </span>
-        </div>
-        {m.description && <p className="mt-6 max-w-2xl text-pitch-foreground/80">{m.description}</p>}
-        {m.registration_deadline && (
-          <p className="mt-3 text-sm text-pitch-foreground/60">Registration closes {fmtDate(m.registration_deadline)}, {fmtTime(m.registration_deadline)}</p>
-        )}
-      </div>
-
-      {m.location && <VenueMap venue={m.location} />}
-
-      <div className="mt-8 grid gap-8 md:grid-cols-[1fr_320px]">
-        <section>
-          <h2 className="mb-4 text-3xl">Who's playing</h2>
-          {m.registrations.length === 0 ? (
-            <p className="rounded-xl border border-dashed p-8 text-center text-muted-foreground">No one yet — be the first!</p>
-          ) : (
-            <ul className="divide-y rounded-xl border bg-card">
-              {m.registrations.map((r) => (
-                <li key={r.id} className="flex items-center gap-3 p-3">
-                  <Avatar className="h-9 w-9">
-                    <AvatarImage src={r.profile?.avatar_url ?? undefined} />
-                    <AvatarFallback>{(r.profile?.full_name ?? "?").slice(0, 1)}</AvatarFallback>
-                  </Avatar>
-                  <span className="font-medium">{r.profile?.full_name ?? "Player"}</span>
-                  {r.guest_count > 0 && <Badge variant="secondary">+{r.guest_count} guest{r.guest_count > 1 ? "s" : ""}</Badge>}
-                  {r.added_by_staff && <span className="text-xs text-muted-foreground">added by moderator</span>}
-                  {isStaff && (
-                    <div className="ml-auto flex items-center gap-2">
-                      <Input type="number" min={0} max={20} defaultValue={r.guest_count} className="h-8 w-16"
-                        onBlur={(e) => { const n = Number(e.target.value); if (n !== r.guest_count) updateGuests.mutate({ regId: r.id, n }); }} />
-                      <Button size="sm" variant="ghost" onClick={() => leave.mutate(r.id)}>Remove</Button>
-                    </div>
-                  )}
-                </li>
-              ))}
-            </ul>
+    <div className="page-enter">
+      {celebrating && <GoalCelebration subtitle="You're in. See you on the pitch." onDone={() => setCelebrating(false)} />}
+      <section className="bg-moonlight relative overflow-hidden text-pitch-foreground">
+        <PitchLines className="text-white/[0.06]" />
+        <div className="relative mx-auto max-w-6xl px-4 pb-10 pt-8 md:pb-14">
+          <Link to="/" className="inline-flex items-center gap-1.5 text-sm font-semibold text-pitch-foreground/70 transition-colors hover:text-accent"><ArrowLeft className="size-4" />All matches</Link>
+          <div className="mt-6 grid items-end gap-8 lg:grid-cols-[1fr_auto]">
+            <div className="rise min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant={statusVariant[m.status]}>{statusLabel[m.status]}</Badge>
+                {m.prepayment_required && <Badge variant="outline" className="border-white/25 text-pitch-foreground">Prepayment · {money(Number(m.prepayment_amount ?? 0))}</Badge>}
+                {spotsLabel(total, m.player_limit) && m.status === "published" && <Badge variant="outline" className="border-accent/60 text-accent">{spotsLabel(total, m.player_limit)}</Badge>}
+              </div>
+              <h1 className="mt-4 break-words text-6xl leading-[0.88] md:text-8xl">{m.title}</h1>
+              {m.description && <p className="mt-4 max-w-2xl text-pitch-foreground/75">{m.description}</p>}
+            </div>
+            {m.status === "published" && (
+              <div className="rise [animation-delay:120ms]">
+                <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-pitch-foreground/60">Kick-off in</p>
+                <Countdown target={m.starts_at} />
+              </div>
+            )}
+          </div>
+          <dl className="rise mt-10 grid grid-cols-2 gap-px overflow-hidden rounded-2xl bg-white/10 ring-1 ring-white/10 [animation-delay:200ms] lg:grid-cols-4">
+            {[
+              { icon: CalendarDays, label: "Date", value: fmtDate(m.starts_at) },
+              { icon: Clock, label: "Kick-off", value: fmtTime(m.starts_at) },
+              { icon: MapPin, label: "Venue", value: m.location ? (m.location.maps_url ? <a href={m.location.maps_url} target="_blank" rel="noreferrer" className="underline decoration-accent decoration-2 underline-offset-4 hover:text-accent">{m.location.name}</a> : m.location.name) : "TBA", sub: m.location?.area },
+              { icon: Users, label: "Squad", value: <>{total}{m.player_limit ? <span className="text-pitch-foreground/50">/{m.player_limit}</span> : ""}</>, sub: `${m.registrations.length} players · ${guestCount(m.registrations)} guests` },
+            ].map(({ icon: Icon, label, value, sub }) => (
+              <div key={label} className="min-w-0 bg-pitch-deep/70 p-4 backdrop-blur sm:p-5">
+                <dt className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-pitch-foreground/55"><Icon className="size-3.5 text-accent" />{label}</dt>
+                <dd className="mt-1.5 truncate font-display text-3xl leading-none">{value}</dd>
+                {sub && <dd className="mt-1 truncate text-xs text-pitch-foreground/55">{sub}</dd>}
+              </div>
+            ))}
+          </dl>
+          {m.registration_deadline && (
+            <p className="mt-4 text-sm text-pitch-foreground/60">Registration closes {fmtDate(m.registration_deadline)}, {fmtTime(m.registration_deadline)}</p>
           )}
+        </div>
+        <div className="h-1 bg-gradient-to-r from-accent via-accent to-primary" />
+      </section>
+
+      <div className="mx-auto max-w-6xl px-4 py-10">
+      <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
+        <section>
+          <Tabs defaultValue="pitch">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-accent">Team sheet</p>
+                <h2 className="mt-1 text-4xl leading-none md:text-5xl">Who's playing</h2>
+              </div>
+              <TabsList><TabsTrigger value="pitch">Pitch</TabsTrigger><TabsTrigger value="list">List</TabsTrigger></TabsList>
+            </div>
+            <TabsContent value="pitch"><PitchLineup players={m.registrations} currentUserId={user?.id} /></TabsContent>
+            <TabsContent value="list">
+            {m.registrations.length === 0 ? (
+              <p className="rounded-2xl border border-dashed bg-card p-8 text-center text-muted-foreground">No one yet — be the first!</p>
+            ) : (
+              <ul className="divide-y overflow-hidden rounded-2xl border bg-card shadow-card">
+                {m.registrations.map((r, i) => (
+                  <li key={r.id} className={cn("flex items-center gap-3 p-3 transition-colors hover:bg-primary-soft/50", r.user_id === user?.id && "bg-accent-soft")}>
+                    <span className="w-6 text-center font-display text-xl text-muted-foreground tabular">{i + 1}</span>
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage src={r.profile?.avatar_url ?? undefined} />
+                      <AvatarFallback>{(r.profile?.full_name ?? "?").slice(0, 1)}</AvatarFallback>
+                    </Avatar>
+                    <span className="font-medium">{r.profile?.full_name ?? "Player"}</span>
+                    {r.guest_count > 0 && <Badge variant="secondary">+{r.guest_count} guest{r.guest_count > 1 ? "s" : ""}</Badge>}
+                    {r.added_by_staff && <span className="text-xs text-muted-foreground">added by moderator</span>}
+                    {isStaff && (
+                      <div className="ml-auto flex items-center gap-2">
+                        <Input type="number" min={0} max={20} defaultValue={r.guest_count} className="h-8 w-16"
+                          onBlur={(e) => { const n = Number(e.target.value); if (n !== r.guest_count) updateGuests.mutate({ regId: r.id, n }); }} />
+                        <Button size="sm" variant="ghost" onClick={() => leave.mutate(r.id)}>Remove</Button>
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+            </TabsContent>
+          </Tabs>
           {isStaff && <StaffAdd matchId={id} existing={m.registrations.map((r) => r.user_id)} onDone={refresh} />}
         </section>
 
-        <aside className="h-fit rounded-xl border bg-card p-5 shadow-card">
-          <h3 className="text-2xl">Your spot</h3>
+        <aside className="h-fit overflow-hidden rounded-2xl border bg-card shadow-lift lg:sticky lg:top-24">
+          <div className="bg-moonlight relative overflow-hidden px-5 py-4 text-pitch-foreground">
+            <PitchLines className="text-white/[0.08]" />
+            <p className="relative text-[11px] font-bold uppercase tracking-[0.2em] text-accent">Matchday pass</p>
+            <h3 className="relative text-3xl leading-none">{mine ? "You're on the team sheet" : "Your spot"}</h3>
+          </div>
+          <div className="p-5">
           {authLoading ? null : !user ? (
             <div className="mt-3 space-y-3">
               <p className="text-sm text-muted-foreground">Sign in to join this match.</p>
@@ -151,15 +191,10 @@ function MatchDetail() {
             </div>
           ) : mine ? (
             <div className="mt-3 space-y-3">
-              <p className="text-sm"><span className="font-semibold text-success">You're registered</span>{mine.guest_count ? ` with ${mine.guest_count} guest(s)` : ""}.</p>
+              <p className="flex items-center gap-3 rounded-xl bg-success/10 p-3 text-sm"><Football className="size-8 shrink-0" /><span><span className="font-bold text-success">You're registered</span>{mine.guest_count ? ` with ${mine.guest_count} guest${mine.guest_count > 1 ? "s" : ""}` : ""}. See you on the pitch.</span></p>
               {open && (
                 <>
-                  <Label htmlFor="g2">Guests</Label>
-                  <div className="flex gap-2">
-                    <Input id="g2" type="number" min={0} max={20} defaultValue={mine.guest_count}
-                      onChange={(e) => setGuests(Number(e.target.value))} />
-                    <Button variant="secondary" onClick={() => updateGuests.mutate({ regId: mine.id, n: guests })}>Save</Button>
-                  </div>
+                  <MyGuests key={mine.guest_count} current={mine.guest_count} saving={updateGuests.isPending} onSave={(n) => updateGuests.mutate({ regId: mine.id, n })} />
                   <Button variant="outline" className="w-full" onClick={() => leave.mutate(mine.id)}>Leave match</Button>
                 </>
               )}
@@ -171,8 +206,8 @@ function MatchDetail() {
             </div>
           ) : open ? (
             <div className="mt-3 space-y-3">
-              <Label htmlFor="g">Bringing guests?</Label>
-              <Input id="g" type="number" min={0} max={20} value={guests} onChange={(e) => setGuests(Math.max(0, Number(e.target.value)))} />
+              <p className="text-sm font-medium">Bringing guests?</p>
+              <GuestStepper value={guests} onChange={setGuests} label="Bringing guests?" />
               <p className="text-xs text-muted-foreground">Guest costs are charged to you.</p>
               {m.prepayment_required && (
                 <p className="flex gap-2 rounded-md bg-secondary p-3 text-xs text-secondary-foreground">
@@ -181,13 +216,30 @@ function MatchDetail() {
                 </p>
               )}
               {m.prepayment_required && user && <PaymentSubmission canSubmit={false} key={`joining-${guests}`} matchId={id} userId={user.id} requiredAmount={prepaymentTotal(Number(m.prepayment_amount ?? 0), guests)} />}
-              <Button variant="accent" className="w-full" disabled={join.isPending} onClick={() => join.mutate()}>Join match</Button>
+              <Button variant="accent" size="lg" className="group w-full" disabled={join.isPending} onClick={() => join.mutate()}>
+                <Football className={join.isPending ? "size-5 animate-spin" : "size-5 transition-transform duration-500 group-hover:-translate-y-1 group-hover:rotate-[360deg]"} />
+                {join.isPending ? "Joining…" : "Join match"}
+              </Button>
             </div>
           ) : (
-            <p className="mt-3 text-sm text-muted-foreground">Registration is closed.</p>
+            <p className="text-sm text-muted-foreground">Registration is closed.</p>
           )}
+          </div>
         </aside>
       </div>
+      {m.location && <VenueMap venue={m.location} />}
+      </div>
+    </div>
+  );
+}
+
+function MyGuests({ current, saving, onSave }: { current: number; saving: boolean; onSave: (n: number) => void }) {
+  const [n, setN] = useState(current);
+  return (
+    <div className="space-y-3">
+      <p className="text-sm font-medium">Guests</p>
+      <GuestStepper value={n} onChange={setN} />
+      {n !== current && <Button variant="secondary" className="w-full animate-in fade-in" disabled={saving} onClick={() => onSave(n)}>Save guests</Button>}
     </div>
   );
 }
