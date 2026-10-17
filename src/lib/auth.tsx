@@ -26,10 +26,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let generation = 0;
     const load = async (u: User | null) => {
+      const request = ++generation;
       setUser(u);
+      setRoles([]);
+      setLoading(true);
       if (u) {
         const { data } = await supabase.from("user_roles").select("role").eq("user_id", u.id);
+        if (request !== generation) return;
         setRoles((data ?? []).map((r) => r.role as Role));
       } else {
         setRoles([]);
@@ -40,8 +45,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setTimeout(() => load(session?.user ?? null), 0);
     });
     supabase.auth.getSession().then(({ data }) => load(data.session?.user ?? null));
-    return () => sub.subscription.unsubscribe();
+    return () => { generation++; sub.subscription.unsubscribe(); };
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    let active = true;
+    const refresh = async () => {
+      const { data, error } = await supabase.from("user_roles").select("role").eq("user_id", user.id);
+      if (active && !error) setRoles((data ?? []).map((r) => r.role));
+    };
+    const channel = supabase.channel(`roles-${user.id}`).on("postgres_changes", { event: "*", schema: "public", table: "user_roles", filter: `user_id=eq.${user.id}` }, refresh).subscribe();
+    const timer = setInterval(refresh, 30000);
+    return () => { active = false; clearInterval(timer); void supabase.removeChannel(channel); };
+  }, [user?.id]);
 
   const isAdmin = roles.includes("super_admin");
   const isStaff = isAdmin || roles.includes("moderator");
