@@ -1,5 +1,7 @@
 # Wednesday United roadmap
 
+- [ ] Add staff user approvals, super-admin moderator management, and private in-app notifications
+
 - [x] Show player approval status and explain closed registration deadlines
 
 - [x] Add confirmed match and venue deletion without removing linked payment history
