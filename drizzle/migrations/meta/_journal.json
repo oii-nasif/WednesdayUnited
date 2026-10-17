@@ -29,6 +29,13 @@
       "when": 1792248089758,
       "tag": "0003_squad_approval",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792261170979,
+      "tag": "0004_user_management_notifications",
+      "breakpoints": true
     }
   ]
 }
