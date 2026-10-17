@@ -25,15 +25,15 @@ export const Route = createFileRoute("/_authenticated/users")({
 
 type Action = { id: string; name: string; type: "approval"; value: "approved" | "rejected" } | { id: string; name: string; type: "role"; value: "player" | "moderator" };
 function UsersPage() {
-  const { isStaff, roles, loading } = useAuth();
+  const { user, isStaff, roles, loading } = useAuth();
   const qc = useQueryClient();
-  const { data = [], isPending, isError, refetch } = useQuery({ ...usersQuery, enabled: isStaff });
+  const { data = [], isPending, isError, refetch } = useQuery({ ...usersQuery(user?.id ?? ""), enabled: isStaff });
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [action, setAction] = useState<Action | null>(null);
   const update = useMutation({
     mutationFn: async (a: Action) => a.type === "approval" ? decideApproval(a.id, a.value) : setPlayerRole(a.id, a.value),
-    onSuccess: () => { toast.success("User updated"); setAction(null); qc.invalidateQueries({ queryKey: ["staff-users"] }); qc.invalidateQueries({ queryKey: ["profiles"] }); qc.invalidateQueries({ queryKey: ["approval"] }); },
+    onSuccess: () => { toast.success("User updated"); setAction(null); qc.invalidateQueries({ queryKey: ["staff-users"] }); qc.invalidateQueries({ queryKey: ["profiles"] }); qc.invalidateQueries({ queryKey: ["player-approval"] }); },
     onError: (e: { message?: string }) => toast.error(e.message ?? "Could not update user"),
   });
   if (loading) return null;

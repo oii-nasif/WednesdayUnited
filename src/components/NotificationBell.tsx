@@ -26,7 +26,7 @@ export function NotificationBell() {
     const channel = supabase.channel(`notifications-${user.id}`).on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` }, () => {
       qc.invalidateQueries({ queryKey: ["notifications", user.id] });
       qc.invalidateQueries({ queryKey: ["staff-users"] });
-      qc.invalidateQueries({ queryKey: ["approval", user.id] });
+      qc.invalidateQueries({ queryKey: ["player-approval", user.id] });
     }).subscribe();
     return () => { void supabase.removeChannel(channel); };
   }, [user?.id, qc]);
