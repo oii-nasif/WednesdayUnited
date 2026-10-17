@@ -1,5 +1,10 @@
 # Wednesday United roadmap
 
+- [x] Add staff user approvals, super-admin moderator management, and private in-app notifications
+- [x] Transfer super-admin access to nasif.ishtiaque.islam@gmail.com and make nasif.bs1062@gmail.com a player
+
+- [x] Show player approval status and explain closed registration deadlines
+
 - [x] Add confirmed match and venue deletion without removing linked payment history
 - [x] Refresh the overall design and add interactive match browsing and management
 - [x] Verify deletion flows and refreshed layouts

@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import { ArrowLeft, CalendarDays, Clock, MapPin, Users, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { useApproval } from "@/lib/approval";
+import { canJoinWithApproval } from "@/lib/approval-rules";
 import { matchQuery, fmtDate, fmtTime, participantCount, guestCount, registrationOpen, spotsLabel } from "@/lib/matches";
 import { statusVariant, statusLabel } from "@/components/MatchCard";
 import { PitchLines } from "@/components/PitchLines";
@@ -23,8 +25,6 @@ import { BallLoader, Football } from "@/components/Football";
 import { GoalCelebration } from "@/components/GoalCelebration";
 import { GuestStepper } from "@/components/GuestStepper";
 import { PitchLineup } from "@/components/PitchLineup";
-import { SquadStatusNotice } from "@/components/SquadStatusNotice";
-import { joinErrorMessage } from "@/lib/approval";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/matches/$id")({
@@ -45,7 +45,8 @@ const errMsg = (e: unknown) => (e instanceof Error ? e.message : (e as { message
 
 function MatchDetail() {
   const { id } = Route.useParams();
-  const { user, isStaff, canJoin, approval, loading: authLoading } = useAuth();
+  const { user, isStaff, loading: authLoading } = useAuth();
+  const approval = useApproval();
   const qc = useQueryClient();
   const { data: m, isLoading } = useQuery(matchQuery(id));
   const [guests, setGuests] = useState(0);
@@ -62,11 +63,12 @@ function MatchDetail() {
   const join = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error("Sign in to join this match");
+      if (!canJoinWithApproval(approval.data ?? null, isStaff)) throw new Error("Your account needs squad approval before joining matches.");
       const { error } = await supabase.from("registrations").insert({ match_id: id, user_id: user.id, guest_count: guests });
       if (error) throw error;
     },
     onSuccess: () => { setCelebrating(true); toast.success("You're in!"); refresh(); },
-    onError: (e) => toast.error(joinErrorMessage((e as { code?: string }).code, errMsg(e))),
+    onError: (e) => toast.error(errMsg(e).includes("duplicate") ? "You're already registered." : errMsg(e)),
   });
   const updateGuests = useMutation({
     mutationFn: async ({ regId, n }: { regId: string; n: number }) => {
@@ -191,8 +193,6 @@ function MatchDetail() {
               <p className="text-sm text-muted-foreground">Sign in to join this match.</p>
               <Button variant="accent" className="w-full" asChild><Link to="/auth">Sign in to join</Link></Button>
             </div>
-          ) : !mine && !canJoin && open ? (
-            <SquadStatusNotice status={approval} compact />
           ) : mine ? (
             <div className="mt-3 space-y-3">
               <p className="flex items-center gap-3 rounded-xl bg-success/10 p-3 text-sm"><Football className="size-8 shrink-0" /><span><span className="font-bold text-success">You're registered</span>{mine.guest_count ? ` with ${mine.guest_count} guest${mine.guest_count > 1 ? "s" : ""}` : ""}. See you on the pitch.</span></p>
@@ -207,6 +207,13 @@ function MatchDetail() {
                 <PaymentSubmission key={`${id}-${mine.guest_count}`} matchId={id} userId={user.id} requiredAmount={prepaymentTotal(Number(m.prepayment_amount ?? 0), mine.guest_count)} />
                 <Button variant="link" className="px-0" asChild><Link to="/payments">Payment history</Link></Button>
               </>}
+            </div>
+          ) : !isStaff && !canJoinWithApproval(approval.data ?? null, false) ? (
+            <div className="space-y-3 text-sm">
+              <p className="font-semibold">{approval.isPending ? "Checking squad approval…" : approval.isError ? "Unable to check squad approval." : approval.data === "rejected" ? "Your squad approval was declined." : "Awaiting squad approval."}</p>
+              <p className="text-muted-foreground">A moderator must approve your account before you can join matches.</p>
+              {approval.isError && <Button variant="outline" onClick={() => approval.refetch()}>Retry</Button>}
+              {!open && <p className="text-muted-foreground">{m.status === "published" && m.registration_deadline ? `Registration closed on ${fmtDate(m.registration_deadline)}, ${fmtTime(m.registration_deadline)}.` : "Registration is closed for this match."}</p>}
             </div>
           ) : open ? (
             <div className="mt-3 space-y-3">
@@ -226,7 +233,7 @@ function MatchDetail() {
               </Button>
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">Registration is closed.</p>
+            <p className="text-sm text-muted-foreground">{m.status === "published" && m.registration_deadline ? `Registration closed on ${fmtDate(m.registration_deadline)}, ${fmtTime(m.registration_deadline)}.` : "Registration is closed for this match."}</p>
           )}
           </div>
         </aside>

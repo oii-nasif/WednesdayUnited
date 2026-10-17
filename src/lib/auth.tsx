@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchApprovalStatus, type ApprovalStatus } from "@/lib/approval";
 
 export type Role = "player" | "moderator" | "super_admin";
 
@@ -11,9 +10,6 @@ type AuthState = {
   loading: boolean;
   isStaff: boolean;
   isAdmin: boolean;
-  approval: ApprovalStatus | null;
-  // Staff are always allowed; players need squad approval before they can join matches.
-  canJoin: boolean;
 };
 
 const AuthContext = createContext<AuthState>({
@@ -22,26 +18,26 @@ const AuthContext = createContext<AuthState>({
   loading: true,
   isStaff: false,
   isAdmin: false,
-  approval: null,
-  canJoin: false,
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [roles, setRoles] = useState<Role[]>([]);
-  const [approval, setApproval] = useState<ApprovalStatus | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let generation = 0;
     const load = async (u: User | null) => {
+      const request = ++generation;
       setUser(u);
+      setRoles([]);
+      setLoading(true);
       if (u) {
-        const [{ data }, status] = await Promise.all([supabase.from("user_roles").select("role").eq("user_id", u.id), fetchApprovalStatus(u.id)]);
+        const { data } = await supabase.from("user_roles").select("role").eq("user_id", u.id);
+        if (request !== generation) return;
         setRoles((data ?? []).map((r) => r.role as Role));
-        setApproval(status);
       } else {
         setRoles([]);
-        setApproval(null);
       }
       setLoading(false);
     };
@@ -49,14 +45,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setTimeout(() => load(session?.user ?? null), 0);
     });
     supabase.auth.getSession().then(({ data }) => load(data.session?.user ?? null));
-    return () => sub.subscription.unsubscribe();
+    return () => { generation++; sub.subscription.unsubscribe(); };
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    let active = true;
+    const refresh = async () => {
+      const { data, error } = await supabase.from("user_roles").select("role").eq("user_id", user.id);
+      if (active && !error) setRoles((data ?? []).map((r) => r.role));
+    };
+    const channel = supabase.channel(`roles-${user.id}`).on("postgres_changes", { event: "*", schema: "public", table: "user_roles", filter: `user_id=eq.${user.id}` }, refresh).subscribe();
+    const timer = setInterval(refresh, 30000);
+    return () => { active = false; clearInterval(timer); void supabase.removeChannel(channel); };
+  }, [user?.id]);
 
   const isAdmin = roles.includes("super_admin");
   const isStaff = isAdmin || roles.includes("moderator");
-  const canJoin = !!user && (isStaff || approval === "approved");
   return (
-    <AuthContext.Provider value={{ user, roles, loading, isStaff, isAdmin, approval, canJoin }}>
+    <AuthContext.Provider value={{ user, roles, loading, isStaff, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );
