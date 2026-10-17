@@ -116,7 +116,7 @@ function Manage() {
       </PageHeader>
     <div className="mx-auto max-w-6xl px-4 pb-14">
       <div className="relative z-10 -mt-8 mb-10 grid grid-cols-3 divide-x rounded-2xl border bg-card px-1 py-5 shadow-lift sm:p-6">
-        <div className="px-3 sm:px-6"><Stat icon={<CalendarDays />} label="Booked matches" value={<CountUp value={(matches ?? []).filter((m) => m.status === "published").length} />} /></div>
+        <div className="px-3 sm:px-6"><Stat icon={<CalendarDays />} label="Game On matches" value={<CountUp value={(matches ?? []).filter((m) => m.status === "published").length} />} /></div>
         <div className="px-3 sm:px-6"><Stat icon={<Users />} tone="accent" label="Participants" value={<CountUp value={(matches ?? []).reduce((n, m) => n + participantCount(m.registrations), 0)} />} /></div>
         <div className="px-3 sm:px-6"><Stat icon={<MapPin />} label="Venues" value={<CountUp value={locations?.length ?? 0} />} /></div>
       </div>
