@@ -14,6 +14,7 @@ import { Countdown } from "@/components/Countdown";
 import { CountUp } from "@/components/CountUp";
 import { Football } from "@/components/Football";
 import { PitchLines } from "@/components/PitchLines";
+import { Moon } from "@/components/Moon";
 import { Kicker, SectionHeading, Stat } from "@/components/PageHeader";
 import { cn } from "@/lib/utils";
 
@@ -54,7 +55,7 @@ function Index() {
         <img src={hero} alt="" width={1600} height={912} className="absolute inset-0 h-full w-full object-cover opacity-30 mix-blend-luminosity" />
         <div className="absolute inset-0 bg-gradient-to-r from-pitch-deep/90 via-pitch/60 to-pitch/20" />
         <PitchLines className="moonrise text-white/[0.07]" />
-        <span aria-hidden="true" className="moonrise pointer-events-none absolute right-[22%] top-16 size-16 md:size-20 rounded-full bg-[radial-gradient(circle_at_38%_36%,#f7f8fc,#d9deeb_55%,#aab3cb)] opacity-90 shadow-[0_0_60px_18px_oklch(0.92_0.03_250/0.28),0_0_160px_60px_oklch(0.8_0.06_255/0.18)]" />
+        <Moon className="right-[20%] top-12 size-24 md:size-32" />
         <p aria-hidden="true" className="text-outline pointer-events-none absolute -bottom-6 left-1/2 -translate-x-1/2 select-none whitespace-nowrap font-display text-[22vw] leading-none text-white/[0.05]">Wednesday</p>
 
         <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 pb-24 pt-14 md:pb-28 md:pt-20 lg:grid-cols-[1.15fr_1fr]">

@@ -23,6 +23,8 @@ import { BallLoader, Football } from "@/components/Football";
 import { GoalCelebration } from "@/components/GoalCelebration";
 import { GuestStepper } from "@/components/GuestStepper";
 import { PitchLineup } from "@/components/PitchLineup";
+import { SquadStatusNotice } from "@/components/SquadStatusNotice";
+import { joinErrorMessage } from "@/lib/approval";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/matches/$id")({
@@ -43,7 +45,7 @@ const errMsg = (e: unknown) => (e instanceof Error ? e.message : (e as { message
 
 function MatchDetail() {
   const { id } = Route.useParams();
-  const { user, isStaff, loading: authLoading } = useAuth();
+  const { user, isStaff, canJoin, approval, loading: authLoading } = useAuth();
   const qc = useQueryClient();
   const { data: m, isLoading } = useQuery(matchQuery(id));
   const [guests, setGuests] = useState(0);
@@ -64,7 +66,7 @@ function MatchDetail() {
       if (error) throw error;
     },
     onSuccess: () => { setCelebrating(true); toast.success("You're in!"); refresh(); },
-    onError: (e) => toast.error(errMsg(e).includes("duplicate") ? "You're already registered." : errMsg(e)),
+    onError: (e) => toast.error(joinErrorMessage((e as { code?: string }).code, errMsg(e))),
   });
   const updateGuests = useMutation({
     mutationFn: async ({ regId, n }: { regId: string; n: number }) => {
@@ -189,6 +191,8 @@ function MatchDetail() {
               <p className="text-sm text-muted-foreground">Sign in to join this match.</p>
               <Button variant="accent" className="w-full" asChild><Link to="/auth">Sign in to join</Link></Button>
             </div>
+          ) : !mine && !canJoin && open ? (
+            <SquadStatusNotice status={approval} compact />
           ) : mine ? (
             <div className="mt-3 space-y-3">
               <p className="flex items-center gap-3 rounded-xl bg-success/10 p-3 text-sm"><Football className="size-8 shrink-0" /><span><span className="font-bold text-success">You're registered</span>{mine.guest_count ? ` with ${mine.guest_count} guest${mine.guest_count > 1 ? "s" : ""}` : ""}. See you on the pitch.</span></p>
