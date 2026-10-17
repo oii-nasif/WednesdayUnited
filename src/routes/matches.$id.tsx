@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import { ArrowLeft, CalendarDays, Clock, MapPin, Users, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { useApproval } from "@/lib/approval";
+import { canJoinWithApproval } from "@/lib/approval-rules";
 import { matchQuery, fmtDate, fmtTime, participantCount, guestCount, registrationOpen, spotsLabel } from "@/lib/matches";
 import { statusVariant, statusLabel } from "@/components/MatchCard";
 import { PitchLines } from "@/components/PitchLines";
@@ -44,6 +46,7 @@ const errMsg = (e: unknown) => (e instanceof Error ? e.message : (e as { message
 function MatchDetail() {
   const { id } = Route.useParams();
   const { user, isStaff, loading: authLoading } = useAuth();
+  const approval = useApproval();
   const qc = useQueryClient();
   const { data: m, isLoading } = useQuery(matchQuery(id));
   const [guests, setGuests] = useState(0);
@@ -60,6 +63,7 @@ function MatchDetail() {
   const join = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error("Sign in to join this match");
+      if (!canJoinWithApproval(approval.data ?? null, isStaff)) throw new Error("Your account needs squad approval before joining matches.");
       const { error } = await supabase.from("registrations").insert({ match_id: id, user_id: user.id, guest_count: guests });
       if (error) throw error;
     },
@@ -184,6 +188,7 @@ function MatchDetail() {
             <h3 className="relative text-3xl leading-none">{mine ? "You're on the team sheet" : "Your spot"}</h3>
           </div>
           <div className="p-5">
+          {user && !isStaff && approval.data && <Badge variant={approval.data === "approved" ? "secondary" : "outline"} className="mb-3">Squad approval: {approval.data}</Badge>}
           {authLoading ? null : !user ? (
             <div className="mt-3 space-y-3">
               <p className="text-sm text-muted-foreground">Sign in to join this match.</p>
@@ -204,6 +209,13 @@ function MatchDetail() {
                 <Button variant="link" className="px-0" asChild><Link to="/payments">Payment history</Link></Button>
               </>}
             </div>
+          ) : !isStaff && !canJoinWithApproval(approval.data ?? null, false) ? (
+            <div className="space-y-3 text-sm">
+              <p className="font-semibold">{approval.isPending ? "Checking squad approval…" : approval.isError ? "Unable to check squad approval." : approval.data === "rejected" ? "Your squad approval was declined." : "Awaiting squad approval."}</p>
+              <p className="text-muted-foreground">A moderator must approve your account before you can join matches.</p>
+              {approval.isError && <Button variant="outline" onClick={() => approval.refetch()}>Retry</Button>}
+              {!open && <p className="text-muted-foreground">{m.status === "published" && m.registration_deadline ? `Registration closed on ${fmtDate(m.registration_deadline)}, ${fmtTime(m.registration_deadline)}.` : "Registration is closed for this match."}</p>}
+            </div>
           ) : open ? (
             <div className="mt-3 space-y-3">
               <p className="text-sm font-medium">Bringing guests?</p>
@@ -222,7 +234,7 @@ function MatchDetail() {
               </Button>
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">Registration is closed.</p>
+            <p className="text-sm text-muted-foreground">{m.status === "published" && m.registration_deadline ? `Registration closed on ${fmtDate(m.registration_deadline)}, ${fmtTime(m.registration_deadline)}.` : "Registration is closed for this match."}</p>
           )}
           </div>
         </aside>

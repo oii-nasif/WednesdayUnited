@@ -10,6 +10,7 @@
 <!-- LOVABLE:END -->
 
 - Roles live in public.user_roles (player/moderator/super_admin) checked via has_role/is_staff SQL functions; RLS is the source of truth for permissions.
+- Player approval displays use a shared owner-scoped profile query with periodic refresh; client registration gating mirrors database enforcement without replacing it.
 - Audit logging is done by DB triggers (audit_trigger) writing to audit_logs, so app code never writes logs directly.
 - Match data is read client-side with the browser Supabase client via queryOptions in src/lib/matches.ts.
 - Payment reads use shared browser queryOptions; submissions are validated by a database trigger and decisions use a staff-checked, row-locking RPC, preventing forged approvals and repeated review.
