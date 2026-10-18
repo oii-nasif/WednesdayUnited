@@ -47,6 +47,112 @@ export type Database = {
         }
         Relationships: []
       }
+      donation_goals: {
+        Row: {
+          active: boolean
+          collected_amount: number
+          created_at: string
+          id: string
+          target_amount: number
+          title: string
+        }
+        Insert: {
+          active?: boolean
+          collected_amount?: number
+          created_at?: string
+          id?: string
+          target_amount: number
+          title: string
+        }
+        Update: {
+          active?: boolean
+          collected_amount?: number
+          created_at?: string
+          id?: string
+          target_amount?: number
+          title?: string
+        }
+        Relationships: []
+      }
+      ledger_entries: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          id: string
+          kind: string
+          match_id: string | null
+          note: string | null
+          payment_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind: string
+          match_id?: string | null
+          note?: string | null
+          payment_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind?: string
+          match_id?: string | null
+          note?: string | null
+          payment_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ledger_entries_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "player_balances"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "ledger_entries_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ledger_entries_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ledger_entries_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: true
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ledger_entries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "player_balances"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "ledger_entries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       locations: {
         Row: {
           address: string | null
@@ -76,6 +182,7 @@ export type Database = {
       }
       matches: {
         Row: {
+          cost_per_head: number | null
           created_at: string
           created_by: string | null
           description: string | null
@@ -86,12 +193,16 @@ export type Database = {
           prepayment_amount: number | null
           prepayment_required: boolean
           registration_deadline: string | null
+          settled_at: string | null
+          settled_by: string | null
           starts_at: string
           status: Database["public"]["Enums"]["match_status"]
           title: string
+          total_cost: number | null
           updated_at: string
         }
         Insert: {
+          cost_per_head?: number | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -102,12 +213,16 @@ export type Database = {
           prepayment_amount?: number | null
           prepayment_required?: boolean
           registration_deadline?: string | null
+          settled_at?: string | null
+          settled_by?: string | null
           starts_at: string
           status?: Database["public"]["Enums"]["match_status"]
           title: string
+          total_cost?: number | null
           updated_at?: string
         }
         Update: {
+          cost_per_head?: number | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -118,9 +233,12 @@ export type Database = {
           prepayment_amount?: number | null
           prepayment_required?: boolean
           registration_deadline?: string | null
+          settled_at?: string | null
+          settled_by?: string | null
           starts_at?: string
           status?: Database["public"]["Enums"]["match_status"]
           title?: string
+          total_cost?: number | null
           updated_at?: string
         }
         Relationships: [
@@ -129,6 +247,20 @@ export type Database = {
             columns: ["location_id"]
             isOneToOne: false
             referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_settled_by_fkey"
+            columns: ["settled_by"]
+            isOneToOne: false
+            referencedRelation: "player_balances"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "matches_settled_by_fkey"
+            columns: ["settled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -179,8 +311,22 @@ export type Database = {
             foreignKeyName: "notifications_subject_user_id_fkey"
             columns: ["subject_user_id"]
             isOneToOne: false
+            referencedRelation: "player_balances"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "notifications_subject_user_id_fkey"
+            columns: ["subject_user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "player_balances"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "notifications_user_id_fkey"
@@ -225,8 +371,10 @@ export type Database = {
         Row: {
           amount: number
           created_at: string
+          goal_id: string | null
           id: string
-          match_id: string
+          match_id: string | null
+          purpose: string
           receipt_path: string | null
           review_note: string | null
           reviewed_at: string | null
@@ -238,8 +386,10 @@ export type Database = {
         Insert: {
           amount: number
           created_at?: string
+          goal_id?: string | null
           id?: string
-          match_id: string
+          match_id?: string | null
+          purpose?: string
           receipt_path?: string | null
           review_note?: string | null
           reviewed_at?: string | null
@@ -251,8 +401,10 @@ export type Database = {
         Update: {
           amount?: number
           created_at?: string
+          goal_id?: string | null
           id?: string
-          match_id?: string
+          match_id?: string | null
+          purpose?: string
           receipt_path?: string | null
           review_note?: string | null
           reviewed_at?: string | null
@@ -262,6 +414,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "payments_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "donation_goals"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "payments_match_id_fkey"
             columns: ["match_id"]
@@ -273,8 +432,22 @@ export type Database = {
             foreignKeyName: "payments_reviewed_by_fkey"
             columns: ["reviewed_by"]
             isOneToOne: false
+            referencedRelation: "player_balances"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "payments_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "player_balances"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "payments_user_id_fkey"
@@ -302,6 +475,13 @@ export type Database = {
           id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "player_directory_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "player_balances"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "player_directory_id_fkey"
             columns: ["id"]
@@ -387,6 +567,13 @@ export type Database = {
             foreignKeyName: "registrations_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "player_balances"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "registrations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -412,7 +599,16 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      player_balances: {
+        Row: {
+          avatar_url: string | null
+          balance: number | null
+          full_name: string | null
+          last_activity: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       decide_player_approval: {
@@ -428,8 +624,42 @@ export type Database = {
       }
       is_approved: { Args: { _user_id: string }; Returns: boolean }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
+      ledger_allocation: {
+        Args: { _user_ids: string[] }
+        Returns: {
+          charged: number
+          covered: number
+          due: number
+          match_id: string
+          user_id: string
+        }[]
+      }
       mark_notifications_read: {
         Args: { notification_id?: string }
+        Returns: undefined
+      }
+      match_dues: {
+        Args: { _match_id: string }
+        Returns: {
+          charged: number
+          covered: number
+          due: number
+          user_id: string
+        }[]
+      }
+      player_match_dues: {
+        Args: { _user_id: string }
+        Returns: {
+          charged: number
+          covered: number
+          due: number
+          match_id: string
+          starts_at: string
+          title: string
+        }[]
+      }
+      record_adjustment: {
+        Args: { _amount: number; _note?: string; _player_id: string }
         Returns: undefined
       }
       review_payment: {
@@ -439,6 +669,10 @@ export type Database = {
       set_player_role: {
         Args: { new_role: string; player_id: string }
         Returns: undefined
+      }
+      settle_match: {
+        Args: { _lineup: Json; _match_id: string; _total_cost: number }
+        Returns: number
       }
     }
     Enums: {
