@@ -2,9 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { matchesQuery, locationsQuery, fmtDate, fmtTime, participantCount } from "@/lib/matches";
+import { matchesQuery, locationsQuery, fmtDate, fmtTime, participantCount, maxGuests, DEFAULT_MAX_GUESTS } from "@/lib/matches";
 import { statusVariant, statusLabel } from "@/components/MatchCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,7 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AddVenueDialog } from "@/components/AddVenueDialog";
+import { VenueDialog } from "@/components/VenueDialog";
 import { Plus, Pencil, Trash2, Search, CalendarDays, MapPin, Users } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { VenueManagement } from "@/components/VenueManagement";
@@ -50,13 +51,17 @@ type Form = {
   description: string;
   registration_deadline: string;
   player_limit: string;
+  max_guests: string;
   prepayment_required: boolean;
   prepayment_amount: string;
 };
-const empty: Form = { title: "", starts_at: "", location_id: "", description: "", registration_deadline: "", player_limit: "", prepayment_required: false, prepayment_amount: "" };
+// matches.max_guests comes from migration 0008. Until the generated types include it, match saves use an untyped view of the same client.
+const untyped = supabase as unknown as SupabaseClient;
+
+const empty: Form = { title: "", starts_at: "", location_id: "", description: "", registration_deadline: "", player_limit: "", max_guests: String(DEFAULT_MAX_GUESTS), prepayment_required: false, prepayment_amount: "" };
 
 function Manage() {
-  const { isStaff, isAdmin, loading } = useAuth();
+  const { isStaff, loading } = useAuth();
   const qc = useQueryClient();
   const { data: matches } = useQuery({ ...matchesQuery("all"), enabled: isStaff });
   const { data: locations } = useQuery(locationsQuery);
@@ -79,12 +84,13 @@ function Manage() {
         description: f.description || null,
         registration_deadline: toIso(f.registration_deadline),
         player_limit: f.player_limit ? Number(f.player_limit) : null,
+        max_guests: Number(f.max_guests),
         prepayment_required: f.prepayment_required,
         prepayment_amount: f.prepayment_required && f.prepayment_amount ? Number(f.prepayment_amount) : null,
       };
       const { error } = f.id
-        ? await supabase.from("matches").update({ ...row, updated_at: new Date().toISOString() }).eq("id", f.id)
-        : await supabase.from("matches").insert({ ...row, status: "draft" });
+        ? await untyped.from("matches").update({ ...row, updated_at: new Date().toISOString() }).eq("id", f.id)
+        : await untyped.from("matches").insert({ ...row, status: "draft" });
       if (error) throw error;
     },
     onSuccess: () => { toast.success("Match saved"); setForm(null); refresh(); },
@@ -107,7 +113,7 @@ function Manage() {
     <div className="page-enter">
       <PageHeader kicker="Team operations" title={<>Match <span className="text-accent">management</span></>} actions={<>
         <Button variant="outline" asChild><Link to="/users"><Users />Users</Link></Button>
-        {isAdmin && <Button variant="outline" size="lg" className="border-white/25 bg-white/5 text-pitch-foreground hover:border-white/50 hover:bg-white/10 hover:text-pitch-foreground" onClick={() => setVenueOpen(true)}><Plus className="h-4 w-4" />Add venue</Button>}
+        <Button variant="outline" size="lg" className="border-white/25 bg-white/5 text-pitch-foreground hover:border-white/50 hover:bg-white/10 hover:text-pitch-foreground" onClick={() => setVenueOpen(true)}><Plus className="h-4 w-4" />Add venue</Button>
         <Button variant="accent" size="lg" onClick={() => setForm({ ...empty })}><Plus />New match</Button>
       </>}>
         Schedule fixtures, publish them to the squad and keep the team sheet tidy.
@@ -119,7 +125,7 @@ function Manage() {
         <div className="px-3 sm:px-6"><Stat icon={<MapPin />} label="Venues" value={<CountUp value={locations?.length ?? 0} />} /></div>
       </div>
       <Tabs defaultValue="matches">
-        <TabsList><TabsTrigger value="matches">Matches</TabsTrigger>{isAdmin && <TabsTrigger value="venues">Venues</TabsTrigger>}</TabsList>
+        <TabsList><TabsTrigger value="matches">Matches</TabsTrigger><TabsTrigger value="venues">Venues</TabsTrigger></TabsList>
         <TabsContent value="matches">
       <div className="mt-6 flex flex-wrap gap-3">
         <div className="relative min-w-0 flex-1"><Search className="absolute left-3 top-3 size-4 text-muted-foreground" /><Input aria-label="Search matches" placeholder="Search matches or venues" className="pl-10" value={search} onChange={(e) => setSearch(e.target.value)} /></div>
@@ -142,7 +148,7 @@ function Manage() {
                   <Button size="icon" variant="ghost" title="Edit match" aria-label={`Edit match ${m.title}`} onClick={() => setForm({
                     id: m.id, title: m.title, starts_at: toLocal(m.starts_at), location_id: m.location_id ?? "",
                     description: m.description ?? "", registration_deadline: toLocal(m.registration_deadline),
-                    player_limit: m.player_limit?.toString() ?? "", prepayment_required: m.prepayment_required,
+                    player_limit: m.player_limit?.toString() ?? "", max_guests: String(maxGuests(m)), prepayment_required: m.prepayment_required,
                     prepayment_amount: m.prepayment_amount?.toString() ?? "",
                   })}><Pencil /></Button>
                   {m.status === "draft" && <Button size="sm" onClick={() => setStatus.mutate({ id: m.id, status: "published" })}>Book</Button>}
@@ -157,7 +163,7 @@ function Manage() {
         </table>
       </div>
         </TabsContent>
-        {isAdmin && <TabsContent value="venues"><VenueManagement onAdd={() => setVenueOpen(true)} /></TabsContent>}
+        <TabsContent value="venues"><VenueManagement onAdd={() => setVenueOpen(true)} /></TabsContent>
       </Tabs>
       <DeleteConfirmation target={deleteTarget} onClose={() => setDeleteTarget(null)} />
 
@@ -171,14 +177,17 @@ function Manage() {
                 <div className="grid gap-1.5"><Label htmlFor="match-start">Start (Dhaka time)</Label><Input id="match-start" type="datetime-local" value={form.starts_at} onChange={(e) => setForm({ ...form, starts_at: e.target.value })} /></div>
                 <div className="grid gap-1.5"><Label>Registration deadline</Label><Input type="datetime-local" value={form.registration_deadline} onChange={(e) => setForm({ ...form, registration_deadline: e.target.value })} /></div>
               </div>
-              <div className="grid gap-1.5"><div className="flex items-center justify-between"><Label>Location</Label>{isAdmin && <Button type="button" variant="ghost" size="sm" onClick={() => setVenueOpen(true)}><Plus className="h-4 w-4" />Add venue</Button>}</div>
+              <div className="grid gap-1.5"><div className="flex items-center justify-between"><Label>Location</Label><Button type="button" variant="ghost" size="sm" onClick={() => setVenueOpen(true)}><Plus className="h-4 w-4" />Add venue</Button></div>
                 <Select value={form.location_id} onValueChange={(v) => setForm({ ...form, location_id: v })}>
                   <SelectTrigger><SelectValue placeholder="Choose venue" /></SelectTrigger>
                   <SelectContent>{(locations ?? []).map((l) => <SelectItem key={l.id} value={l.id}>{l.name}{l.area ? `, ${l.area}` : ""}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div className="grid gap-1.5"><Label>Description</Label><Textarea value={form.description} maxLength={1000} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
-              <div className="grid gap-1.5"><Label>Player limit (optional)</Label><Input type="number" min={1} value={form.player_limit} onChange={(e) => setForm({ ...form, player_limit: e.target.value })} /></div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="grid gap-1.5"><Label htmlFor="match-limit">Player limit (optional)</Label><Input id="match-limit" type="number" min={1} value={form.player_limit} onChange={(e) => setForm({ ...form, player_limit: e.target.value })} /></div>
+                <div className="grid gap-1.5"><Label htmlFor="match-guests">Max guests per player</Label><Input id="match-guests" type="number" min={0} max={20} required value={form.max_guests} onChange={(e) => setForm({ ...form, max_guests: e.target.value })} /></div>
+              </div>
               <div className="flex items-center justify-between rounded-md border p-3">
                 <Label>Prepayment required</Label>
                 <Switch checked={form.prepayment_required} onCheckedChange={(v) => setForm({ ...form, prepayment_required: v })} />
@@ -195,7 +204,7 @@ function Manage() {
         </DialogContent>
       </Dialog>
 
-      {isAdmin && <AddVenueDialog open={venueOpen} onOpenChange={setVenueOpen} onSaved={(id) => setForm((current) => current ? { ...current, location_id: id } : null)} />}
+      <VenueDialog open={venueOpen} onOpenChange={setVenueOpen} onSaved={(id) => setForm((current) => current ? { ...current, location_id: id } : null)} />
 
       <AlertDialog open={!!cancelId} onOpenChange={(o) => !o && setCancelId(null)}>
         <AlertDialogContent>

@@ -13,9 +13,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as HistoryRouteImport } from './routes/history'
+import { Route as SignupRouteImport } from './routes/signup'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedManageRouteImport } from './routes/_authenticated/manage'
 import { Route as AuthenticatedPaymentsRouteImport } from './routes/_authenticated/payments'
+import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated/users'
 import { Route as MatchesIdRouteImport } from './routes/matches.$id'
 
@@ -38,6 +40,11 @@ const HistoryRoute = HistoryRouteImport.update({
   path: '/history',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -51,6 +58,11 @@ const AuthenticatedManageRoute = AuthenticatedManageRouteImport.update({
 const AuthenticatedPaymentsRoute = AuthenticatedPaymentsRouteImport.update({
   id: '/payments',
   path: '/payments',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedUsersRoute = AuthenticatedUsersRouteImport.update({
@@ -68,9 +80,11 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/history': typeof HistoryRoute
+  '/signup': typeof SignupRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/manage': typeof AuthenticatedManageRoute
   '/payments': typeof AuthenticatedPaymentsRoute
+  '/profile': typeof AuthenticatedProfileRoute
   '/users': typeof AuthenticatedUsersRoute
   '/matches/$id': typeof MatchesIdRoute
 }
@@ -78,9 +92,11 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/history': typeof HistoryRoute
+  '/signup': typeof SignupRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/manage': typeof AuthenticatedManageRoute
   '/payments': typeof AuthenticatedPaymentsRoute
+  '/profile': typeof AuthenticatedProfileRoute
   '/users': typeof AuthenticatedUsersRoute
   '/matches/$id': typeof MatchesIdRoute
 }
@@ -90,9 +106,11 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/history': typeof HistoryRoute
+  '/signup': typeof SignupRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/manage': typeof AuthenticatedManageRoute
   '/_authenticated/payments': typeof AuthenticatedPaymentsRoute
+  '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/users': typeof AuthenticatedUsersRoute
   '/matches/$id': typeof MatchesIdRoute
 }
@@ -102,9 +120,11 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/history'
+    | '/signup'
     | '/dashboard'
     | '/manage'
     | '/payments'
+    | '/profile'
     | '/users'
     | '/matches/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -112,9 +132,11 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/history'
+    | '/signup'
     | '/dashboard'
     | '/manage'
     | '/payments'
+    | '/profile'
     | '/users'
     | '/matches/$id'
   id:
@@ -123,9 +145,11 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/history'
+    | '/signup'
     | '/_authenticated/dashboard'
     | '/_authenticated/manage'
     | '/_authenticated/payments'
+    | '/_authenticated/profile'
     | '/_authenticated/users'
     | '/matches/$id'
   fileRoutesById: FileRoutesById
@@ -135,6 +159,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   HistoryRoute: typeof HistoryRoute
+  SignupRoute: typeof SignupRoute
   MatchesIdRoute: typeof MatchesIdRoute
 }
 
@@ -168,6 +193,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HistoryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -187,6 +219,13 @@ declare module '@tanstack/react-router' {
       path: '/payments'
       fullPath: '/payments'
       preLoaderRoute: typeof AuthenticatedPaymentsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/users': {
@@ -210,6 +249,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedManageRoute: typeof AuthenticatedManageRoute
   AuthenticatedPaymentsRoute: typeof AuthenticatedPaymentsRoute
+  AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
 }
 
@@ -217,6 +257,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedManageRoute: AuthenticatedManageRoute,
   AuthenticatedPaymentsRoute: AuthenticatedPaymentsRoute,
+  AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedUsersRoute: AuthenticatedUsersRoute,
 }
 
@@ -228,6 +269,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   HistoryRoute: HistoryRoute,
+  SignupRoute: SignupRoute,
   MatchesIdRoute: MatchesIdRoute,
 }
 export const routeTree = rootRouteImport

@@ -57,6 +57,13 @@
       "when": 1792261544615,
       "tag": "0007_restrict_staff_notification_visibility",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792354800000,
+      "tag": "0008_signup_positions_guest_cap_venues",
+      "breakpoints": true
     }
   ]
 }
