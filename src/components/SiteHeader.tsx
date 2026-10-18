@@ -95,10 +95,10 @@ export function SiteHeader() {
             {loading ? null : user ? (
               <>
                 <NotificationBell />
-                <span className="hidden items-center gap-2.5 rounded-full bg-white/5 py-1 pl-1 pr-3.5 ring-1 ring-white/10 sm:flex">
+                <Link to="/profile" title="My profile" aria-label="My profile" className={cn("flex items-center gap-2.5 rounded-full bg-white/5 p-1 ring-1 ring-white/10 transition-colors hover:bg-white/10 sm:pr-3.5", path.startsWith("/profile") && "ring-accent")}>
                   <Avatar className="size-7"><AvatarImage src={avatar} alt="" /><AvatarFallback className="bg-primary text-xs text-primary-foreground">{name.slice(0, 1)}</AvatarFallback></Avatar>
-                  <span className="max-w-32 truncate text-sm font-semibold">{name.split(" ")[0]}</span>
-                </span>
+                  <span className="hidden max-w-32 truncate text-sm font-semibold sm:inline">{name.split(" ")[0]}</span>
+                </Link>
                 <Button size="icon" variant="ghost" className="text-pitch-foreground/70 hover:bg-white/10 hover:text-pitch-foreground" title="Sign out" aria-label="Sign out" onClick={signOut}><LogOut /></Button>
               </>
             ) : (
@@ -109,7 +109,7 @@ export function SiteHeader() {
           </div>
         </div>
       </header>
-      <MobileTabBar items={user || loading ? items : [...items, { to: "/auth", label: "Sign in", icon: LogIn, active: (p) => p.startsWith("/auth") }]} path={path} />
+      <MobileTabBar items={user || loading ? items : [...items, { to: "/auth", label: "Sign in", icon: LogIn, active: (p) => p.startsWith("/auth") || p.startsWith("/signup") }]} path={path} />
     </>
   );
 }
