@@ -9,7 +9,7 @@ import { Football } from "@/components/Football";
 import { cn } from "@/lib/utils";
 import { TeamBadge } from "@/components/TeamBadge";
 import { NotificationBell } from "@/components/NotificationBell";
-import { CalendarDays, History, Users, Wallet, Settings2, LogOut, ArrowUpRight, LogIn } from "lucide-react";
+import { CalendarDays, History, Users, Wallet, Settings2, LogOut, ArrowUpRight, LogIn, Eye, EyeOff } from "lucide-react";
 
 type NavItem = { to: "/" | "/history" | "/dashboard" | "/payments" | "/manage" | "/users" | "/auth"; label: string; icon: ComponentType<{ className?: string }>; active: (path: string) => boolean };
 
@@ -58,7 +58,7 @@ function RollingBall({ x, size, className }: { x: number | null; size: number; c
 }
 
 export function SiteHeader() {
-  const { user, isStaff, loading } = useAuth();
+  const { user, isStaff, loading, staffAccount, playerView, setPlayerView } = useAuth();
   const qc = useQueryClient();
   const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
@@ -94,6 +94,7 @@ export function SiteHeader() {
           <div className="ml-auto flex items-center gap-2">
             {loading ? null : user ? (
               <>
+                {staffAccount && <PlayerViewToggle on={playerView} onChange={(on) => { setPlayerView(on); if (on && (path.startsWith("/manage") || path.startsWith("/users"))) navigate({ to: "/" }); }} />}
                 <NotificationBell />
                 <Link to="/profile" title="My profile" aria-label="My profile" className={cn("flex items-center gap-2.5 rounded-full bg-white/5 p-1 ring-1 ring-white/10 transition-colors hover:bg-white/10 sm:pr-3.5", path.startsWith("/profile") && "ring-accent")}>
                   <Avatar className="size-7"><AvatarImage src={avatar} alt="" /><AvatarFallback className="bg-primary text-xs text-primary-foreground">{name.slice(0, 1)}</AvatarFallback></Avatar>
@@ -109,6 +110,12 @@ export function SiteHeader() {
           </div>
         </div>
       </header>
+      {playerView && (
+        <div role="status" className="sticky top-16 z-30 flex items-center justify-center gap-3 bg-accent px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-accent-foreground lg:top-[72px]">
+          <Eye className="size-4" />You're seeing what players see
+          <button type="button" className="rounded-full bg-pitch px-3 py-0.5 text-pitch-foreground hover:bg-pitch-deep" onClick={() => setPlayerView(false)}>Back to staff view</button>
+        </div>
+      )}
       <MobileTabBar items={user || loading ? items : [...items, { to: "/auth", label: "Sign in", icon: LogIn, active: (p) => p.startsWith("/auth") || p.startsWith("/signup") }]} path={path} />
     </>
   );
@@ -131,5 +138,15 @@ function MobileTabBar({ items, path }: { items: NavItem[]; path: string }) {
         ))}
       </div>
     </nav>
+  );
+}
+
+// Staff-only switch between their normal tools and the plain player experience.
+function PlayerViewToggle({ on, onChange }: { on: boolean; onChange: (on: boolean) => void }) {
+  return (
+    <Button size="sm" variant="ghost" aria-pressed={on} title={on ? "Back to staff view" : "See the site as a player"} onClick={() => onChange(!on)}
+      className={cn("h-9 gap-1.5 rounded-full px-3 text-xs font-bold uppercase tracking-wider hover:bg-white/10 hover:text-pitch-foreground", on ? "bg-accent text-accent-foreground hover:bg-accent/90 hover:text-accent-foreground" : "text-pitch-foreground/70")}>
+      {on ? <EyeOff className="size-4" /> : <Eye className="size-4" />}<span className="hidden md:inline">{on ? "Player view" : "View as player"}</span>
+    </Button>
   );
 }

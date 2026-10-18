@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useApproval } from "@/lib/approval";
 import { canJoinWithApproval } from "@/lib/approval-rules";
-import { matchQuery, fmtDate, fmtTime, participantCount, guestCount, maxGuests, registrationOpen, spotsLabel } from "@/lib/matches";
+import { matchQuery, fmtDate, fmtTime, participantCount, guestCount, registrationOpen, spotsLabel } from "@/lib/matches";
 import { statusVariant, statusLabel } from "@/components/MatchCard";
 import { PitchLines } from "@/components/PitchLines";
 import { Countdown } from "@/components/Countdown";
@@ -162,12 +162,12 @@ function MatchDetail() {
                       <AvatarImage src={r.profile?.avatar_url ?? undefined} />
                       <AvatarFallback>{(r.profile?.full_name ?? "?").slice(0, 1)}</AvatarFallback>
                     </Avatar>
-                    <span className="font-medium">{r.profile?.full_name ?? "Player"}</span>
+                    {isStaff ? <Link to="/players/$id" params={{ id: r.user_id }} className="font-medium hover:text-primary hover:underline">{r.profile?.full_name ?? "Player"}</Link> : <span className="font-medium">{r.profile?.full_name ?? "Player"}</span>}
                     {r.guest_count > 0 && <Badge variant="secondary">+{r.guest_count} guest{r.guest_count > 1 ? "s" : ""}</Badge>}
                     {r.added_by_staff && <span className="text-xs text-muted-foreground">added by moderator</span>}
                     {isStaff && (
                       <div className="ml-auto flex items-center gap-2">
-                        <Input type="number" min={0} max={maxGuests(m)} defaultValue={r.guest_count} className="h-8 w-16" aria-label={`Guests for ${r.profile?.full_name ?? "player"}`}
+                        <Input type="number" min={0} max={m.max_guests} defaultValue={r.guest_count} className="h-8 w-16" aria-label={`Guests for ${r.profile?.full_name ?? "player"}`}
                           onBlur={(e) => { const n = Number(e.target.value); if (n !== r.guest_count) updateGuests.mutate({ regId: r.id, n }); }} />
                         <Button size="sm" variant="ghost" onClick={() => leave.mutate(r.id)}>Remove</Button>
                       </div>
@@ -178,7 +178,7 @@ function MatchDetail() {
             )}
             </TabsContent>
           </Tabs>
-          {isStaff && <StaffAdd matchId={id} existing={m.registrations.map((r) => r.user_id)} maxGuests={maxGuests(m)} onDone={refresh} />}
+          {isStaff && <StaffAdd matchId={id} existing={m.registrations.map((r) => r.user_id)} maxGuests={m.max_guests} onDone={refresh} />}
         </section>
 
         <aside className="h-fit overflow-hidden rounded-2xl border bg-card shadow-lift lg:sticky lg:top-24">
@@ -198,7 +198,7 @@ function MatchDetail() {
               <p className="flex items-center gap-3 rounded-xl bg-success/10 p-3 text-sm"><Football className="size-8 shrink-0" /><span><span className="font-bold text-success">You're registered</span>{mine.guest_count ? ` with ${mine.guest_count} guest${mine.guest_count > 1 ? "s" : ""}` : ""}. See you on the pitch.</span></p>
               {open && (
                 <>
-                  <MyGuests key={mine.guest_count} current={mine.guest_count} max={maxGuests(m)} saving={updateGuests.isPending} onSave={(n) => updateGuests.mutate({ regId: mine.id, n })} />
+                  <MyGuests key={mine.guest_count} current={mine.guest_count} max={m.max_guests} saving={updateGuests.isPending} onSave={(n) => updateGuests.mutate({ regId: mine.id, n })} />
                   <Button variant="outline" className="w-full" onClick={() => leave.mutate(mine.id)}>Leave match</Button>
                 </>
               )}
@@ -218,8 +218,8 @@ function MatchDetail() {
           ) : open ? (
             <div className="mt-3 space-y-3">
               <p className="text-sm font-medium">Bringing guests?</p>
-              <GuestStepper value={guests} onChange={setGuests} max={maxGuests(m)} label="Bringing guests?" />
-              <p className="text-xs text-muted-foreground">Up to {maxGuests(m)} guest{maxGuests(m) === 1 ? "" : "s"} per player. Guest costs are charged to you.</p>
+              <GuestStepper value={guests} onChange={setGuests} max={m.max_guests} label="Bringing guests?" />
+              <p className="text-xs text-muted-foreground">Up to {m.max_guests} guest{m.max_guests === 1 ? "" : "s"} per player. Guest costs are charged to you.</p>
               {m.prepayment_required && (
                 <p className="flex gap-2 rounded-md bg-secondary p-3 text-xs text-secondary-foreground">
                   <Wallet className="h-4 w-4 shrink-0" />

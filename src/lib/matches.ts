@@ -59,12 +59,8 @@ export function participantCount(regs: { guest_count: number }[] | null | undefi
   return (regs ?? []).reduce((n, r) => n + 1 + r.guest_count, 0);
 }
 
-// matches.max_guests comes from migration 0008 and isn't in the generated types yet; the database enforces it.
+// Matches the column default; the database enforces each match's max_guests.
 export const DEFAULT_MAX_GUESTS = 5;
-export function maxGuests(m: object) {
-  const cap = (m as { max_guests?: unknown }).max_guests;
-  return typeof cap === "number" ? cap : DEFAULT_MAX_GUESTS;
-}
 
 export function guestCount(regs: { guest_count: number }[] | null | undefined) {
   return (regs ?? []).reduce((n, r) => n + r.guest_count, 0);

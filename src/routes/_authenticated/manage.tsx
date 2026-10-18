@@ -2,10 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { matchesQuery, locationsQuery, fmtDate, fmtTime, participantCount, maxGuests, DEFAULT_MAX_GUESTS } from "@/lib/matches";
+import { matchesQuery, locationsQuery, fmtDate, fmtTime, participantCount, DEFAULT_MAX_GUESTS } from "@/lib/matches";
 import { statusVariant, statusLabel } from "@/components/MatchCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -55,9 +54,6 @@ type Form = {
   prepayment_required: boolean;
   prepayment_amount: string;
 };
-// matches.max_guests comes from migration 0008. Until the generated types include it, match saves use an untyped view of the same client.
-const untyped = supabase as unknown as SupabaseClient;
-
 const empty: Form = { title: "", starts_at: "", location_id: "", description: "", registration_deadline: "", player_limit: "", max_guests: String(DEFAULT_MAX_GUESTS), prepayment_required: false, prepayment_amount: "" };
 
 function Manage() {
@@ -89,8 +85,8 @@ function Manage() {
         prepayment_amount: f.prepayment_required && f.prepayment_amount ? Number(f.prepayment_amount) : null,
       };
       const { error } = f.id
-        ? await untyped.from("matches").update({ ...row, updated_at: new Date().toISOString() }).eq("id", f.id)
-        : await untyped.from("matches").insert({ ...row, status: "draft" });
+        ? await supabase.from("matches").update({ ...row, updated_at: new Date().toISOString() }).eq("id", f.id)
+        : await supabase.from("matches").insert({ ...row, status: "draft" });
       if (error) throw error;
     },
     onSuccess: () => { toast.success("Match saved"); setForm(null); refresh(); },
@@ -148,7 +144,7 @@ function Manage() {
                   <Button size="icon" variant="ghost" title="Edit match" aria-label={`Edit match ${m.title}`} onClick={() => setForm({
                     id: m.id, title: m.title, starts_at: toLocal(m.starts_at), location_id: m.location_id ?? "",
                     description: m.description ?? "", registration_deadline: toLocal(m.registration_deadline),
-                    player_limit: m.player_limit?.toString() ?? "", max_guests: String(maxGuests(m)), prepayment_required: m.prepayment_required,
+                    player_limit: m.player_limit?.toString() ?? "", max_guests: String(m.max_guests), prepayment_required: m.prepayment_required,
                     prepayment_amount: m.prepayment_amount?.toString() ?? "",
                   })}><Pencil /></Button>
                   {m.status === "draft" && <Button size="sm" onClick={() => setStatus.mutate({ id: m.id, status: "published" })}>Book</Button>}
