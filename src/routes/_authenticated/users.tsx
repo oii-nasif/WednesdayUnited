@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Search, Check, X, Shield, Users as UsersIcon } from "lucide-react";
@@ -47,7 +47,7 @@ function UsersPage() {
       const role = p.roles.includes("super_admin") ? "Super admin" : staff ? "Moderator" : "Player";
       return <li key={p.id} className="flex flex-wrap items-center gap-4 py-5" data-user-id={p.id}>
         <Avatar className="size-11"><AvatarImage src={p.avatar_url ?? undefined} /><AvatarFallback>{(p.full_name ?? "P").slice(0,1)}</AvatarFallback></Avatar>
-        <div className="min-w-0 flex-1 basis-40"><p className="break-words font-semibold">{p.full_name ?? "Player"}</p><p className="mt-1 break-all text-xs text-muted-foreground">{p.email}</p></div>
+        <div className="min-w-0 flex-1 basis-40"><Link to="/players/$id" params={{ id: p.id }} className="break-words font-semibold hover:text-primary hover:underline">{p.full_name ?? "Player"}</Link><p className="mt-1 break-all text-xs text-muted-foreground">{p.email}</p></div>
         <div className="flex flex-wrap items-center gap-2"><Badge variant={staff ? "secondary" : "outline"}>{role}</Badge><Badge variant={p.approval_status === "rejected" ? "destructive" : "outline"}>{staff ? "Approved" : p.approval_status}</Badge></div>
         <div className="flex flex-wrap items-center gap-2 max-sm:w-full">
           {!staff && p.approval_status !== "approved" && <Button variant="outline" size="sm" onClick={() => setAction({ id:p.id, name:p.full_name ?? "Player", type:"approval", value:"approved" })}><Check className="size-4" />Approve</Button>}

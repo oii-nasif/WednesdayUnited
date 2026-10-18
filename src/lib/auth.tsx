@@ -6,10 +6,15 @@ export type Role = "player" | "moderator" | "super_admin";
 
 type AuthState = {
   user: User | null;
+  // Effective roles: just "player" while a staff member is in player view.
   roles: Role[];
   loading: boolean;
   isStaff: boolean;
   isAdmin: boolean;
+  // The account really is staff, whatever the current view.
+  staffAccount: boolean;
+  playerView: boolean;
+  setPlayerView: (on: boolean) => void;
 };
 
 const AuthContext = createContext<AuthState>({
@@ -18,7 +23,12 @@ const AuthContext = createContext<AuthState>({
   loading: true,
   isStaff: false,
   isAdmin: false,
+  staffAccount: false,
+  playerView: false,
+  setPlayerView: () => {},
 });
+
+const PLAYER_VIEW_KEY = "wu-player-view";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -60,10 +70,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => { active = false; clearInterval(timer); void supabase.removeChannel(channel); };
   }, [user?.id]);
 
-  const isAdmin = roles.includes("super_admin");
-  const isStaff = isAdmin || roles.includes("moderator");
+  // Player view only changes what the UI shows and offers. RLS still sees a staff account.
+  const [playerView, setPlayerViewState] = useState(false);
+  useEffect(() => { setPlayerViewState(localStorage.getItem(PLAYER_VIEW_KEY) === "1"); }, []);
+  const setPlayerView = (on: boolean) => {
+    setPlayerViewState(on);
+    if (on) localStorage.setItem(PLAYER_VIEW_KEY, "1");
+    else localStorage.removeItem(PLAYER_VIEW_KEY);
+  };
+
+  const staffAccount = roles.includes("super_admin") || roles.includes("moderator");
+  const viewingAsPlayer = staffAccount && playerView;
+  const effectiveRoles: Role[] = viewingAsPlayer ? ["player"] : roles;
+  const isAdmin = effectiveRoles.includes("super_admin");
+  const isStaff = isAdmin || effectiveRoles.includes("moderator");
   return (
-    <AuthContext.Provider value={{ user, roles, loading, isStaff, isAdmin }}>
+    <AuthContext.Provider value={{ user, roles: effectiveRoles, loading, isStaff, isAdmin, staffAccount, playerView: viewingAsPlayer, setPlayerView }}>
       {children}
     </AuthContext.Provider>
   );

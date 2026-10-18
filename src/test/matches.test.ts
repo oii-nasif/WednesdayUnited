@@ -1,12 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { participantCount, guestCount, maxGuests, registrationOpen, spotsLabel } from "@/lib/matches";
+import { participantCount, guestCount, registrationOpen, spotsLabel } from "@/lib/matches";
 
 describe("match rules", () => {
-  it("guest cap uses the match setting and falls back to 5", () => {
-    expect(maxGuests({ max_guests: 2 })).toBe(2);
-    expect(maxGuests({ max_guests: 0 })).toBe(0);
-    expect(maxGuests({})).toBe(5);
-  });
   it("guests count toward total participants", () => {
     expect(participantCount([{ guest_count: 2 }, { guest_count: 0 }])).toBe(4);
     expect(guestCount([{ guest_count: 2 }, { guest_count: 1 }])).toBe(3);

@@ -4,7 +4,9 @@
 - [x] Add a 5-guest default cap per player that staff can change per match
 - [x] Let moderators add, edit and delete venues
 - [x] Add a player profile page with preferred position (GK, DEF, MID, FWD, ALL)
-- [ ] Apply migration 0008 and enable the email auth provider; regenerate Supabase types to drop the temporary untyped client views
+- [x] Apply migration 0008 and regenerate Supabase types
+- [ ] Confirm the email auth provider is enabled with email confirmation
+- [x] Let staff view any player's profile and switch to a player view of the site
 
 - [x] Add staff user approvals, super-admin moderator management, and private in-app notifications
 - [x] Transfer super-admin access to nasif.ishtiaque.islam@gmail.com and make nasif.bs1062@gmail.com a player

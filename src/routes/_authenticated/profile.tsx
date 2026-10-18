@@ -2,12 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Check, Mail, ShieldCheck } from "lucide-react";
+import { Check } from "lucide-react";
 import { useAuth } from "@/lib/auth";
-import { POSITIONS, myProfileQuery, updateMyPosition, type Position } from "@/lib/profile";
+import { POSITIONS, myProfileQuery, roleLabel, updateMyPosition, type Position } from "@/lib/profile";
 import { PageHeader } from "@/components/PageHeader";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import { ProfileSummary } from "@/components/ProfileSummary";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -22,8 +21,6 @@ export const Route = createFileRoute("/_authenticated/profile")({
   component: ProfilePage,
 });
 
-const approvalLabel: Record<string, string> = { approved: "Approved", pending: "Waiting for approval", rejected: "Not approved" };
-
 function ProfilePage() {
   const { user, roles } = useAuth();
   const qc = useQueryClient();
@@ -35,8 +32,7 @@ function ProfilePage() {
     onSuccess: async () => { await qc.invalidateQueries({ queryKey: ["my-profile", user?.id] }); setChoice(undefined); toast.success("Position saved"); },
     onError: (e: { message?: string }) => toast.error(e.message ?? "Could not save your position"),
   });
-  const role = roles.includes("super_admin") ? "Super admin" : roles.includes("moderator") ? "Moderator" : "Player";
-  const name = profile?.full_name ?? "Player";
+  const role = roleLabel(roles);
 
   return (
     <div className="page-enter">
@@ -48,17 +44,7 @@ function ProfilePage() {
           <div role="alert" className="space-y-3"><p>Could not load your profile.</p><Button variant="outline" onClick={() => refetch()}>Retry</Button></div>
         ) : (
           <div className="space-y-8">
-            <section className="flex flex-wrap items-center gap-5 rounded-2xl border bg-card p-6 shadow-card">
-              <Avatar className="size-20 ring-4 ring-primary-soft"><AvatarImage src={profile.avatar_url ?? undefined} alt="" /><AvatarFallback className="bg-primary text-2xl text-primary-foreground">{name.slice(0, 1)}</AvatarFallback></Avatar>
-              <div className="min-w-0 flex-1">
-                <h2 className="break-words text-4xl leading-none">{name}</h2>
-                <p className="mt-2 flex items-center gap-2 break-all text-sm text-muted-foreground"><Mail className="size-4 shrink-0" />{profile.email}</p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <Badge variant="secondary"><ShieldCheck className="size-3.5" />{role}</Badge>
-                  <Badge variant={profile.approval_status === "approved" ? "secondary" : "outline"}>{approvalLabel[profile.approval_status] ?? profile.approval_status}</Badge>
-                </div>
-              </div>
-            </section>
+            <ProfileSummary profile={profile} role={role} />
 
             <section>
               <h2 className="text-4xl leading-none">Preferred position</h2>
