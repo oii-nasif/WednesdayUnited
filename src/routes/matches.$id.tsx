@@ -174,7 +174,7 @@ function MatchDetail() {
                     <DueIcon due={dues?.get(r.user_id)} detailed={isStaff} className="ml-auto" />
                     {isStaff && !settlement?.settled_at && (
                       <div className="ml-auto flex items-center gap-2">
-                        <Input type="number" min={0} max={m.max_guests} defaultValue={r.guest_count} className="h-8 w-16" aria-label={`Guests for ${r.profile?.full_name ?? "player"}`}
+                        <Input type="number" min={0} max={20} defaultValue={r.guest_count} className="h-8 w-16" aria-label={`Guests for ${r.profile?.full_name ?? "player"}`}
                           onBlur={(e) => { const n = Number(e.target.value); if (n !== r.guest_count) updateGuests.mutate({ regId: r.id, n }); }} />
                         <Button size="sm" variant="ghost" onClick={() => leave.mutate(r.id)}>Remove</Button>
                       </div>
@@ -185,7 +185,7 @@ function MatchDetail() {
             )}
             </TabsContent>
           </Tabs>
-          {isStaff && <StaffAdd matchId={id} existing={m.registrations.map((r) => r.user_id)} maxGuests={m.max_guests} onDone={refresh} />}
+          {isStaff && <StaffAdd matchId={id} existing={m.registrations.map((r) => r.user_id)} onDone={refresh} />}
         </section>
 
         <aside className="h-fit overflow-hidden rounded-2xl border bg-card shadow-lift lg:sticky lg:top-24">
@@ -263,7 +263,7 @@ function MyGuests({ current, max, saving, onSave }: { current: number; max: numb
   );
 }
 
-function StaffAdd({ matchId, existing, maxGuests: cap, onDone }: { matchId: string; existing: string[]; maxGuests: number; onDone: () => void }) {
+function StaffAdd({ matchId, existing, onDone }: { matchId: string; existing: string[]; onDone: () => void }) {
   const [userId, setUserId] = useState<string>("");
   const [guests, setGuests] = useState(0);
   const { data: players } = useQuery({
@@ -293,7 +293,7 @@ function StaffAdd({ matchId, existing, maxGuests: cap, onDone }: { matchId: stri
             {available.map((p) => <SelectItem key={p.id} value={p.id}>{p.full_name ?? p.email}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Input type="number" min={0} max={cap} value={guests} onChange={(e) => setGuests(Number(e.target.value))} className="w-20" aria-label="Guests" />
+        <Input type="number" min={0} max={20} value={guests} onChange={(e) => setGuests(Number(e.target.value))} className="w-20" aria-label="Guests" />
         <Button disabled={!userId || add.isPending} onClick={() => add.mutate()}>Add</Button>
       </div>
     </div>
