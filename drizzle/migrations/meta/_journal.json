@@ -71,6 +71,13 @@
       "when": 1792333735388,
       "tag": "0009_document_guest_cap_and_position",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792420000000,
+      "tag": "0010_balance_ledger",
+      "breakpoints": true
     }
   ]
 }

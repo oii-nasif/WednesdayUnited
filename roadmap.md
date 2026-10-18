@@ -24,6 +24,8 @@
 - [ ] Phase 2: financial management
   - [x] Prepayments: bank details, transaction ID, private screenshot, moderator verification and payment history
   - [ ] Authenticated payment-flow verification — blocked until the first user signs in and the designated bank details are provided
-  - [ ] Expenses & settlements, ledger/balances
+  - [x] Player balances ledger: per-head match cost settlement, dues and credit, advance payments, ৳2000 payment cap, staff balances and transaction log, cash adjustments
+  - [x] Match ball donation fund (৳3500 goal) with progress
+  - [ ] Apply migration 0010 and regenerate Supabase types to drop the untyped view in src/lib/ledger.ts
 - [ ] Phase 3: player profiles & stats, match photos
 - [ ] Phase 4: admin pages (users/roles, locations, financial overview, audit log viewer, settings)

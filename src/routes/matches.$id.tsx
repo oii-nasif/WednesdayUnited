@@ -20,6 +20,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { PaymentSubmission } from "@/components/PaymentSubmission";
 import { paymentsQuery } from "@/lib/payments";
 import { money, prepaymentTotal } from "@/lib/payment-rules";
+import { matchDuesQuery, settlementOf, type MatchDue } from "@/lib/ledger";
+import { DueIcon } from "@/components/Balance";
 import { VenueMap } from "@/components/VenueMap";
 import { BallLoader, Football } from "@/components/Football";
 import { GoalCelebration } from "@/components/GoalCelebration";
@@ -52,6 +54,9 @@ function MatchDetail() {
   const [guests, setGuests] = useState(0);
   const [celebrating, setCelebrating] = useState(false);
   const { data: payments } = useQuery({ ...paymentsQuery(user?.id ?? ""), enabled: !!user });
+  const settlement = m ? settlementOf(m) : null;
+  // RLS scopes this: players get their own due, staff get everyone's.
+  const { data: dues } = useQuery({ ...matchDuesQuery(id), enabled: !!user && !!settlement?.settled_at });
 
   const refresh = () => {
     qc.invalidateQueries({ queryKey: ["match", id] });
@@ -149,6 +154,7 @@ function MatchDetail() {
               </div>
               <TabsList><TabsTrigger value="pitch">Pitch</TabsTrigger><TabsTrigger value="list">List</TabsTrigger></TabsList>
             </div>
+            {settlement?.settled_at && settlement.total_cost != null && settlement.cost_per_head != null && <SettlementSummary total={settlement.total_cost} perHead={settlement.cost_per_head} dues={isStaff ? dues : undefined} />}
             <TabsContent value="pitch"><PitchLineup players={m.registrations} currentUserId={user?.id} /></TabsContent>
             <TabsContent value="list">
             {m.registrations.length === 0 ? (
@@ -165,7 +171,8 @@ function MatchDetail() {
                     {isStaff ? <Link to="/players/$id" params={{ id: r.user_id }} className="font-medium hover:text-primary hover:underline">{r.profile?.full_name ?? "Player"}</Link> : <span className="font-medium">{r.profile?.full_name ?? "Player"}</span>}
                     {r.guest_count > 0 && <Badge variant="secondary">+{r.guest_count} guest{r.guest_count > 1 ? "s" : ""}</Badge>}
                     {r.added_by_staff && <span className="text-xs text-muted-foreground">added by moderator</span>}
-                    {isStaff && (
+                    {isStaff && <DueIcon due={dues?.get(r.user_id)} className="ml-auto" />}
+                    {isStaff && !settlement?.settled_at && (
                       <div className="ml-auto flex items-center gap-2">
                         <Input type="number" min={0} max={m.max_guests} defaultValue={r.guest_count} className="h-8 w-16" aria-label={`Guests for ${r.profile?.full_name ?? "player"}`}
                           onBlur={(e) => { const n = Number(e.target.value); if (n !== r.guest_count) updateGuests.mutate({ regId: r.id, n }); }} />
@@ -202,9 +209,10 @@ function MatchDetail() {
                   <Button variant="outline" className="w-full" onClick={() => leave.mutate(mine.id)}>Leave match</Button>
                 </>
               )}
+              {settlement?.settled_at && <MyShare due={dues?.get(mine.user_id)} />}
               {m.prepayment_required && user && (m.status === "published" || m.status === "completed") && <>
                 {(payments ?? []).filter((p) => p.match_id === id).map((p) => <p key={p.id} className="text-sm"><Badge variant={p.status === "rejected" ? "destructive" : "secondary"} className="capitalize">{p.status}</Badge> {money(Number(p.amount))}{p.review_note && <span className="mt-1 block break-words text-muted-foreground">{p.review_note}</span>}</p>)}
-                <PaymentSubmission key={`${id}-${mine.guest_count}`} matchId={id} userId={user.id} requiredAmount={prepaymentTotal(Number(m.prepayment_amount ?? 0), mine.guest_count)} />
+                {m.status === "published" && <PaymentSubmission key={`${id}-${mine.guest_count}`} matchId={id} userId={user.id} requiredAmount={prepaymentTotal(Number(m.prepayment_amount ?? 0), mine.guest_count)} />}
                 <Button variant="link" className="px-0" asChild><Link to="/payments">Payment history</Link></Button>
               </>}
             </div>
@@ -288,6 +296,34 @@ function StaffAdd({ matchId, existing, maxGuests: cap, onDone }: { matchId: stri
         <Input type="number" min={0} max={cap} value={guests} onChange={(e) => setGuests(Number(e.target.value))} className="w-20" aria-label="Guests" />
         <Button disabled={!userId || add.isPending} onClick={() => add.mutate()}>Add</Button>
       </div>
+    </div>
+  );
+}
+
+// Shown once a match is settled: what it cost, and for staff how much of it has been paid.
+function SettlementSummary({ total, perHead, dues }: { total: number; perHead: number; dues: Map<string, MatchDue> | undefined }) {
+  const rows = dues ? [...dues.values()] : [];
+  const outstanding = rows.reduce((n, d) => n + d.due, 0);
+  const paid = rows.filter((d) => d.due <= 0).length;
+  return (
+    <div className="mb-4 flex flex-wrap items-center gap-x-6 gap-y-2 rounded-2xl border bg-card px-5 py-4 text-sm shadow-card">
+      <span className="flex items-center gap-2"><Wallet className="size-4 text-primary" />Match cost <strong className="tabular">{money(total)}</strong></span>
+      <span><strong className="tabular">{money(perHead)}</strong> per head</span>
+      {dues && <>
+        <span className="text-success"><strong>{paid}</strong> of {rows.length} paid</span>
+        {outstanding > 0 ? <span className="font-semibold text-destructive">{money(outstanding)} outstanding</span> : <span className="font-semibold text-success">Fully paid</span>}
+      </>}
+    </div>
+  );
+}
+
+function MyShare({ due }: { due: MatchDue | undefined }) {
+  if (!due) return null;
+  const paid = due.due <= 0;
+  return (
+    <div className={cn("rounded-xl border p-3 text-sm", paid ? "border-success/40 bg-success/10" : "border-destructive/40 bg-destructive/10")}>
+      <p className="flex items-center justify-between gap-3"><span>Your share</span><strong className="tabular">{money(due.charged)}</strong></p>
+      {paid ? <p className="mt-1 font-semibold text-success">Paid. Thanks!</p> : <p className="mt-1 font-semibold text-destructive">{money(due.due)} still due. <Link to="/payments" className="underline">Pay now</Link></p>}
     </div>
   );
 }

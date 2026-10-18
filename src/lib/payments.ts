@@ -1,5 +1,6 @@
 import { queryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { PaymentPurpose } from "@/lib/ledger";
 
 export const paymentSettingsQuery = queryOptions({
   queryKey: ["payment-settings"],
@@ -15,8 +16,11 @@ async function fetchPayments(userId: string, team: boolean) {
     if (!team) query = query.eq("user_id", userId);
     const { data, error } = await query;
     if (error) throw error;
-    return data ?? [];
+    // purpose/goal_id and the now-optional match_id come from migration 0010, ahead of the generated types.
+    return (data ?? []) as (Omit<NonNullable<typeof data>[number], "match_id"> & { match_id: string | null; purpose: PaymentPurpose; goal_id: string | null })[];
 }
+
+export const purposeLabel: Record<PaymentPurpose, string> = { match: "Match", advance: "Balance top-up", donation: "Donation" };
 export type PaymentRow = Awaited<ReturnType<typeof fetchPayments>>[number];
 export const paymentsQuery = (userId: string, team = false) => queryOptions({
   queryKey: ["payments", userId, team],
