@@ -64,6 +64,28 @@ export const matchDuesQuery = (matchId: string) =>
     },
   });
 
+export type PlayerMatchDue = MatchDue & { match_id: string; title: string; starts_at: string };
+export type UpcomingPayable = { match_id: string; title: string; starts_at: string; prepayment: number };
+
+// Matches a player can pay for: played ones with something still due, and booked ones they've signed up for.
+export const payableMatchesQuery = (userId: string) =>
+  queryOptions({
+    queryKey: ["match-dues", "player", userId],
+    queryFn: async () => {
+      const [dues, upcoming] = await Promise.all([
+        db.rpc("player_match_dues", { _user_id: userId }),
+        db.from("registrations").select("guest_count, match:matches!inner(id, title, starts_at, status, prepayment_required, prepayment_amount)").eq("user_id", userId).eq("match.status", "published"),
+      ]);
+      if (dues.error) throw dues.error;
+      if (upcoming.error) throw upcoming.error;
+      type Row = { guest_count: number; match: { id: string; title: string; starts_at: string; prepayment_required: boolean; prepayment_amount: number | null } };
+      return {
+        due: ((dues.data ?? []) as PlayerMatchDue[]).map((d) => num(d, ["charged", "covered", "due"])).filter((d) => d.due > 0),
+        upcoming: ((upcoming.data ?? []) as unknown as Row[]).map((r): UpcomingPayable => ({ match_id: r.match.id, title: r.match.title, starts_at: r.match.starts_at, prepayment: r.match.prepayment_required ? Number(r.match.prepayment_amount ?? 0) * (1 + r.guest_count) : 0 })),
+      };
+    },
+  });
+
 export const donationGoalQuery = queryOptions({
   queryKey: ["donation-goal"],
   queryFn: async () => {
@@ -105,9 +127,10 @@ const rpc = async (fn: string, args: Record<string, unknown>) => {
   if (error) throw new Error(error.message);
   return data as unknown;
 };
-export const settleMatch = async (matchId: string, totalCost: number) => Number(await rpc("settle_match", { _match_id: matchId, _total_cost: totalCost }));
-export const reopenMatch = (matchId: string, reason: string) => rpc("reopen_match", { _match_id: matchId, _reason: reason });
-export const recordAdjustment = (playerId: string, amount: number, note: string) => rpc("record_adjustment", { _player_id: playerId, _amount: amount, _note: note });
+// Marks the match played with this team sheet and cost. On a played match it re-settles: old charges are reversed.
+export type LineupEntry = { user_id: string; guest_count: number };
+export const settleMatch = async (matchId: string, totalCost: number, lineup: LineupEntry[]) => Number(await rpc("settle_match", { _match_id: matchId, _total_cost: totalCost, _lineup: lineup }));
+export const recordAdjustment = (playerId: string, amount: number, note: string) => rpc("record_adjustment", { _player_id: playerId, _amount: amount, _note: note.trim() || null });
 
 export async function saveDonationGoal(goal: { id: string; title: string; target_amount: number }) {
   const { data, error } = await db.from("donation_goals").update({ title: goal.title.trim(), target_amount: goal.target_amount }).eq("id", goal.id).select("id");

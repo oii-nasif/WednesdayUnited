@@ -30,10 +30,13 @@ describe("ledger client", () => {
 
   it("settles and adjusts through the staff-checked functions", async () => {
     calls.rpc.mockResolvedValueOnce({ data: 300, error: null });
-    await expect(settleMatch("m1", 1200)).resolves.toBe(300);
-    expect(calls.rpc).toHaveBeenLastCalledWith("settle_match", { _match_id: "m1", _total_cost: 1200 });
+    await expect(settleMatch("m1", 1200, [{ user_id: "u1", guest_count: 1 }])).resolves.toBe(300);
+    expect(calls.rpc).toHaveBeenLastCalledWith("settle_match", { _match_id: "m1", _total_cost: 1200, _lineup: [{ user_id: "u1", guest_count: 1 }] });
     calls.rpc.mockResolvedValueOnce({ data: null, error: { message: "Only moderators can adjust balances" } });
     await expect(recordAdjustment("u2", 300, "Cash")).rejects.toThrow("Only moderators");
+    calls.rpc.mockResolvedValueOnce({ data: null, error: null });
+    await recordAdjustment("u2", 300, "  ");
+    expect(calls.rpc).toHaveBeenLastCalledWith("record_adjustment", { _player_id: "u2", _amount: 300, _note: null });
   });
 
   it("maps match dues by player with numeric amounts", async () => {
