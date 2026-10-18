@@ -81,6 +81,7 @@ export type Database = {
           description: string | null
           id: string
           location_id: string | null
+          max_guests: number
           player_limit: number | null
           prepayment_amount: number | null
           prepayment_required: boolean
@@ -96,6 +97,7 @@ export type Database = {
           description?: string | null
           id?: string
           location_id?: string | null
+          max_guests?: number
           player_limit?: number | null
           prepayment_amount?: number | null
           prepayment_required?: boolean
@@ -111,6 +113,7 @@ export type Database = {
           description?: string | null
           id?: string
           location_id?: string | null
+          max_guests?: number
           player_limit?: number | null
           prepayment_amount?: number | null
           prepayment_required?: boolean
@@ -318,6 +321,7 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          position: string | null
           status: string
         }
         Insert: {
@@ -329,6 +333,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id: string
+          position?: string | null
           status?: string
         }
         Update: {
@@ -340,6 +345,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          position?: string | null
           status?: string
         }
         Relationships: []
