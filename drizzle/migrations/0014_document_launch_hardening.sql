@@ -1,0 +1,1 @@
+COMMENT ON FUNCTION public.protect_registration_fields() IS 'Players may only change guest_count on their own registration.';

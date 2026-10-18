@@ -92,6 +92,13 @@
       "when": 1792420000001,
       "tag": "0013_launch_hardening_rerun",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1792341852532,
+      "tag": "0014_document_launch_hardening",
+      "breakpoints": true
     }
   ]
 }
