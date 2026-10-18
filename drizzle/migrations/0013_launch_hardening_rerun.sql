@@ -1,12 +1,9 @@
--- Pre-launch hardening from the security review. (The payment-receipts bucket is configured in Lovable storage: private, 1 MB.)
+-- Pre-launch hardening (re-run of 0012, written to be safe to run more than once).
 
--- Players may only change their own display fields; email, status, approval and timestamps stay as the system set them.
 REVOKE UPDATE ON public.profiles FROM authenticated;
 GRANT UPDATE (full_name, avatar_url, position) ON public.profiles TO authenticated;
 
--- Players may only change their guest count on their own registration. Moving it to another match (which skipped the
--- guest cap and approval checks), flagging it as staff-added, or rewriting timestamps is staff-only.
-CREATE FUNCTION public.protect_registration_fields() RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+CREATE OR REPLACE FUNCTION public.protect_registration_fields() RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
  IF public.is_staff(auth.uid()) OR coalesce(current_setting('app.match_settlement', true), '') = 'on' THEN RETURN NEW; END IF;
  IF (NEW.match_id, NEW.user_id, NEW.added_by_staff, NEW.created_at) IS DISTINCT FROM (OLD.match_id, OLD.user_id, OLD.added_by_staff, OLD.created_at) THEN
@@ -15,9 +12,9 @@ BEGIN
  RETURN NEW;
 END $$;
 REVOKE ALL ON FUNCTION public.protect_registration_fields() FROM PUBLIC, anon, authenticated;
+DROP TRIGGER IF EXISTS protect_registration_fields ON public.registrations;
 CREATE TRIGGER protect_registration_fields BEFORE UPDATE ON public.registrations FOR EACH ROW EXECUTE FUNCTION public.protect_registration_fields();
 
--- Read the match with FOR SHARE so a sign-up racing a settlement waits for it, then sees the match is settled.
 CREATE OR REPLACE FUNCTION public.lock_settled_registrations() RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE settled boolean;
 BEGIN
@@ -31,7 +28,6 @@ BEGIN
  RETURN coalesce(NEW, OLD);
 END $$;
 
--- Only approved players (and staff) can send payments, and never a NaN amount.
 CREATE OR REPLACE FUNCTION public.validate_payment_submission() RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE required_amount numeric; match_state public.match_status; needs_payment boolean;
 BEGIN
@@ -54,7 +50,6 @@ BEGIN
  RETURN NEW;
 END $$;
 
--- Refuse to verify a corrupt (NaN) or oversized legacy payment rather than writing it into the ledger.
 CREATE OR REPLACE FUNCTION public.review_payment(payment_id uuid, decision text, note text DEFAULT NULL) RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE p public.payments;
 BEGIN
@@ -77,5 +72,9 @@ BEGIN
  END IF;
 END $$;
 
--- The ledger never holds NaN. NOT VALID: checks new rows only; run the NaN check query on existing rows separately.
-ALTER TABLE public.ledger_entries ADD CONSTRAINT ledger_entries_amount_not_nan CHECK (amount <> 'NaN'::numeric) NOT VALID;
+DO $$
+BEGIN
+ IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ledger_entries_amount_not_nan' AND conrelid = 'public.ledger_entries'::regclass) THEN
+  ALTER TABLE public.ledger_entries ADD CONSTRAINT ledger_entries_amount_not_nan CHECK (amount <> 'NaN'::numeric);
+ END IF;
+END $$;
