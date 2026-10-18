@@ -26,5 +26,6 @@ export function balanceState(balance: number) {
 
 export function validateReceipt(file: File) {
   if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) throw new Error("Choose a JPG, PNG or WebP screenshot");
-  if (file.size > 5 * 1024 * 1024) throw new Error("Screenshot must be 5 MB or smaller");
+  // Matches the payment-receipts bucket limit (1 MB) set in Lovable storage.
+  if (file.size > 1024 * 1024) throw new Error("Screenshot must be 1 MB or smaller. Try a cropped or compressed image");
 }
