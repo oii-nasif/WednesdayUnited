@@ -78,6 +78,13 @@
       "when": 1792338002216,
       "tag": "0011_balance_ledger",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1792354860000,
+      "tag": "0012_launch_hardening",
+      "breakpoints": true
     }
   ]
 }
