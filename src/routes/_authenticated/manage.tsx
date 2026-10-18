@@ -4,7 +4,10 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { matchesQuery, locationsQuery, fmtDate, fmtTime, participantCount, DEFAULT_MAX_GUESTS } from "@/lib/matches";
+import { matchesQuery, locationsQuery, fmtDate, fmtTime, participantCount, DEFAULT_MAX_GUESTS, type MatchRow } from "@/lib/matches";
+import { SettleMatchDialog, ReopenMatchDialog } from "@/components/SettleMatchDialog";
+import { settlementOf } from "@/lib/ledger";
+import { money } from "@/lib/payment-rules";
 import { statusVariant, statusLabel } from "@/components/MatchCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -65,6 +68,8 @@ function Manage() {
   const [cancelId, setCancelId] = useState<string | null>(null);
   const [venueOpen, setVenueOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
+  const [settling, setSettling] = useState<NonNullable<MatchRow> | null>(null);
+  const [reopening, setReopening] = useState<{ id: string; title: string } | null>(null);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const visible = (matches ?? []).filter((m) => (filter === "all" || m.status === filter) && `${m.title} ${m.location?.name ?? ""}`.toLowerCase().includes(search.toLowerCase()));
@@ -94,7 +99,7 @@ function Manage() {
   });
 
   const setStatus = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: "published" | "completed" | "cancelled" | "draft" }) => {
+    mutationFn: async ({ id, status }: { id: string; status: "published" | "cancelled" | "draft" }) => {
       const { error } = await supabase.from("matches").update({ status }).eq("id", id);
       if (error) throw error;
     },
@@ -138,7 +143,7 @@ function Manage() {
                 <td className="p-3 font-medium"><Link to="/matches/$id" params={{ id: m.id }} className="hover:text-accent">{m.title}</Link></td>
                 <td className="p-3">{fmtDate(m.starts_at)} · {fmtTime(m.starts_at)}</td>
                 <td className="p-3">{m.location?.name ?? "—"}</td>
-                <td className="p-3">{participantCount(m.registrations)}{m.player_limit ? `/${m.player_limit}` : ""}</td>
+                <td className="p-3">{participantCount(m.registrations)}{m.player_limit ? `/${m.player_limit}` : ""}{settlementOf(m).total_cost && <p className="text-xs text-muted-foreground">{money(settlementOf(m).total_cost ?? 0)} · {money(settlementOf(m).cost_per_head ?? 0)}/head</p>}</td>
                 <td className="p-3"><Badge variant={statusVariant[m.status]} >{statusLabel[m.status]}</Badge></td>
                 <td className="space-x-1 whitespace-nowrap p-3 text-right">
                   <Button size="icon" variant="ghost" title="Edit match" aria-label={`Edit match ${m.title}`} onClick={() => setForm({
@@ -148,7 +153,8 @@ function Manage() {
                     prepayment_amount: m.prepayment_amount?.toString() ?? "",
                   })}><Pencil /></Button>
                   {m.status === "draft" && <Button size="sm" onClick={() => setStatus.mutate({ id: m.id, status: "published" })}>Book</Button>}
-                  {m.status === "published" && <Button size="sm" variant="secondary" onClick={() => setStatus.mutate({ id: m.id, status: "completed" })}>Mark played</Button>}
+                  {m.status === "published" && <Button size="sm" variant="secondary" onClick={() => setSettling(m)}>Complete…</Button>}
+                  {m.status === "completed" && <Button size="sm" variant="ghost" onClick={() => setReopening({ id: m.id, title: m.title })}>Reopen</Button>}
                   {(m.status === "draft" || m.status === "published") && <Button size="sm" variant="ghost" className="text-destructive" onClick={() => setCancelId(m.id)}>Cancel</Button>}
                   <Button size="icon" variant="ghost" className="text-destructive" title="Delete match" aria-label={`Delete match ${m.title}`} onClick={() => setDeleteTarget({ entity: "match", id: m.id, name: m.title })}><Trash2 /></Button>
                 </td>
@@ -162,6 +168,8 @@ function Manage() {
         <TabsContent value="venues"><VenueManagement onAdd={() => setVenueOpen(true)} /></TabsContent>
       </Tabs>
       <DeleteConfirmation target={deleteTarget} onClose={() => setDeleteTarget(null)} />
+      <SettleMatchDialog key={settling?.id ?? "none"} match={settling} onClose={() => setSettling(null)} />
+      <ReopenMatchDialog key={reopening?.id ?? "none-reopen"} match={reopening} onClose={() => setReopening(null)} />
 
       <Dialog open={!!form} onOpenChange={(o) => !o && setForm(null)}>
         <DialogContent className="max-h-[90vh] overflow-y-auto">

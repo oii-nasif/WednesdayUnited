@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Bell, CheckCheck, CalendarDays, UserCheck } from "lucide-react";
+import { Bell, CheckCheck, CalendarDays, UserCheck, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,7 +38,7 @@ export function NotificationBell() {
       <div className="flex items-center justify-between border-b px-4 py-3"><h2 className="text-2xl">Notifications</h2><Button size="icon" variant="ghost" title="Mark all as read" aria-label="Mark all notifications as read" disabled={!unread || read.isPending} onClick={() => read.mutate(undefined)}><CheckCheck /></Button></div>
       <div className="max-h-[60vh] overflow-y-auto">
         {isPending ? <p className="p-5 text-sm text-muted-foreground">Loading notifications…</p> : isError ? <div className="p-5 text-sm"><p>Could not load notifications.</p><Button variant="link" onClick={() => refetch()}>Retry</Button></div> : !data.length ? <p className="p-5 text-sm text-muted-foreground">No notifications yet.</p> : data.map((n) => {
-          const content = <><span className="mt-1 text-primary">{n.kind === "match_published" ? <CalendarDays className="size-4" /> : <UserCheck className="size-4" />}</span><span className="min-w-0 flex-1"><span className="block text-sm font-semibold">{n.title}</span><span className="mt-1 block text-xs text-muted-foreground">{n.body}</span><span className="mt-2 block text-[10px] text-muted-foreground">{fmtDate(n.created_at)}, {fmtTime(n.created_at)}</span></span>{!n.read_at && <span className="mt-2 size-2 shrink-0 rounded-full bg-accent" />}</>;
+          const content = <><span className="mt-1 text-primary">{n.kind === "match_published" ? <CalendarDays className="size-4" /> : n.kind === "match_settled" ? <Wallet className="size-4" /> : <UserCheck className="size-4" />}</span><span className="min-w-0 flex-1"><span className="block text-sm font-semibold">{n.title}</span><span className="mt-1 block text-xs text-muted-foreground">{n.body}</span><span className="mt-2 block text-[10px] text-muted-foreground">{fmtDate(n.created_at)}, {fmtTime(n.created_at)}</span></span>{!n.read_at && <span className="mt-2 size-2 shrink-0 rounded-full bg-accent" />}</>;
           const className = cn("flex gap-3 border-b p-4 last:border-b-0 hover:bg-muted", !n.read_at && "bg-primary-soft/40");
           const click = () => { if (!n.read_at) read.mutate(n.id); setOpen(false); };
           return n.match_id ? <Link key={n.id} to="/matches/$id" params={{ id: n.match_id }} className={className} onClick={click}>{content}</Link> : n.kind === "approval_pending" && isStaff ? <Link key={n.id} to="/users" className={className} onClick={click}>{content}</Link> : <Button key={n.id} variant="ghost" className={cn(className, "h-auto w-full justify-start whitespace-normal rounded-none text-left")} onClick={click}>{content}</Button>;

@@ -4,6 +4,8 @@ import { ArrowLeft, CalendarDays } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { playerProfileQuery, positionLabel, roleLabel } from "@/lib/profile";
 import { fmtDate, fmtTime } from "@/lib/matches";
+import { balanceQuery } from "@/lib/ledger";
+import { BalanceText } from "@/components/Balance";
 import { statusLabel, statusVariant } from "@/components/MatchCard";
 import { PageHeader } from "@/components/PageHeader";
 import { ProfileSummary } from "@/components/ProfileSummary";
@@ -25,6 +27,7 @@ function PlayerProfilePage() {
   const { id } = Route.useParams();
   const { isStaff, loading } = useAuth();
   const { data: player, isPending, isError, refetch } = useQuery({ ...playerProfileQuery(id), enabled: isStaff });
+  const { data: balance } = useQuery({ ...balanceQuery(id), enabled: isStaff });
   if (loading) return null;
   if (!isStaff) return <div className="mx-auto max-w-xl px-4 py-20 text-center text-muted-foreground">Only admins and moderators can view other players' profiles.</div>;
 
@@ -39,7 +42,8 @@ function PlayerProfilePage() {
         ) : !player ? <p className="text-muted-foreground">This player doesn't exist.</p> : (
           <>
             <ProfileSummary profile={player} role={roleLabel(player.roles)} />
-            <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <dl className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+              <div className="rounded-xl border bg-card p-4"><dt className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Balance</dt><dd className="mt-1 text-lg leading-tight">{balance === undefined ? "…" : <BalanceText balance={balance} />}</dd></div>
               {[["Position", player.position ? `${player.position} · ${positionLabel(player.position)}` : "Not set"], ["Games played", played], ["Signed up", player.registrations.length], ["Guests brought", guests]].map(([label, value]) => (
                 <div key={label} className="rounded-xl border bg-card p-4"><dt className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{label}</dt><dd className="mt-1 font-display text-2xl leading-tight">{value}</dd></div>
               ))}
