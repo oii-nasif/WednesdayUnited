@@ -1,0 +1,2 @@
+COMMENT ON COLUMN public.matches.max_guests IS 'Maximum guests one player may bring to this match (0-20).';
+COMMENT ON COLUMN public.profiles.position IS 'Preferred playing position: GK, DEF, MID, FWD or ALL.';
