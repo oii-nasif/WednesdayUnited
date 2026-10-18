@@ -1,76 +1,96 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { invalidateMoney, reopenMatch, settleMatch } from "@/lib/ledger";
-import { participantCount } from "@/lib/matches";
+import { Trash2, UserPlus } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { invalidateMoney, settleMatch } from "@/lib/ledger";
 import { money, splitCost } from "@/lib/payment-rules";
+import { GuestStepper } from "@/components/GuestStepper";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 
-type SettleTarget = { id: string; title: string; registrations: { id: string; guest_count: number; profile: { full_name: string | null } | null }[] };
+export type SettleTarget = {
+  id: string;
+  title: string;
+  total_cost: number | null;
+  registrations: { user_id: string; guest_count: number; profile: { full_name: string | null } | null }[];
+};
+type Row = { user_id: string; name: string; guest_count: number };
 
-// Completing a match means entering what it cost; the database splits it per head and charges each player.
+// Marking a match played: staff confirm who actually played (add, remove, fix guests) and the total cost. The database
+// updates the team sheet, splits the cost per head and charges everyone in one step. On a played match this edits it.
 export function SettleMatchDialog({ match, onClose }: { match: SettleTarget | null; onClose: () => void }) {
   const qc = useQueryClient();
-  const [total, setTotal] = useState("");
-  const heads = participantCount(match?.registrations);
+  const editing = match?.total_cost != null;
+  const [total, setTotal] = useState(match?.total_cost != null ? String(match.total_cost) : "");
+  const [rows, setRows] = useState<Row[]>(() => (match?.registrations ?? []).map((r) => ({ user_id: r.user_id, name: r.profile?.full_name ?? "Player", guest_count: r.guest_count })));
+  const [adding, setAdding] = useState("");
+  const { data: players } = useQuery({
+    queryKey: ["profiles"],
+    enabled: !!match,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("profiles").select("id, full_name, email").order("full_name");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const heads = rows.reduce((n, r) => n + 1 + r.guest_count, 0);
   const perHead = splitCost(Number(total), heads);
+  const available = (players ?? []).filter((p) => !rows.some((r) => r.user_id === p.id));
+  const update = (id: string, guest_count: number) => setRows((all) => all.map((r) => (r.user_id === id ? { ...r, guest_count } : r)));
+  const add = (id: string) => {
+    const p = players?.find((x) => x.id === id);
+    if (p) setRows((all) => [...all, { user_id: p.id, name: p.full_name ?? p.email ?? "Player", guest_count: 0 }]);
+    setAdding("");
+  };
   const settle = useMutation({
     mutationFn: () => {
       if (!match) throw new Error("Choose a match");
+      if (!rows.length) throw new Error("Add the players who played");
       if (!(Number(total) > 0)) throw new Error("Enter the total cost");
-      return settleMatch(match.id, Number(total));
+      return settleMatch(match.id, Number(total), rows.map(({ user_id, guest_count }) => ({ user_id, guest_count })));
     },
-    onSuccess: (charged) => { toast.success(`Match settled at ${money(charged)} per head`); invalidateMoney(qc); onClose(); },
+    onSuccess: (charged) => { toast.success(`${editing ? "Settlement updated" : "Marked played"}: ${money(charged)} per head`); invalidateMoney(qc); onClose(); },
     onError: (e: Error) => toast.error(e.message),
   });
   return <Dialog open={!!match} onOpenChange={(o) => { if (!o && !settle.isPending) onClose(); }}>
-    <DialogContent className="max-h-[90vh] overflow-y-auto">
-      <DialogHeader><DialogTitle className="font-display text-3xl">Complete match</DialogTitle><DialogDescription>{match?.title}. Enter the total cost (pitch, balls, water…). It's split equally across {heads} head{heads === 1 ? "" : "s"}, guests included, and charged to each player's balance.</DialogDescription></DialogHeader>
-      {heads === 0 ? <p className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">Nobody is on the team sheet. Add the players who played before completing the match.</p> : <>
-        <form id="settle-form" className="grid gap-1.5" onSubmit={(e) => { e.preventDefault(); settle.mutate(); }}>
-          <Label htmlFor="settle-total">Total cost (৳)</Label>
-          <Input id="settle-total" type="number" min={1} step="0.01" autoFocus value={total} onChange={(e) => setTotal(e.target.value)} />
-        </form>
-        <div className="rounded-xl border bg-secondary/40 p-4">
-          <p className="flex items-baseline justify-between"><span className="text-sm text-muted-foreground">Per head</span><span className="font-display text-3xl tabular">{money(perHead)}</span></p>
-          <ul className="mt-3 max-h-56 space-y-1.5 overflow-y-auto text-sm">
-            {match?.registrations.map((r) => (
-              <li key={r.id} className="flex justify-between gap-3"><span className="truncate">{r.profile?.full_name ?? "Player"}{r.guest_count > 0 && <span className="text-muted-foreground"> + {r.guest_count} guest{r.guest_count > 1 ? "s" : ""}</span>}</span><span className="tabular">{money(perHead * (1 + r.guest_count))}</span></li>
-            ))}
-          </ul>
-        </div>
-        <p className="text-xs text-muted-foreground">Prepayments and credit already on players' balances count toward their share. The team sheet is locked once the match is settled.</p>
-      </>}
-      <DialogFooter><Button variant="ghost" disabled={settle.isPending} onClick={onClose}>Cancel</Button><Button type="submit" form="settle-form" variant="accent" disabled={settle.isPending || heads === 0 || !(perHead > 0)}>{settle.isPending ? "Settling…" : "Complete and charge"}</Button></DialogFooter>
-    </DialogContent>
-  </Dialog>;
-}
-
-// Undo a settlement: every charge is reversed (logged), and the match goes back to booked.
-export function ReopenMatchDialog({ match, onClose }: { match: { id: string; title: string } | null; onClose: () => void }) {
-  const qc = useQueryClient();
-  const [reason, setReason] = useState("");
-  const reopen = useMutation({
-    mutationFn: () => {
-      if (!match) throw new Error("Choose a match");
-      if (!reason.trim()) throw new Error("Give a reason");
-      return reopenMatch(match.id, reason);
-    },
-    onSuccess: () => { toast.success("Match reopened and charges reversed"); invalidateMoney(qc); onClose(); },
-    onError: (e: Error) => toast.error(e.message),
-  });
-  return <Dialog open={!!match} onOpenChange={(o) => { if (!o && !reopen.isPending) onClose(); }}>
-    <DialogContent>
-      <DialogHeader><DialogTitle className="font-display text-3xl">Reopen match?</DialogTitle><DialogDescription>{match?.title}. Every player's charge for this match is reversed and the team sheet unlocks, so you can fix it and complete the match again.</DialogDescription></DialogHeader>
-      <form id="reopen-form" className="grid gap-1.5" onSubmit={(e) => { e.preventDefault(); reopen.mutate(); }}>
-        <Label htmlFor="reopen-reason">Reason</Label>
-        <Textarea id="reopen-reason" maxLength={300} placeholder="e.g. Pitch cost was entered wrong" value={reason} onChange={(e) => setReason(e.target.value)} />
+    <DialogContent className="max-h-[90vh] max-w-xl overflow-y-auto">
+      <DialogHeader>
+        <DialogTitle className="font-display text-3xl">{editing ? "Edit settlement" : "Mark played"}</DialogTitle>
+        <DialogDescription>{match?.title}. Confirm who played and the total cost (pitch, balls, water…). It's split equally per head, guests included, and charged to each player's balance.{editing && " Saving replaces the current charges."}</DialogDescription>
+      </DialogHeader>
+      <form id="settle-form" className="grid gap-1.5" onSubmit={(e) => { e.preventDefault(); settle.mutate(); }}>
+        <Label htmlFor="settle-total">Total cost (৳)</Label>
+        <Input id="settle-total" type="number" min={1} step="0.01" autoFocus value={total} onChange={(e) => setTotal(e.target.value)} />
       </form>
-      <DialogFooter><Button variant="ghost" disabled={reopen.isPending} onClick={onClose}>Cancel</Button><Button type="submit" form="reopen-form" variant="destructive" disabled={reopen.isPending || !reason.trim()}>{reopen.isPending ? "Reopening…" : "Reopen match"}</Button></DialogFooter>
+      <section className="rounded-xl border">
+        <div className="flex items-baseline justify-between border-b bg-secondary/40 px-4 py-3">
+          <span className="text-sm font-semibold">Who played · {heads} head{heads === 1 ? "" : "s"}</span>
+          <span className="text-sm text-muted-foreground"><span className="font-display text-2xl text-foreground tabular">{money(perHead)}</span> per head</span>
+        </div>
+        {rows.length ? <ul className="max-h-72 divide-y overflow-y-auto">
+          {rows.map((r) => (
+            <li key={r.user_id} className="flex flex-wrap items-center gap-3 px-4 py-2.5">
+              <span className="min-w-0 flex-1 truncate font-medium">{r.name}</span>
+              <GuestStepper value={r.guest_count} onChange={(n) => update(r.user_id, n)} label={`Guests for ${r.name}`} />
+              <span className="w-20 text-right text-sm font-semibold tabular">{money(perHead * (1 + r.guest_count))}</span>
+              <Button type="button" size="icon" variant="ghost" className="text-destructive" title={`Remove ${r.name}`} aria-label={`Remove ${r.name}`} onClick={() => setRows((all) => all.filter((x) => x.user_id !== r.user_id))}><Trash2 /></Button>
+            </li>
+          ))}
+        </ul> : <p className="px-4 py-6 text-center text-sm text-muted-foreground">Nobody yet. Add the players who played.</p>}
+        <div className="flex items-center gap-2 border-t px-4 py-3">
+          <UserPlus className="size-4 shrink-0 text-muted-foreground" />
+          <Select value={adding} onValueChange={add}>
+            <SelectTrigger className="flex-1" aria-label="Add a player"><SelectValue placeholder="Add a player who played" /></SelectTrigger>
+            <SelectContent>{available.map((p) => <SelectItem key={p.id} value={p.id}>{p.full_name ?? p.email}</SelectItem>)}</SelectContent>
+          </Select>
+        </div>
+      </section>
+      <p className="text-xs text-muted-foreground">Prepayments and credit already on players' balances count toward their share.</p>
+      <DialogFooter><Button variant="ghost" disabled={settle.isPending} onClick={onClose}>Cancel</Button><Button type="submit" form="settle-form" variant="accent" disabled={settle.isPending || !rows.length || !(perHead > 0)}>{settle.isPending ? "Saving…" : editing ? "Save settlement" : "Mark played and charge"}</Button></DialogFooter>
     </DialogContent>
   </Dialog>;
 }

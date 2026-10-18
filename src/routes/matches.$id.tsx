@@ -55,7 +55,7 @@ function MatchDetail() {
   const [celebrating, setCelebrating] = useState(false);
   const { data: payments } = useQuery({ ...paymentsQuery(user?.id ?? ""), enabled: !!user });
   const settlement = m ? settlementOf(m) : null;
-  // RLS scopes this: players get their own due, staff get everyone's.
+  // Who has paid is visible to every signed-in player.
   const { data: dues } = useQuery({ ...matchDuesQuery(id), enabled: !!user && !!settlement?.settled_at });
 
   const refresh = () => {
@@ -146,7 +146,7 @@ function MatchDetail() {
       <div className="mx-auto max-w-6xl px-4 py-10">
       <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
         <section>
-          <Tabs defaultValue="pitch">
+          <Tabs defaultValue={settlement?.settled_at ? "list" : "pitch"}>
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-accent">Team sheet</p>
@@ -154,7 +154,7 @@ function MatchDetail() {
               </div>
               <TabsList><TabsTrigger value="pitch">Pitch</TabsTrigger><TabsTrigger value="list">List</TabsTrigger></TabsList>
             </div>
-            {settlement?.settled_at && settlement.total_cost != null && settlement.cost_per_head != null && <SettlementSummary total={settlement.total_cost} perHead={settlement.cost_per_head} dues={isStaff ? dues : undefined} />}
+            {settlement?.settled_at && settlement.total_cost != null && settlement.cost_per_head != null && <SettlementSummary total={settlement.total_cost} perHead={settlement.cost_per_head} dues={dues} />}
             <TabsContent value="pitch"><PitchLineup players={m.registrations} currentUserId={user?.id} /></TabsContent>
             <TabsContent value="list">
             {m.registrations.length === 0 ? (
@@ -171,7 +171,7 @@ function MatchDetail() {
                     {isStaff ? <Link to="/players/$id" params={{ id: r.user_id }} className="font-medium hover:text-primary hover:underline">{r.profile?.full_name ?? "Player"}</Link> : <span className="font-medium">{r.profile?.full_name ?? "Player"}</span>}
                     {r.guest_count > 0 && <Badge variant="secondary">+{r.guest_count} guest{r.guest_count > 1 ? "s" : ""}</Badge>}
                     {r.added_by_staff && <span className="text-xs text-muted-foreground">added by moderator</span>}
-                    {isStaff && <DueIcon due={dues?.get(r.user_id)} className="ml-auto" />}
+                    <DueIcon due={dues?.get(r.user_id)} detailed={isStaff} className="ml-auto" />
                     {isStaff && !settlement?.settled_at && (
                       <div className="ml-auto flex items-center gap-2">
                         <Input type="number" min={0} max={m.max_guests} defaultValue={r.guest_count} className="h-8 w-16" aria-label={`Guests for ${r.profile?.full_name ?? "player"}`}

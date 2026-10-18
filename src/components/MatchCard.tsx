@@ -24,7 +24,7 @@ export const statusVariant: Record<string, "default" | "secondary" | "destructiv
   cancelled: "destructive",
 };
 
-export const statusLabel: Record<string, string> = { published: "Game On", draft: "Draft", completed: "Completed", cancelled: "Cancelled" };
+export const statusLabel: Record<string, string> = { published: "Game On", draft: "Draft", completed: "Played", cancelled: "Cancelled" };
 
 const stubTone: Record<string, string> = {
   published: "bg-primary text-primary-foreground",

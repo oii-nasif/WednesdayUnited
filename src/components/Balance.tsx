@@ -24,9 +24,11 @@ export function BalanceText({ balance, className }: { balance: number; className
   return <span className={cn("font-semibold tabular", toneClass[state.tone], className)}>{state.label}</span>;
 }
 
-// Paid / due marker beside a player on a settled match's team sheet.
-export function DueIcon({ due, className }: { due: MatchDue | undefined; className?: string }) {
+// Paid / due icon beside a player on a played match's team sheet. Amounts only appear in the tooltip, for staff.
+export function DueIcon({ due, detailed = false, className }: { due: MatchDue | undefined; detailed?: boolean; className?: string }) {
   if (!due) return null;
-  if (due.due <= 0) return <span title={`Paid ${money(due.charged)}`} className={cn("inline-flex items-center gap-1 text-xs font-semibold text-success", className)}><CircleCheck className="size-4" aria-hidden="true" /><span className="sr-only sm:not-sr-only">Paid</span></span>;
-  return <span title={`${money(due.due)} of ${money(due.charged)} still due`} className={cn("inline-flex items-center gap-1 text-xs font-semibold text-destructive", className)}><CircleAlert className="size-4" aria-hidden="true" />Due {money(due.due)}</span>;
+  const paid = due.due <= 0;
+  const label = paid ? "Paid" : detailed ? `${money(due.due)} of ${money(due.charged)} still due` : "Not paid yet";
+  const Icon = paid ? CircleCheck : CircleAlert;
+  return <span title={label} className={cn("inline-flex", paid ? "text-success" : "text-destructive", className)}><Icon className="size-5" aria-hidden="true" /><span className="sr-only">{label}</span></span>;
 }

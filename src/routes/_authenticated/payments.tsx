@@ -7,7 +7,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { paymentsQuery, paymentSettingsQuery, purposeLabel, type PaymentRow } from "@/lib/payments";
-import { balanceQuery, balancesQuery, invalidateMoney, ledgerKindLabel, ledgerQuery, recordAdjustment, type LedgerEntry } from "@/lib/ledger";
+import { balanceQuery, balancesQuery, invalidateMoney, ledgerKindLabel, ledgerQuery, payableMatchesQuery, recordAdjustment, type LedgerEntry } from "@/lib/ledger";
 import { MAX_PAYMENT, money } from "@/lib/payment-rules";
 import { fmtDate, fmtTime } from "@/lib/matches";
 import { BalanceCard, BalanceText } from "@/components/Balance";
@@ -60,7 +60,7 @@ function Payments() {
         <BalanceCard balance={balance}>
           {awaiting > 0 && <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground"><Hourglass className="size-4 text-accent" />{money(awaiting)} awaiting verification</p>}
           {paying
-            ? <div className="mt-2"><PaymentSubmission key={due} userId={userId} purpose="advance" suggestedAmount={due} title="" submitLabel={due ? "Pay my due" : "Add to my balance"} bare /><Button variant="ghost" className="mt-2 w-full" onClick={() => setPaying(false)}>Cancel</Button></div>
+            ? <div className="mt-2"><PayForm userId={userId} due={due} /><Button variant="ghost" className="mt-2 w-full" onClick={() => setPaying(false)}>Cancel</Button></div>
             : <Button variant={due ? "destructive" : "accent"} className="mt-5 w-full" onClick={() => setPaying(true)}>{due ? `Pay ${money(Math.min(due, MAX_PAYMENT))}` : <><Plus />Pay in advance</>}</Button>}
           <p className="mt-3 text-xs text-muted-foreground">After each match, a moderator enters the total cost and it's split equally per head, guests included. Your share comes off your balance; prepayments count toward it.</p>
         </BalanceCard>
@@ -85,6 +85,29 @@ function Payments() {
         </>}
       </Tabs>
     </div>
+  </div>;
+}
+
+// Players choose what the payment is for. A chosen match is paid off first; "My balance" goes to the oldest due.
+function PayForm({ userId, due }: { userId: string; due: number }) {
+  const { data } = useQuery(payableMatchesQuery(userId));
+  const [target, setTarget] = useState("balance");
+  const owing = data?.due.find((d) => d.match_id === target);
+  const upcoming = data?.upcoming.find((u) => u.match_id === target);
+  const suggested = owing ? owing.due : upcoming ? upcoming.prepayment : due;
+  return <div className="space-y-3">
+    <div className="grid gap-1.5">
+      <Label htmlFor="pay-for">What are you paying for?</Label>
+      <Select value={target} onValueChange={setTarget}>
+        <SelectTrigger id="pay-for"><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="balance">My balance{due ? ` (due ${money(due)})` : " (pay in advance)"}</SelectItem>
+          {data?.due.map((d) => <SelectItem key={d.match_id} value={d.match_id}>{d.title} · {fmtDate(d.starts_at)} · due {money(d.due)}</SelectItem>)}
+          {data?.upcoming.map((u) => <SelectItem key={u.match_id} value={u.match_id}>{u.title} · {fmtDate(u.starts_at)}{u.prepayment ? ` · prepay ${money(u.prepayment)}` : " · upcoming"}</SelectItem>)}
+        </SelectContent>
+      </Select>
+    </div>
+    <PaymentSubmission key={target} userId={userId} purpose={target === "balance" ? "advance" : "match"} matchId={target === "balance" ? undefined : target} requiredAmount={upcoming?.prepayment ?? 0} suggestedAmount={suggested} title="" submitLabel="Submit payment" bare />
   </div>;
 }
 
@@ -211,7 +234,6 @@ function AdjustmentDialog({ player, onClose }: { player: { id: string; name: str
       const n = Number(amount);
       if (!player) throw new Error("Choose a player");
       if (!(n > 0)) throw new Error("Enter an amount above zero");
-      if (!note.trim()) throw new Error("Describe the adjustment");
       return recordAdjustment(player.id, direction === "credit" ? n : -n, note);
     },
     onSuccess: () => { toast.success("Balance updated"); invalidateMoney(qc); onClose(); },
@@ -229,7 +251,7 @@ function AdjustmentDialog({ player, onClose }: { player: { id: string; name: str
           ))}
         </div>
         <div className="grid gap-1.5"><Label htmlFor="adjust-amount">Amount (৳)</Label><Input id="adjust-amount" type="number" min={0.01} step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} /></div>
-        <div className="grid gap-1.5"><Label htmlFor="adjust-note">Note</Label><Textarea id="adjust-note" maxLength={500} placeholder="e.g. Paid cash at the pitch" value={note} onChange={(e) => setNote(e.target.value)} /></div>
+        <div className="grid gap-1.5"><Label htmlFor="adjust-note">Note (optional)</Label><Textarea id="adjust-note" maxLength={500} placeholder="e.g. Paid cash at the pitch" value={note} onChange={(e) => setNote(e.target.value)} /></div>
       </form>
       <DialogFooter><Button variant="ghost" disabled={save.isPending} onClick={onClose}>Cancel</Button><Button type="submit" form="adjust-form" disabled={save.isPending}>{save.isPending ? "Saving…" : "Save"}</Button></DialogFooter>
     </DialogContent>

@@ -13,8 +13,8 @@ import { cn } from "@/lib/utils";
 type Props = {
   userId: string;
   purpose?: PaymentPurpose;
-  matchId?: string;
-  goalId?: string;
+  matchId?: string | undefined;
+  goalId?: string | undefined;
   // Minimum the database accepts (a match prepayment); `suggestedAmount` only pre-fills the form.
   requiredAmount?: number;
   suggestedAmount?: number;
