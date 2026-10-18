@@ -85,13 +85,6 @@
       "when": 1792354860000,
       "tag": "0012_launch_hardening",
       "breakpoints": true
-    },
-    {
-      "idx": 13,
-      "version": "7",
-      "when": 1792341436352,
-      "tag": "0013_launch_hardening",
-      "breakpoints": true
     }
   ]
 }
