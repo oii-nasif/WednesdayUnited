@@ -1,7 +1,7 @@
 # Wednesday United roadmap
 
 - [x] Set payment receipt storage limit to 1 MB and keep the bucket private
-- [ ] Apply launch hardening without duplicate migrations — blocked by the read-only, already-journaled 0012 file containing unsupported bucket SQL
+- [ ] Apply launch hardening migration 0012 (bucket SQL removed; the bucket is managed in Lovable storage)
 
 - [x] Add email/password sign-up and sign-in alongside Google; every new account waits for staff approval
 - [x] Add a 5-guest default cap per player that staff can change per match

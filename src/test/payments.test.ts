@@ -30,5 +30,7 @@ describe("prepayment rules", () => {
   it("accepts screenshots but rejects unsafe files", () => {
     expect(() => validateReceipt(new File(["photo"], "receipt.png", { type: "image/png" }))).not.toThrow();
     expect(() => validateReceipt(new File(["script"], "receipt.svg", { type: "image/svg+xml" }))).toThrow();
+    expect(() => validateReceipt(new File([new Uint8Array(1024 * 1024 + 1)], "big.jpg", { type: "image/jpeg" }))).toThrow(/1 MB/);
+    expect(() => validateReceipt(new File([new Uint8Array(1024 * 1024)], "ok.jpg", { type: "image/jpeg" }))).not.toThrow();
   });
 });

@@ -1,4 +1,4 @@
--- Pre-launch hardening from the security review.
+-- Pre-launch hardening from the security review. (The payment-receipts bucket is configured in Lovable storage: private, 1 MB.)
 
 -- Players may only change their own display fields; email, status, approval and timestamps stay as the system set them.
 REVOKE UPDATE ON public.profiles FROM authenticated;
@@ -79,8 +79,3 @@ END $$;
 
 -- The ledger never holds NaN. NOT VALID: checks new rows only; run the NaN check query on existing rows separately.
 ALTER TABLE public.ledger_entries ADD CONSTRAINT ledger_entries_amount_not_nan CHECK (amount <> 'NaN'::numeric) NOT VALID;
-
--- Payment screenshots: make sure the bucket exists and is private, images only, 5 MB max (matching the app's checks).
-INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-VALUES ('payment-receipts', 'payment-receipts', false, 5242880, ARRAY['image/png', 'image/jpeg', 'image/webp'])
-ON CONFLICT (id) DO UPDATE SET public = false, file_size_limit = EXCLUDED.file_size_limit, allowed_mime_types = EXCLUDED.allowed_mime_types;
