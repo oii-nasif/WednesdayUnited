@@ -34,7 +34,7 @@ export function GoogleButton({ label = "Continue with Google" }: { label?: strin
     }
   };
   return (
-    <Button size="lg" className="h-14 w-full justify-between rounded-xl border bg-card px-5 text-foreground shadow-card hover:border-primary/40 hover:bg-card hover:shadow-lift" onClick={signIn} disabled={busy}>
+    <Button size="lg" className="h-11 w-full justify-between rounded-xl border bg-card px-5 text-foreground shadow-card hover:border-primary/40 hover:bg-card hover:shadow-lift" onClick={signIn} disabled={busy}>
       <span className="flex items-center gap-3"><GoogleMark />{busy ? "Opening Google…" : label}</span>
       <ArrowRight className="text-primary" />
     </Button>
@@ -42,7 +42,7 @@ export function GoogleButton({ label = "Continue with Google" }: { label?: strin
 }
 
 export function OrDivider() {
-  return <div className="my-5 flex items-center gap-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground"><span className="h-px flex-1 bg-border" />or<span className="h-px flex-1 bg-border" /></div>;
+  return <div className="my-3 flex items-center gap-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground"><span className="h-px flex-1 bg-border" />or<span className="h-px flex-1 bg-border" /></div>;
 }
 
 // Floodlit hero on the left, form column on the right. Signed-in visitors are sent to their games.
@@ -54,8 +54,8 @@ export function AuthShell({ title, intro, children }: { title: string; intro: st
   }, [user, loading, navigate]);
 
   return (
-    <div className="grid min-h-[calc(100dvh-4rem)] lg:min-h-[calc(100dvh-73px)] lg:grid-cols-[1.1fr_1fr]">
-      <section className="bg-moonlight relative min-h-[40vh] overflow-hidden text-pitch-foreground">
+    <div className="grid min-h-[calc(100dvh-65px)] lg:min-h-[calc(100dvh-73px)] lg:grid-cols-[1.1fr_1fr]">
+      <section className="bg-moonlight relative hidden overflow-hidden text-pitch-foreground lg:block">
         <img src={hero} alt="" className="absolute inset-0 size-full object-cover opacity-35 mix-blend-luminosity" />
         <div className="absolute inset-0 bg-gradient-to-t from-pitch-deep via-pitch/50 to-transparent" />
         <PitchLines className="moonrise text-white/[0.08]" />
@@ -67,11 +67,13 @@ export function AuthShell({ title, intro, children }: { title: string; intro: st
         </div>
         <KickAbout />
       </section>
-      <section className="flex items-center justify-center px-6 py-10 lg:py-12">
+      <section className="flex min-w-0 items-center justify-center px-6 pb-[calc(5rem+env(safe-area-inset-bottom))] pt-5 lg:px-8 lg:py-5">
         <div className="rise w-full max-w-sm">
-          <TeamBadge className="size-16 text-3xl shadow-lift ring-4 ring-primary-soft lg:size-20" />
-          <h1 className="mt-5 text-5xl leading-none sm:text-6xl">{title}</h1>
-          <p className="mt-2 text-muted-foreground">{intro}</p>
+          <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3">
+            <TeamBadge className="size-11 shrink-0 text-2xl shadow-lift ring-2 ring-primary-soft" />
+            <h1 className="min-w-0 text-4xl leading-none">{title}</h1>
+          </div>
+          <p className="mt-3 text-sm text-muted-foreground">{intro}</p>
           {children}
         </div>
       </section>
