@@ -2,6 +2,7 @@ import { queryOptions, type QueryClient } from "@tanstack/react-query";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { paymentSchema, validateReceipt } from "@/lib/payment-rules";
+import { donationGoalInput } from "@/lib/donation-rules";
 
 // Ledger tables, views and RPCs come from migration 0010. Until the generated Supabase types include them, this file
 // is the only place that uses an untyped view of the browser client. RLS and the SQL functions enforce every rule.
@@ -86,12 +87,12 @@ export const payableMatchesQuery = (userId: string) =>
     },
   });
 
-export const donationGoalQuery = queryOptions({
+export const donationGoalsQuery = queryOptions({
   queryKey: ["donation-goal"],
   queryFn: async () => {
-    const { data, error } = await db.from("donation_goals").select("*").eq("active", true).maybeSingle();
+    const { data, error } = await supabase.from("donation_goals").select("*").eq("active", true).order("created_at", { ascending: false }).order("id");
     if (error) throw error;
-    return data ? num(data as DonationGoal, ["target_amount", "collected_amount"]) : null;
+    return (data ?? []).map((goal) => num(goal as DonationGoal, ["target_amount", "collected_amount"]));
   },
 });
 
@@ -133,9 +134,16 @@ export const settleMatch = async (matchId: string, totalCost: number, lineup: Li
 export const recordAdjustment = (playerId: string, amount: number, note: string) => rpc("record_adjustment", { _player_id: playerId, _amount: amount, _note: note.trim() || null });
 
 export async function saveDonationGoal(goal: { id: string; title: string; target_amount: number }) {
-  const { data, error } = await db.from("donation_goals").update({ title: goal.title.trim(), target_amount: goal.target_amount }).eq("id", goal.id).select("id");
+  const { data, error } = await supabase.from("donation_goals").update(donationGoalInput(goal.title, goal.target_amount)).eq("id", goal.id).select("id");
   if (error) throw error;
   if (!data?.length) throw new Error("You don't have permission to edit this fund");
+}
+
+export async function createDonationGoal(goal: { title: string; target_amount: number }) {
+  const { data, error } = await supabase.from("donation_goals").insert(donationGoalInput(goal.title, goal.target_amount)).select("id").single();
+  if (error) throw error;
+  if (!data) throw new Error("You don't have permission to create a fund");
+  return data.id;
 }
 
 // Settlement fields on matches (migration 0010), read from the existing match queries' "*" select.
