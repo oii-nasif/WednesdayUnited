@@ -48,7 +48,7 @@ function SignUpPage() {
   if (create.data?.needsConfirmation) {
     return (
       <AuthShell title="Check your email" intro={`We sent a confirmation link to ${form.email.trim()}.`}>
-        <div className="mt-8 space-y-4 rounded-2xl border bg-card p-5 text-sm shadow-card">
+        <div className="mt-6 space-y-4 rounded-2xl border bg-card p-5 text-sm shadow-card">
           <p className="flex gap-3"><MailCheck className="size-5 shrink-0 text-primary" />Open the link to confirm your address, then sign in.</p>
           <p className="flex gap-3"><ShieldCheck className="size-5 shrink-0 text-accent" />A moderator will approve your account before you can join matches.</p>
         </div>
@@ -59,9 +59,9 @@ function SignUpPage() {
 
   return (
     <AuthShell title="Create account" intro="Sign up with Google or email. A moderator approves every new player before their first match.">
-      <div className="mt-8"><GoogleButton label="Sign up with Google" /></div>
+      <div className="mt-6"><GoogleButton label="Sign up with Google" /></div>
       <OrDivider />
-      <form className="grid gap-4" onSubmit={submit} noValidate>
+      <form className="grid gap-3.5" onSubmit={submit} noValidate>
         {FIELDS.map((f) => (
           <div key={f.name} className="grid gap-1.5">
             <Label htmlFor={`signup-${f.name}`}>{f.label}</Label>
@@ -73,7 +73,7 @@ function SignUpPage() {
         {create.isError && <p role="alert" className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{create.error.message}</p>}
         <Button type="submit" size="lg" variant="accent" disabled={create.isPending}>{create.isPending ? "Creating account…" : "Create account"}</Button>
       </form>
-      <p className="mt-5 text-center text-sm text-muted-foreground">Already have an account? <Link to="/auth" className="font-semibold text-primary hover:underline">Sign in</Link></p>
+      <p className="mt-4 text-center text-sm text-muted-foreground">Already have an account? <Link to="/auth" className="font-semibold text-primary hover:underline">Sign in</Link></p>
     </AuthShell>
   );
 }

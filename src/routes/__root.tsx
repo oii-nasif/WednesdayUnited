@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
   type ErrorComponentProps,
@@ -116,15 +117,19 @@ function RootComponent() {
     return () => data.subscription.unsubscribe();
   }, [router, queryClient]);
 
+  // Sign-in/sign-up are single-screen pages: no footer, so nothing nudges the page into a scroll.
+  const path = useRouterState({ select: (s) => s.location.pathname });
+  const isAuthPage = path.startsWith("/auth") || path.startsWith("/signup");
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <SiteHeader />
         <ApprovalNotice />
-        <main className="min-h-[calc(100vh-4rem)]">
+        <main className="min-h-[calc(100dvh-4rem)] lg:min-h-[calc(100dvh-73px)]">
           <Outlet />
         </main>
-        <SiteFooter />
+        {!isAuthPage && <SiteFooter />}
         <Toaster richColors position="top-center" />
       </AuthProvider>
     </QueryClientProvider>
