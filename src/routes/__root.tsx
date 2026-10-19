@@ -126,7 +126,7 @@ function RootComponent() {
       <AuthProvider>
         <SiteHeader />
         <ApprovalNotice />
-        <main className="min-h-[calc(100dvh-4rem)] lg:min-h-[calc(100dvh-73px)]">
+        <main className={isAuthPage ? "min-h-[calc(100dvh-65px)] lg:min-h-[calc(100dvh-73px)]" : "min-h-[calc(100dvh-4rem)] lg:min-h-[calc(100dvh-73px)]"}>
           <Outlet />
         </main>
         {!isAuthPage && <SiteFooter />}
