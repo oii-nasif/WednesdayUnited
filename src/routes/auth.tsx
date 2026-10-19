@@ -39,7 +39,7 @@ function AuthPage() {
 
   return (
     <AuthShell title="Join the squad" intro="Sign in to grab spots, bring guests and track your payments.">
-      <div className="mt-6"><GoogleButton /></div>
+      <div className="mt-4"><GoogleButton /></div>
       <OrDivider />
       <form className="grid gap-3.5" onSubmit={submit} noValidate>
         <div className="grid gap-1.5"><Label htmlFor="signin-email">Email</Label><Input id="signin-email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
@@ -47,7 +47,7 @@ function AuthPage() {
         <Button type="submit" size="lg" variant="accent" disabled={signIn.isPending}>{signIn.isPending ? "Signing in…" : "Sign in with email"}</Button>
       </form>
       <p className="mt-4 text-center text-sm text-muted-foreground">New here? <Link to="/signup" className="font-semibold text-primary hover:underline">Create an account</Link></p>
-      <ul className="mt-6 space-y-2.5 border-t pt-5 text-sm text-muted-foreground">
+      <ul className="auth-benefits mt-4 space-y-2 border-t pt-3 text-xs text-muted-foreground">
         {["See who's playing before you commit", "Bring a friend along as your guest", "Keep track of your games and appearances"].map((t) => (
           <li key={t} className="flex items-center gap-3"><Football className="size-4 shrink-0" />{t}</li>
         ))}
