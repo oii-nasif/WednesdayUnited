@@ -74,9 +74,13 @@ function EditFundDialog({ open, onOpenChange, goal, onCreated }: { open: boolean
   const [title, setTitle] = useState(goal?.title ?? "");
   const [target, setTarget] = useState(goal ? String(goal.target_amount) : "");
   const save = useMutation({
-    mutationFn: () => {
+    mutationFn: async (): Promise<string | undefined> => {
       const amount = Number(target);
-      return goal ? saveDonationGoal({ id: goal.id, title, target_amount: amount }) : createDonationGoal({ title, target_amount: amount });
+      if (goal) {
+        await saveDonationGoal({ id: goal.id, title, target_amount: amount });
+        return undefined;
+      }
+      return createDonationGoal({ title, target_amount: amount });
     },
     onSuccess: (id) => { toast.success(goal ? "Fund updated" : "Donation goal created"); invalidateMoney(qc); if (id) onCreated?.(id); onOpenChange(false); },
     onError: (e: Error) => toast.error(e.message),
