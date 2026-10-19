@@ -1,6 +1,7 @@
 # Wednesday United roadmap
 
-- [ ] Add donation goal creation for moderators and admins and verify saved goals appear
+- [x] Add donation goal creation for moderators and admins and verify saved goals appear
+- [ ] Enable several active donation funds — blocked by migration ordering: the existing applied timestamp is newer than newly generated migrations; migration 0015 has not taken effect
 
 - [x] Verify compact sign-in and sign-up pages at the reported short desktop size and mobile sizes
 
