@@ -10,6 +10,7 @@
 <!-- LOVABLE:END -->
 
 - Roles live in public.user_roles (player/moderator/super_admin) checked via has_role/is_staff SQL functions; RLS is the source of truth for permissions.
+- AuthShell uses compact forms, a desktop-only image panel, and mobile bottom-navigation clearance; preserve natural scrolling for validation errors and unusually short screens rather than clipping controls.
 - User management uses staff-checked approval and super-admin-checked role RPCs; role changes protect super-admin targets, and auth refreshes role reads after database changes.
 - Notifications are persisted per recipient by match/approval database triggers; browser subscriptions are owner-filtered, cleaned up on unmount, and marking read uses an owner-checked RPC.
 - Player approval displays use a shared owner-scoped profile query with periodic refresh; client registration gating mirrors database enforcement without replacing it.
