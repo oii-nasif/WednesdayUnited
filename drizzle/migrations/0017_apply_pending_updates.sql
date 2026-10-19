@@ -1,0 +1,1 @@
+COMMENT ON TABLE public.payment_settings IS 'Bank instructions readable by staff, approved players and registered players.';
