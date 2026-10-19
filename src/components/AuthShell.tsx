@@ -54,7 +54,7 @@ export function AuthShell({ title, intro, children }: { title: string; intro: st
   }, [user, loading, navigate]);
 
   return (
-    <div className="grid min-h-[calc(100dvh-4rem)] lg:min-h-[calc(100dvh-72px)]">
+    <div className="grid min-h-[calc(100dvh-4rem)] lg:min-h-[calc(100dvh-72px)] lg:grid-cols-[1.1fr_1fr]">
       <section className="bg-moonlight relative min-h-[40vh] overflow-hidden text-pitch-foreground">
         <img src={hero} alt="" className="absolute inset-0 size-full object-cover opacity-35 mix-blend-luminosity" />
         <div className="absolute inset-0 bg-gradient-to-t from-pitch-deep via-pitch/50 to-transparent" />
