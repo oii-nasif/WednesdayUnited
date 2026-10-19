@@ -59,9 +59,9 @@ function SignUpPage() {
 
   return (
     <AuthShell title="Create account" intro="Sign up with Google or email. A moderator approves every new player before their first match.">
-      <div className="mt-8"><GoogleButton label="Sign up with Google" /></div>
+      <div className="mt-6"><GoogleButton label="Sign up with Google" /></div>
       <OrDivider />
-      <form className="grid gap-4" onSubmit={submit} noValidate>
+      <form className="grid gap-3.5" onSubmit={submit} noValidate>
         {FIELDS.map((f) => (
           <div key={f.name} className="grid gap-1.5">
             <Label htmlFor={`signup-${f.name}`}>{f.label}</Label>
