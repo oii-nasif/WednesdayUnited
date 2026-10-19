@@ -1,5 +1,7 @@
 # Wednesday United roadmap
 
+- [ ] Add donation goal creation for moderators and admins and verify saved goals appear
+
 - [x] Verify compact sign-in and sign-up pages at the reported short desktop size and mobile sizes
 
 - [x] Set payment receipt storage limit to 1 MB and keep the bucket private
