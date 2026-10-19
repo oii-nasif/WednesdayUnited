@@ -1,6 +1,6 @@
 # Wednesday United roadmap
 
-- [ ] Verify compact sign-in and sign-up pages at the reported short desktop size and mobile sizes
+- [x] Verify compact sign-in and sign-up pages at the reported short desktop size and mobile sizes
 
 - [x] Set payment receipt storage limit to 1 MB and keep the bucket private
 - [ ] Apply launch hardening migration 0012 (bucket SQL removed; the bucket is managed in Lovable storage)
