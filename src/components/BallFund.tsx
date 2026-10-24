@@ -5,7 +5,7 @@ import { Heart, Pencil, PartyPopper, Plus } from "lucide-react";
 import { donationGoalsQuery, invalidateMoney, saveDonationGoal, createDonationGoal, type DonationGoal } from "@/lib/ledger";
 import { money } from "@/lib/payment-rules";
 import { CountUp } from "@/components/CountUp";
-import { FundPitch } from "@/components/FundPitch";
+import { FundShot } from "@/components/FundShot";
 import { PaymentSubmission } from "@/components/PaymentSubmission";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -66,7 +66,7 @@ function FundCard({ goal, userId, staff }: { goal: DonationGoal; userId: string;
         </div>
       </div>
       <div className="px-6 pb-6">
-        <FundPitch pct={pct} label={`${goal.title} fund ${pct}% funded`} className="mt-1" />
+        <FundShot pct={pct} label={`${goal.title} fund ${pct}% funded`} className="mt-2 text-pitch-foreground" />
         <p className="mt-3 text-center text-sm font-semibold">{funded ? <span className="flex items-center justify-center gap-2 text-accent"><PartyPopper className="size-4" />Back of the net. Thank you, squad!</span> : <>{money(needed)} from goal · <span className="text-accent">{pct}%</span> of the way</>}</p>
         {!funded && (donating
           ? <div className="mt-4 rounded-xl bg-card p-4 text-card-foreground"><PaymentSubmission userId={userId} purpose="donation" goalId={goal.id} title="" submitLabel="Send donation" bare /><Button variant="ghost" className="mt-2 w-full" onClick={() => setDonating(false)}>Cancel</Button></div>
