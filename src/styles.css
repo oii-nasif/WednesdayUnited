@@ -243,3 +243,8 @@
 /* Donation fund: the ball keeps turning while it waits on the pitch. */
 .ball-spin { animation: ball-roll 1.6s linear infinite; }
 @media (prefers-reduced-motion: reduce) { .ball-spin { animation: none; } }
+
+/* Rubber stamp slams down onto the balance stub. */
+.stamp { animation: stamp 0.45s cubic-bezier(0.2, 1.4, 0.4, 1) both; }
+@keyframes stamp { from { opacity: 0; transform: rotate(-6deg) scale(1.8); } to { opacity: 1; transform: rotate(-6deg) scale(1); } }
+@media (prefers-reduced-motion: reduce) { .stamp { animation: none; } }

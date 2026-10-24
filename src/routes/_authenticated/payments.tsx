@@ -57,12 +57,12 @@ function Payments() {
     </PageHeader>
     <div className="mx-auto max-w-6xl px-4 pb-10">
       <div className="relative z-10 -mt-6 mb-8 grid gap-5 lg:grid-cols-[1.1fr_1fr]">
-        <BalanceCard balance={balance}>
+        <BalanceCard balance={balance} ledger={myLedger}>
           {awaiting > 0 && <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground"><Hourglass className="size-4 text-accent" />{money(awaiting)} awaiting verification</p>}
           {paying
             ? <div className="mt-2"><PayForm userId={userId} due={due} /><Button variant="ghost" className="mt-2 w-full" onClick={() => setPaying(false)}>Cancel</Button></div>
             : <Button variant={due ? "destructive" : "accent"} className="mt-4 w-full" onClick={() => setPaying(true)}>{due ? `Pay ${money(Math.min(due, MAX_PAYMENT))}` : <><Plus />Pay in advance</>}</Button>}
-          <p className="mt-2 text-xs text-muted-foreground">After each match, a moderator enters the total cost and it's split equally per head, guests included. Your share comes off your balance; prepayments count toward it.</p>
+          <p className="mt-2 text-xs text-muted-foreground">Match costs are split per head after each game, guests included, and come off this balance.</p>
         </BalanceCard>
         <BallFund userId={userId} staff={isStaff} />
       </div>
