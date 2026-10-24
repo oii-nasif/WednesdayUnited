@@ -120,6 +120,13 @@
       "when": 1792417280928,
       "tag": "0017_apply_pending_updates",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1792880933454,
+      "tag": "0018_payment_qr_code",
+      "breakpoints": true
     }
   ]
 }
