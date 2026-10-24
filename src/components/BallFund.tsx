@@ -21,14 +21,14 @@ export function BallFund({ userId, staff }: { userId: string; staff: boolean }) 
   const goal = goals.find((g) => g.id === selected) ?? goals[0];
   return <div className="min-w-0">
     {isLoading ? <p className="text-sm text-muted-foreground">Loading donation goals…</p> : error ? <p className="text-sm text-destructive">Could not load donation goals.</p> : <>
-      {goal ? <FundCard key={goal.id} goal={goal} userId={userId} staff={staff} onCreate={staff ? () => setCreating(true) : undefined} /> : <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed bg-card py-8 text-center text-sm text-muted-foreground">No active donation goals.{staff && <Button variant="outline" size="sm" onClick={() => setCreating(true)}><Plus />Create goal</Button>}</div>}
+      {goal ? <FundCard key={goal.id} goal={goal} userId={userId} staff={staff} onCreate={() => setCreating(true)} /> : <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed bg-card py-8 text-center text-sm text-muted-foreground">No active donation goals.{staff && <Button variant="outline" size="sm" onClick={() => setCreating(true)}><Plus />Create goal</Button>}</div>}
       {goals.length > 1 && <div className="mt-3 grid gap-1.5"><Label htmlFor="donation-goal">Choose a fund</Label><Select value={goal?.id} onValueChange={setSelected}><SelectTrigger id="donation-goal" className="w-full"><SelectValue /></SelectTrigger><SelectContent>{goals.map((g) => <SelectItem key={g.id} value={g.id}>{g.title}</SelectItem>)}</SelectContent></Select></div>}
     </>}
     {staff && <EditFundDialog key={`create-${creating}`} open={creating} onOpenChange={setCreating} onCreated={setSelected} />}
   </div>;
 }
 
-function FundCard({ goal, userId, staff, onCreate }: { goal: DonationGoal; userId: string; staff: boolean; onCreate?: (() => void) | undefined }) {
+function FundCard({ goal, userId, staff, onCreate }: { goal: DonationGoal; userId: string; staff: boolean; onCreate: () => void }) {
   const [donating, setDonating] = useState(false);
   const [editing, setEditing] = useState(false);
   const collected = goal.collected_amount;
@@ -46,7 +46,7 @@ function FundCard({ goal, userId, staff, onCreate }: { goal: DonationGoal; userI
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider"><span className="relative flex size-2"><span className="absolute inline-flex size-full animate-ping rounded-full bg-success opacity-75" /><span className="relative inline-flex size-2 rounded-full bg-success" /></span>Live</span>
-            {onCreate && <Button size="icon" variant="ghost" className="size-8 text-pitch-foreground/80 hover:bg-white/10 hover:text-pitch-foreground" title="Create goal" aria-label="Create goal" onClick={onCreate}><Plus /></Button>}
+            {staff && <Button size="icon" variant="ghost" className="size-8 text-pitch-foreground/80 hover:bg-white/10 hover:text-pitch-foreground" title="Create goal" aria-label="Create goal" onClick={onCreate}><Plus /></Button>}
             {staff && <Button size="icon" variant="ghost" className="size-8 text-pitch-foreground/80 hover:bg-white/10 hover:text-pitch-foreground" title="Edit fund" aria-label="Edit fund" onClick={() => setEditing(true)}><Pencil /></Button>}
           </div>
         </div>
