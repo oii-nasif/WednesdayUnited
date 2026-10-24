@@ -1,20 +1,44 @@
 import type { ReactNode } from "react";
-import { CircleAlert, CircleCheck, Wallet } from "lucide-react";
+import { CircleAlert, CircleCheck, Receipt, Trophy, Wallet } from "lucide-react";
 import { balanceState, money } from "@/lib/payment-rules";
-import type { MatchDue } from "@/lib/ledger";
+import type { LedgerEntry, MatchDue } from "@/lib/ledger";
 import { cn } from "@/lib/utils";
 
 const toneClass = { due: "text-destructive", credit: "text-success", clear: "text-success" } as const;
+const stubTone = { due: "bg-destructive text-destructive-foreground", credit: "bg-success text-white", clear: "bg-success text-white" } as const;
+const stamp = { due: "OWING", credit: "IN CREDIT", clear: "PAID UP" } as const;
 
-// Big balance readout: red when the player owes, green when they're clear or in credit.
-export function BalanceCard({ balance, className, children }: { balance: number; className?: string; children?: ReactNode }) {
+// Season-ticket stub: the balance on the coloured stub, a rubber stamp for the verdict,
+// and the season so far (paid, matches charged, last match) on the tear-off half.
+export function BalanceCard({ balance, ledger = [], className, children }: { balance: number; ledger?: LedgerEntry[]; className?: string; children?: ReactNode }) {
   const state = balanceState(balance);
+  const paid = ledger.filter((e) => e.kind === "payment").reduce((s, e) => s + e.amount, 0);
+  const charges = ledger.filter((e) => e.kind === "match_charge");
+  const last = charges[0];
   return (
-    <section className={cn("rounded-2xl border bg-card p-5 shadow-lift", state.tone === "due" ? "border-destructive/40" : "border-success/40", className)}>
-      <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground"><Wallet className="size-4" />My balance</p>
-      <p className={cn("mt-1.5 font-display text-5xl leading-none tabular", toneClass[state.tone])}>{balance < 0 ? "−" : ""}{money(Math.abs(balance))}</p>
-      <p className={cn("mt-1.5 text-sm font-semibold", toneClass[state.tone])}>{state.tone === "due" ? `You owe ${money(-balance)}. Pay it off below.` : state.tone === "credit" ? "In credit. It goes toward your next match." : "All clear. Nothing owed."}</p>
-      {children}
+    <section className={cn("ticket flex overflow-hidden rounded-2xl bg-card shadow-lift [--notch:104px] sm:[--notch:128px]", className)}>
+      <div className={cn("relative flex w-[104px] shrink-0 flex-col items-center justify-center gap-1 px-2 py-5 text-center sm:w-[128px]", stubTone[state.tone])}>
+        <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.2em] opacity-80"><Wallet className="size-3.5" />Balance</span>
+        <span className="break-all font-display text-3xl leading-none tabular sm:text-4xl">{balance < 0 ? "−" : ""}{money(Math.abs(balance))}</span>
+        <span key={state.tone} className="stamp mt-2 -rotate-6 rounded-md border-[3px] border-current px-2 py-0.5 font-display text-sm uppercase tracking-[0.15em]">{stamp[state.tone]}</span>
+        <span className="perforation absolute inset-y-3 right-0 w-0.5 opacity-60" />
+      </div>
+      <div className="min-w-0 flex-1 p-5">
+        <p className={cn("text-sm font-semibold", toneClass[state.tone])}>{state.tone === "due" ? `You owe ${money(-balance)}. Pay it off below.` : state.tone === "credit" ? "In credit. It goes toward your next match." : "All clear. Nothing owed."}</p>
+        <dl className="mt-3 grid grid-cols-3 gap-2 text-center">
+          {[
+            { icon: Receipt, label: "Paid in", value: money(paid) },
+            { icon: Trophy, label: "Matches billed", value: String(charges.length) },
+            { icon: CircleCheck, label: "Last match", value: last ? money(-last.amount) : "—" },
+          ].map(({ icon: Icon, label, value }) => (
+            <div key={label} className="min-w-0 rounded-xl bg-secondary/60 px-2 py-2">
+              <dt className="flex items-center justify-center gap-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground"><Icon className="size-3" />{label}</dt>
+              <dd className="mt-0.5 truncate font-display text-xl leading-none tabular">{value}</dd>
+            </div>
+          ))}
+        </dl>
+        {children}
+      </div>
     </section>
   );
 }
