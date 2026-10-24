@@ -40,7 +40,7 @@ export function BankSettings() {
     onError: (error: { message: string }) => toast.error(error.message),
   });
   return <>
-    <Button variant="outline" size="lg" disabled={isLoading || !!error} onClick={() => { setFile(null); setForm({ payment_method: settings?.payment_method === "qr" ? "qr" : "bank", bank_name: settings?.bank_name ?? "", account_name: settings?.account_name ?? "", account_number: settings?.account_number ?? "", instructions: settings?.instructions ?? "", qr_code_path: settings?.qr_code_path ?? null }); }}><Landmark className="mr-2 h-4 w-4" />Bank details</Button>
+    <Button variant="outline" size="lg" className="border-white/25 bg-white/5 text-pitch-foreground hover:border-white/50 hover:bg-white/10 hover:text-pitch-foreground" disabled={isLoading || !!error} onClick={() => { setFile(null); setForm({ payment_method: settings?.payment_method === "qr" ? "qr" : "bank", bank_name: settings?.bank_name ?? "", account_name: settings?.account_name ?? "", account_number: settings?.account_number ?? "", instructions: settings?.instructions ?? "", qr_code_path: settings?.qr_code_path ?? null }); }}><Landmark className="mr-2 h-4 w-4" />Bank details</Button>
     <Dialog open={!!form} onOpenChange={(open) => { if (!open && !save.isPending) setForm(null); }}>
       <DialogContent className="max-h-[85dvh] overflow-y-auto"><DialogHeader><DialogTitle>Payment details</DialogTitle><DialogDescription>Bank account or payment QR code</DialogDescription></DialogHeader>
         {form && <form id="bank-form" className="grid gap-4" onSubmit={(e) => { e.preventDefault(); save.mutate(); }}>
