@@ -5,8 +5,7 @@ import { donationGoalsQuery } from "@/lib/ledger";
 import { money } from "@/lib/payment-rules";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
-import { Football } from "@/components/Football";
-import { PitchLines } from "@/components/PitchLines";
+import { FundPitch } from "@/components/FundPitch";
 
 // Slim strip above the hero for the active donation goal, so every visitor sees what the squad is raising for.
 export function DonationBanner() {
@@ -19,28 +18,24 @@ export function DonationBanner() {
   const pct = Math.min(100, Math.round((collected / goal.target_amount) * 100));
   const funded = needed === 0;
   return (
-    <section aria-label="Donation goal" className="relative overflow-hidden bg-accent text-accent-foreground">
-      <PitchLines className="text-white/15" />
-      <div className="relative mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3.5 md:flex-row md:items-center md:gap-6">
-        <div className="flex min-w-0 items-center gap-3 md:w-72 md:shrink-0">
-          <Football className="ball-bounce size-9 shrink-0" />
+    <section aria-label="Donation goal" className="relative overflow-hidden bg-pitch-deep text-pitch-foreground">
+      <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-accent via-success to-accent" />
+      <div className="relative mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:gap-5">
+        <div className="flex min-w-0 items-center gap-3 md:w-64 md:shrink-0">
+          <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-accent text-accent-foreground"><Heart className="size-4" /></span>
           <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent-foreground/75">Squad fundraiser</p>
-            <h2 className="truncate font-display text-2xl leading-none">{goal.title} fund</h2>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent">Road to goal</p>
+            <h2 className="truncate font-display text-xl leading-none">{goal.title}</h2>
           </div>
         </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-baseline justify-between gap-3 text-sm">
-            <span><strong className="font-display text-xl leading-none tabular">{money(collected)}</strong> <span className="text-accent-foreground/80">of {money(goal.target_amount)}</span></span>
-            <span className="font-semibold">{funded ? <span className="flex items-center gap-1.5"><PartyPopper className="size-4" />Fully funded!</span> : `${money(needed)} to go`}</span>
-          </div>
-          <div className="mt-1.5 h-3 rounded-full bg-black/20 p-0.5" role="progressbar" aria-valuemin={0} aria-valuenow={pct} aria-valuemax={100} aria-label={`${goal.title} fund ${pct}% funded`}>
-            <div className="relative h-full min-w-3 rounded-full bg-white transition-[width] duration-1000" style={{ width: `${pct}%` }}>
-              <Football className="absolute -right-2 top-1/2 size-4 -translate-y-1/2" />
-            </div>
-          </div>
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <span className="shrink-0 rounded-md bg-black/40 px-2.5 py-1 font-display text-lg leading-none text-accent tabular ring-1 ring-white/10">{money(collected)}</span>
+          <FundPitch compact pct={pct} label={`${goal.title} fund ${pct}% funded`} className="flex-1" />
+          <span className="shrink-0 rounded-md bg-black/40 px-2.5 py-1 font-display text-lg leading-none tabular ring-1 ring-white/10">{money(goal.target_amount)}</span>
         </div>
-        {!funded && <Button className="shrink-0 bg-pitch-deep text-pitch-foreground hover:bg-pitch-deep/90" asChild><Link to={user ? "/payments" : "/auth"}><Heart />Donate now<ArrowUpRight /></Link></Button>}
+        {funded
+          ? <span className="flex items-center gap-1.5 text-sm font-semibold text-accent"><PartyPopper className="size-4" />Back of the net!</span>
+          : <Button variant="accent" className="shrink-0" asChild><Link to={user ? "/payments" : "/auth"}><Heart />{money(needed)} to go<ArrowUpRight /></Link></Button>}
       </div>
     </section>
   );
