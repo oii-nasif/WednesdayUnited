@@ -9,7 +9,7 @@ export function PaymentQr({ path }: { path: string }) {
     refetchInterval: 300_000,
   });
   return <div className="my-4">
-    <p className="mb-2 text-sm font-semibold">Payment QR code</p>
+    <p className="mb-2 text-sm font-semibold">Scan to pay</p>
     {isPending && <p className="text-sm text-muted-foreground">Loading QR code…</p>}
     {error && <p className="text-sm text-destructive">Could not load QR code. Please try again.</p>}
     {data && <a href={data} target="_blank" rel="noreferrer" aria-label="Open payment QR code"><img src={data} alt="Bank payment QR code" className="max-h-72 w-full max-w-72 rounded border object-contain" /></a>}

@@ -24,25 +24,28 @@ export function BankSettings() {
   const qc = useQueryClient();
   const save = useMutation({
     mutationFn: async () => {
-      if (!form || !user) throw new Error("Sign in to save bank details");
+      if (!form || !user) throw new Error("Sign in to save payment details");
       let uploaded: string | null = null;
       try {
         if (form.payment_method === "qr" && file) uploaded = await uploadPaymentQr(user.id, file);
         const row = { ...bankSettingsInput(form, uploaded), updated_at: new Date().toISOString() };
         const result = settings ? await supabase.from("payment_settings").update(row).eq("id", settings.id).select("id").single() : await supabase.from("payment_settings").insert(row).select("id").single();
         if (result.error) throw result.error;
+        // The old QR image is no longer referenced once bank mode or a new upload is saved; best effort, the save already went through.
+        const stale = settings?.qr_code_path;
+        if (stale && stale !== row.qr_code_path) await supabase.storage.from("payment-qr-codes").remove([stale]);
       } catch (error) {
         if (uploaded) await supabase.storage.from("payment-qr-codes").remove([uploaded]);
         throw error;
       }
     },
-    onSuccess: () => { toast.success("Bank details saved"); setForm(null); setFile(null); void qc.invalidateQueries({ queryKey: ["payment-settings"] }); },
+    onSuccess: () => { toast.success("Payment details saved"); setForm(null); setFile(null); void qc.invalidateQueries({ queryKey: ["payment-settings"] }); },
     onError: (error: { message: string }) => toast.error(error.message),
   });
   return <>
-    <Button variant="outline" size="lg" className="border-white/25 bg-white/5 text-pitch-foreground hover:border-white/50 hover:bg-white/10 hover:text-pitch-foreground" disabled={isLoading || !!error} onClick={() => { setFile(null); setForm({ payment_method: settings?.payment_method === "qr" ? "qr" : "bank", bank_name: settings?.bank_name ?? "", account_name: settings?.account_name ?? "", account_number: settings?.account_number ?? "", instructions: settings?.instructions ?? "", qr_code_path: settings?.qr_code_path ?? null }); }}><Landmark className="mr-2 h-4 w-4" />Bank details</Button>
+    <Button variant="outline" size="lg" className="border-white/25 bg-white/5 text-pitch-foreground hover:border-white/50 hover:bg-white/10 hover:text-pitch-foreground" disabled={isLoading || !!error} onClick={() => { setFile(null); setForm({ payment_method: settings?.payment_method === "qr" ? "qr" : "bank", bank_name: settings?.bank_name ?? "", account_name: settings?.account_name ?? "", account_number: settings?.account_number ?? "", instructions: settings?.instructions ?? "", qr_code_path: settings?.qr_code_path ?? null }); }}><Landmark className="mr-2 h-4 w-4" />Payment details</Button>
     <Dialog open={!!form} onOpenChange={(open) => { if (!open && !save.isPending) setForm(null); }}>
-      <DialogContent className="max-h-[85dvh] overflow-y-auto"><DialogHeader><DialogTitle>Payment details</DialogTitle><DialogDescription>Bank account or payment QR code</DialogDescription></DialogHeader>
+      <DialogContent className="max-h-[85dvh] overflow-y-auto"><DialogHeader><DialogTitle>Payment details</DialogTitle><DialogDescription>Pick one: players only see the method on the tab you save.</DialogDescription></DialogHeader>
         {form && <form id="bank-form" className="grid gap-4" onSubmit={(e) => { e.preventDefault(); save.mutate(); }}>
           <Tabs value={form.payment_method} onValueChange={(value) => setForm({ ...form, payment_method: value as PaymentMethod })}>
             <TabsList className="grid w-full grid-cols-2"><TabsTrigger value="bank" disabled={save.isPending}>Bank details</TabsTrigger><TabsTrigger value="qr" disabled={save.isPending}>QR code</TabsTrigger></TabsList>

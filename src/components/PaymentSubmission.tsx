@@ -40,13 +40,14 @@ export function PaymentSubmission({ userId, purpose = "match", matchId, goalId, 
     onError: (error: Error) => toast.error(error.message),
   });
   if (isLoading) return <p className="text-sm text-muted-foreground">Loading payment details…</p>;
-  if (error) return <p className="text-sm text-destructive">Could not load bank details. Please try again.</p>;
-  if (!settings) return <p className="text-sm text-muted-foreground">Bank details have not been added yet.</p>;
+  if (error) return <p className="text-sm text-destructive">Could not load payment details. Please try again.</p>;
+  if (!settings) return <p className="text-sm text-muted-foreground">Payment details have not been added yet.</p>;
   const id = `${purpose}-${matchId ?? goalId ?? "balance"}`;
   return <section className={cn(!bare && "mt-5 border-t pt-5")}>
     {title && <h3 className="text-2xl">{title}</h3>}
     {requiredAmount > 0 && <p className="mt-1 font-semibold">Required: {money(requiredAmount)}</p>}
     {settings.payment_method !== "qr" && <dl className="my-4 space-y-2 break-words text-sm">
+      <p className="font-semibold">Transfer to</p>
       <div><dt className="text-muted-foreground">Bank</dt><dd>{settings.bank_name}</dd></div>
       <div><dt className="text-muted-foreground">Account name</dt><dd>{settings.account_name}</dd></div>
       <div><dt className="text-muted-foreground">Account number</dt><dd className="font-semibold">{settings.account_number}</dd></div>
