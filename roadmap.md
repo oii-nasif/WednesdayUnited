@@ -1,6 +1,6 @@
 # Wednesday United roadmap
 
-- [ ] Let admins/moderators choose bank details or QR only; verify both saved modes
+- [x] Let admins/moderators choose bank details or QR only; verify both saved modes
 
 - [x] Add optional payment QR upload alongside bank details and verify saved image display
 
