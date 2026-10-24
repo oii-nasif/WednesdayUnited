@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { PaymentQr } from "@/components/PaymentQr";
 
 type Props = {
   userId: string;
@@ -50,6 +51,7 @@ export function PaymentSubmission({ userId, purpose = "match", matchId, goalId, 
       <div><dt className="text-muted-foreground">Account name</dt><dd>{settings.account_name}</dd></div>
       <div><dt className="text-muted-foreground">Account number</dt><dd className="font-semibold">{settings.account_number}</dd></div>
     </dl>
+    {settings.qr_code_path && <PaymentQr path={settings.qr_code_path} />}
     {settings.instructions && <p className="mb-4 whitespace-pre-wrap break-words text-sm">{settings.instructions}</p>}
     {canSubmit && <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); submit.mutate(); }}>
       <div className="grid gap-1.5"><Label htmlFor={`${id}-amount`}>Amount (৳)</Label><Input id={`${id}-amount`} type="number" min={minAmount || 0.01} max={MAX_PAYMENT} step="0.01" required value={amount} onChange={(e) => setAmount(e.target.value)} /><p className="text-xs text-muted-foreground">Up to {money(MAX_PAYMENT)} per payment.</p></div>
