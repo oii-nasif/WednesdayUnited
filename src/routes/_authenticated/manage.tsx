@@ -112,7 +112,7 @@ function Manage() {
   return (
     <div className="page-enter">
       <PageHeader kicker="Team operations" title={<>Match <span className="text-accent">management</span></>} actions={<>
-        <Button variant="outline" asChild><Link to="/users"><Users />Users</Link></Button>
+        <Button variant="outline" size="lg" className="border-white/25 bg-white/5 text-pitch-foreground hover:border-white/50 hover:bg-white/10 hover:text-pitch-foreground" asChild><Link to="/users"><Users />Users</Link></Button>
         <Button variant="outline" size="lg" className="border-white/25 bg-white/5 text-pitch-foreground hover:border-white/50 hover:bg-white/10 hover:text-pitch-foreground" onClick={() => setVenueOpen(true)}><Plus className="h-4 w-4" />Add venue</Button>
         <Button variant="accent" size="lg" onClick={() => setForm({ ...empty })}><Plus />New match</Button>
       </>}>
