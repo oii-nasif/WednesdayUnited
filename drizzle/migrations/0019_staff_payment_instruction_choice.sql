@@ -1,0 +1,12 @@
+ALTER TABLE public.payment_settings ADD COLUMN payment_method text NOT NULL DEFAULT 'bank';
+UPDATE public.payment_settings SET payment_method = 'qr' WHERE qr_code_path IS NOT NULL;
+ALTER TABLE public.payment_settings ALTER COLUMN bank_name SET DEFAULT '', ALTER COLUMN account_name SET DEFAULT '', ALTER COLUMN account_number SET DEFAULT '';
+ALTER TABLE public.payment_settings DROP CONSTRAINT payment_settings_bank_name_check, DROP CONSTRAINT payment_settings_account_name_check, DROP CONSTRAINT payment_settings_account_number_check;
+ALTER TABLE public.payment_settings ADD CONSTRAINT payment_settings_method_check CHECK (payment_method IN ('bank', 'qr'));
+ALTER TABLE public.payment_settings ADD CONSTRAINT payment_settings_bank_fields_check CHECK (length(bank_name) <= 120 AND length(account_name) <= 120 AND length(account_number) <= 120 AND (payment_method = 'qr' OR (length(trim(bank_name)) >= 1 AND length(trim(account_name)) >= 1 AND length(trim(account_number)) >= 1)));
+ALTER TABLE public.payment_settings ADD CONSTRAINT payment_settings_method_target_check CHECK ((payment_method = 'bank' AND qr_code_path IS NULL) OR (payment_method = 'qr' AND length(trim(qr_code_path)) > 0 AND qr_code_path IS NOT NULL));
+GRANT SELECT, INSERT, UPDATE ON public.payment_settings TO authenticated;
+ALTER POLICY "Super admin creates payment instructions" ON public.payment_settings WITH CHECK (public.is_staff(auth.uid()));
+ALTER POLICY "Super admin edits payment instructions" ON public.payment_settings USING (public.is_staff(auth.uid())) WITH CHECK (public.is_staff(auth.uid()));
+ALTER POLICY "Super admin uploads payment QR" ON storage.objects WITH CHECK (bucket_id = 'payment-qr-codes' AND public.is_staff(auth.uid()) AND (storage.foldername(name))[1] = auth.uid()::text AND lower(storage.extension(name)) IN ('png', 'jpg', 'webp'));
+ALTER POLICY "Super admin removes payment QR" ON storage.objects USING (bucket_id = 'payment-qr-codes' AND public.is_staff(auth.uid()));

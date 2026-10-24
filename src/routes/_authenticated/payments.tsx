@@ -53,7 +53,7 @@ function Payments() {
   const [paying, setPaying] = useState(false);
   const due = balance < 0 ? -balance : 0;
   return <div className="page-enter">
-    <PageHeader compact kicker="Contributions" title={<>Pay<span className="text-accent">ments</span></>} actions={isAdmin ? <BankSettings /> : undefined}>
+    <PageHeader compact kicker="Contributions" title={<>Pay<span className="text-accent">ments</span></>} actions={isStaff ? <BankSettings /> : undefined}>
       Your balance, what each match cost you, and what you've paid.
     </PageHeader>
     <div className="mx-auto max-w-6xl px-4 pb-10">
