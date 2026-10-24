@@ -46,12 +46,12 @@ export function PaymentSubmission({ userId, purpose = "match", matchId, goalId, 
   return <section className={cn(!bare && "mt-5 border-t pt-5")}>
     {title && <h3 className="text-2xl">{title}</h3>}
     {requiredAmount > 0 && <p className="mt-1 font-semibold">Required: {money(requiredAmount)}</p>}
-    <dl className="my-4 space-y-2 break-words text-sm">
+    {settings.payment_method !== "qr" && <dl className="my-4 space-y-2 break-words text-sm">
       <div><dt className="text-muted-foreground">Bank</dt><dd>{settings.bank_name}</dd></div>
       <div><dt className="text-muted-foreground">Account name</dt><dd>{settings.account_name}</dd></div>
       <div><dt className="text-muted-foreground">Account number</dt><dd className="font-semibold">{settings.account_number}</dd></div>
-    </dl>
-    {settings.qr_code_path && <PaymentQr path={settings.qr_code_path} />}
+    </dl>}
+    {settings.payment_method === "qr" && settings.qr_code_path && <PaymentQr path={settings.qr_code_path} />}
     {settings.instructions && <p className="mb-4 whitespace-pre-wrap break-words text-sm">{settings.instructions}</p>}
     {canSubmit && <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); submit.mutate(); }}>
       <div className="grid gap-1.5"><Label htmlFor={`${id}-amount`}>Amount (৳)</Label><Input id={`${id}-amount`} type="number" min={minAmount || 0.01} max={MAX_PAYMENT} step="0.01" required value={amount} onChange={(e) => setAmount(e.target.value)} /><p className="text-xs text-muted-foreground">Up to {money(MAX_PAYMENT)} per payment.</p></div>
