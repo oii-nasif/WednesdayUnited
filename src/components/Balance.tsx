@@ -10,10 +10,10 @@ const toneClass = { due: "text-destructive", credit: "text-success", clear: "tex
 export function BalanceCard({ balance, className, children }: { balance: number; className?: string; children?: ReactNode }) {
   const state = balanceState(balance);
   return (
-    <section className={cn("rounded-2xl border bg-card p-6 shadow-lift", state.tone === "due" ? "border-destructive/40" : "border-success/40", className)}>
+    <section className={cn("rounded-2xl border bg-card p-5 shadow-lift", state.tone === "due" ? "border-destructive/40" : "border-success/40", className)}>
       <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground"><Wallet className="size-4" />My balance</p>
-      <p className={cn("mt-2 font-display text-6xl leading-none tabular", toneClass[state.tone])}>{balance < 0 ? "−" : ""}{money(Math.abs(balance))}</p>
-      <p className={cn("mt-2 text-sm font-semibold", toneClass[state.tone])}>{state.tone === "due" ? `You owe ${money(-balance)}. Pay it off below.` : state.tone === "credit" ? "In credit. It goes toward your next match." : "All clear. Nothing owed."}</p>
+      <p className={cn("mt-1.5 font-display text-5xl leading-none tabular", toneClass[state.tone])}>{balance < 0 ? "−" : ""}{money(Math.abs(balance))}</p>
+      <p className={cn("mt-1.5 text-sm font-semibold", toneClass[state.tone])}>{state.tone === "due" ? `You owe ${money(-balance)}. Pay it off below.` : state.tone === "credit" ? "In credit. It goes toward your next match." : "All clear. Nothing owed."}</p>
       {children}
     </section>
   );

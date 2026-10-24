@@ -52,17 +52,17 @@ function Payments() {
   const [paying, setPaying] = useState(false);
   const due = balance < 0 ? -balance : 0;
   return <div className="page-enter">
-    <PageHeader kicker="Contributions" title={<>Pay<span className="text-accent">ments</span></>} actions={isAdmin ? <BankSettings /> : undefined}>
+    <PageHeader compact kicker="Contributions" title={<>Pay<span className="text-accent">ments</span></>} actions={isAdmin ? <BankSettings /> : undefined}>
       Your balance, what each match cost you, and what you've paid.
     </PageHeader>
-    <div className="mx-auto max-w-6xl px-4 pb-14">
-      <div className="relative z-10 -mt-8 mb-10 grid gap-6 lg:grid-cols-[1.1fr_1fr]">
+    <div className="mx-auto max-w-6xl px-4 pb-10">
+      <div className="relative z-10 -mt-6 mb-8 grid gap-5 lg:grid-cols-[1.1fr_1fr]">
         <BalanceCard balance={balance}>
           {awaiting > 0 && <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground"><Hourglass className="size-4 text-accent" />{money(awaiting)} awaiting verification</p>}
           {paying
             ? <div className="mt-2"><PayForm userId={userId} due={due} /><Button variant="ghost" className="mt-2 w-full" onClick={() => setPaying(false)}>Cancel</Button></div>
-            : <Button variant={due ? "destructive" : "accent"} className="mt-5 w-full" onClick={() => setPaying(true)}>{due ? `Pay ${money(Math.min(due, MAX_PAYMENT))}` : <><Plus />Pay in advance</>}</Button>}
-          <p className="mt-3 text-xs text-muted-foreground">After each match, a moderator enters the total cost and it's split equally per head, guests included. Your share comes off your balance; prepayments count toward it.</p>
+            : <Button variant={due ? "destructive" : "accent"} className="mt-4 w-full" onClick={() => setPaying(true)}>{due ? `Pay ${money(Math.min(due, MAX_PAYMENT))}` : <><Plus />Pay in advance</>}</Button>}
+          <p className="mt-2 text-xs text-muted-foreground">After each match, a moderator enters the total cost and it's split equally per head, guests included. Your share comes off your balance; prepayments count toward it.</p>
         </BalanceCard>
         <BallFund userId={userId} staff={isStaff} />
       </div>
