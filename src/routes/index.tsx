@@ -15,6 +15,7 @@ import { CountUp } from "@/components/CountUp";
 import { Football } from "@/components/Football";
 import { PitchLines } from "@/components/PitchLines";
 import { Moon } from "@/components/Moon";
+import { DonationBanner } from "@/components/DonationBanner";
 import { Kicker, SectionHeading, Stat } from "@/components/PageHeader";
 import { cn } from "@/lib/utils";
 
@@ -109,6 +110,8 @@ function Index() {
           <div className="px-3 sm:px-6"><Stat icon={<MapPin />} label="Match venues" value={<CountUp value={venues.length} />} /></div>
         </div>
       </section>
+
+      <DonationBanner />
 
       <section className="mx-auto max-w-6xl px-4 pb-6 pt-16">
         <SectionHeading index="01" kicker="The weekly lineup" title="Upcoming fixtures" action={<Button variant="ghost" asChild><Link to="/history">Match history<ArrowRight /></Link></Button>} />
