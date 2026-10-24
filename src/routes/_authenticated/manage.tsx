@@ -132,18 +132,18 @@ function Manage() {
         <Select value={filter} onValueChange={setFilter}><SelectTrigger className="w-40" aria-label="Match status"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">All statuses</SelectItem>{Object.entries(statusLabel).map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent></Select>
       </div>
       <div className="mt-5 overflow-x-auto border-y bg-card">
-        <table className="w-full text-sm">
+        <table className="stack-table w-full text-sm">
           <thead className="bg-muted text-left text-muted-foreground">
             <tr><th className="p-3">Match</th><th className="p-3">When</th><th className="p-3">Venue</th><th className="p-3">Players</th><th className="p-3">Status</th><th className="p-3 text-right">Actions</th></tr>
           </thead>
           <tbody className="divide-y">
             {visible.map((m) => (
               <tr key={m.id} className="transition-colors hover:bg-muted/60">
-                <td className="p-3 font-medium"><Link to="/matches/$id" params={{ id: m.id }} className="hover:text-accent">{m.title}</Link></td>
-                <td className="p-3">{fmtDate(m.starts_at)} · {fmtTime(m.starts_at)}</td>
-                <td className="p-3">{m.location?.name ?? "—"}</td>
-                <td className="p-3">{participantCount(m.registrations)}{m.player_limit ? `/${m.player_limit}` : ""}{settlementOf(m).total_cost && <p className="text-xs text-muted-foreground">{money(settlementOf(m).total_cost ?? 0)} · {money(settlementOf(m).cost_per_head ?? 0)}/head</p>}</td>
-                <td className="p-3"><Badge variant={statusVariant[m.status]} >{statusLabel[m.status]}</Badge></td>
+                <td data-label="Match" className="p-3 font-medium"><Link to="/matches/$id" params={{ id: m.id }} className="hover:text-accent">{m.title}</Link></td>
+                <td data-label="When" className="p-3">{fmtDate(m.starts_at)} · {fmtTime(m.starts_at)}</td>
+                <td data-label="Venue" className="p-3">{m.location?.name ?? "—"}</td>
+                <td data-label="Players" className="p-3">{participantCount(m.registrations)}{m.player_limit ? `/${m.player_limit}` : ""}{settlementOf(m).total_cost && <p className="text-xs text-muted-foreground">{money(settlementOf(m).total_cost ?? 0)} · {money(settlementOf(m).cost_per_head ?? 0)}/head</p>}</td>
+                <td data-label="Status" className="p-3"><Badge variant={statusVariant[m.status]} >{statusLabel[m.status]}</Badge></td>
                 <td className="space-x-1 whitespace-nowrap p-3 text-right">
                   <Button size="icon" variant="ghost" title="Edit match" aria-label={`Edit match ${m.title}`} onClick={() => setForm({
                     id: m.id, title: m.title, starts_at: toLocal(m.starts_at), location_id: m.location_id ?? "",
