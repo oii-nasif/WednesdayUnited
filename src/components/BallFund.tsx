@@ -77,7 +77,6 @@ function FundCard({ goal, userId, staff }: { goal: DonationGoal; userId: string;
       {!funded && (donating
         ? <div className="relative mt-4 rounded-xl bg-card p-4 text-card-foreground"><PaymentSubmission userId={userId} purpose="donation" goalId={goal.id} title="" submitLabel="Send donation" bare /><Button variant="ghost" className="mt-2 w-full" onClick={() => setDonating(false)}>Cancel</Button></div>
         : <Button variant="accent" className="relative mt-5 w-full" onClick={() => setDonating(true)}><Heart />Donate to this fund</Button>)}
-      <p className="relative mt-3 text-xs text-pitch-foreground/60">Donations don't touch your balance. They count once a moderator verifies them.</p>
       {staff && <EditFundDialog key={`${goal.id}-${editing}`} open={editing} onOpenChange={setEditing} goal={goal} />}
     </section>
   );
