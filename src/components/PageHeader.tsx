@@ -3,15 +3,15 @@ import { PitchLines } from "@/components/PitchLines";
 import { cn } from "@/lib/utils";
 
 // Navy floodlit band that opens every inner page: kicker, display title, optional copy and actions.
-export function PageHeader({ kicker, title, children, actions, className }: { kicker: string; title: ReactNode; children?: ReactNode; actions?: ReactNode; className?: string }) {
+export function PageHeader({ kicker, title, children, actions, className, compact = false }: { kicker: string; title: ReactNode; children?: ReactNode; actions?: ReactNode; className?: string; compact?: boolean }) {
   return (
     <section className={cn("bg-moonlight relative overflow-hidden text-pitch-foreground", className)}>
       <PitchLines className="text-white/[0.06]" />
-      <div className="relative mx-auto flex max-w-6xl flex-wrap items-end justify-between gap-6 px-4 pb-10 pt-12 md:pb-14 md:pt-16">
+      <div className={cn("relative mx-auto flex max-w-6xl flex-wrap items-end justify-between gap-6 px-4", compact ? "pb-8 pt-8 md:pb-10 md:pt-10" : "pb-10 pt-12 md:pb-14 md:pt-16")}>
         <div className="rise max-w-2xl">
           <Kicker className="text-pitch-foreground/70">{kicker}</Kicker>
-          <h1 className="mt-3 text-6xl leading-[0.9] md:text-7xl">{title}</h1>
-          {children && <div className="mt-4 text-pitch-foreground/75">{children}</div>}
+          <h1 className={cn("mt-3 leading-[0.9]", compact ? "text-5xl md:text-6xl" : "text-6xl md:text-7xl")}>{title}</h1>
+          {children && <div className={cn("text-pitch-foreground/75", compact ? "mt-2 text-sm" : "mt-4")}>{children}</div>}
         </div>
         {actions && <div className="rise flex flex-wrap gap-2 [animation-delay:120ms]">{actions}</div>}
       </div>

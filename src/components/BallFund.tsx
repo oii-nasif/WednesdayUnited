@@ -20,8 +20,8 @@ export function BallFund({ userId, staff }: { userId: string; staff: boolean }) 
   const [creating, setCreating] = useState(false);
   const goal = goals.find((g) => g.id === selected) ?? goals[0];
   return <div className="min-w-0">
-    <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-      <h2 className="text-3xl">Donation goals</h2>
+    <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+      <h2 className="text-2xl">Donation goals</h2>
       {staff && <Button variant="outline" size="sm" onClick={() => setCreating(true)}><Plus />Create goal</Button>}
     </div>
     {isLoading ? <p className="text-sm text-muted-foreground">Loading donation goals…</p> : error ? <p className="text-sm text-destructive">Could not load donation goals.</p> : <>
@@ -42,7 +42,7 @@ function FundCard({ goal, userId, staff }: { goal: DonationGoal; userId: string;
   return (
     <section className="relative overflow-hidden rounded-2xl bg-pitch-deep text-pitch-foreground shadow-lift ring-1 ring-white/10">
       {/* Scoreboard: raised vs target, read like a half-time score. */}
-      <div className="bg-gradient-to-r from-pitch via-pitch-deep to-pitch px-6 pb-4 pt-5">
+      <div className="bg-gradient-to-r from-pitch via-pitch-deep to-pitch px-5 pb-3 pt-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-accent"><Heart className="size-4 animate-pulse" />Fundraiser</p>
@@ -53,24 +53,24 @@ function FundCard({ goal, userId, staff }: { goal: DonationGoal; userId: string;
             {staff && <Button size="icon" variant="ghost" className="size-8 text-pitch-foreground/80 hover:bg-white/10 hover:text-pitch-foreground" title="Edit fund" aria-label="Edit fund" onClick={() => setEditing(true)}><Pencil /></Button>}
           </div>
         </div>
-        <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-          <div className="rounded-xl bg-black/30 px-4 py-3 text-center ring-1 ring-white/10">
+        <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+          <div className="rounded-xl bg-black/30 px-4 py-2 text-center ring-1 ring-white/10">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-foreground/60">Raised</p>
-            <p className="mt-1 font-display text-4xl leading-none text-accent tabular sm:text-5xl"><CountUp value={collected} format={(n) => money(Math.round(n))} /></p>
+            <p className="mt-0.5 font-display text-3xl leading-none text-accent tabular sm:text-4xl"><CountUp value={collected} format={(n) => money(Math.round(n))} /></p>
           </div>
-          <span className="font-display text-3xl text-pitch-foreground/40">:</span>
-          <div className="rounded-xl bg-black/30 px-4 py-3 text-center ring-1 ring-white/10">
+          <span className="font-display text-2xl text-pitch-foreground/40">:</span>
+          <div className="rounded-xl bg-black/30 px-4 py-2 text-center ring-1 ring-white/10">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-foreground/60">Target</p>
-            <p className="mt-1 font-display text-4xl leading-none tabular sm:text-5xl">{money(goal.target_amount)}</p>
+            <p className="mt-0.5 font-display text-3xl leading-none tabular sm:text-4xl">{money(goal.target_amount)}</p>
           </div>
         </div>
       </div>
-      <div className="px-6 pb-6">
-        <FundShot pct={pct} label={`${goal.title} fund ${pct}% funded`} className="mt-2 text-pitch-foreground" />
-        <p className="mt-3 text-center text-sm font-semibold">{funded ? <span className="flex items-center justify-center gap-2 text-accent"><PartyPopper className="size-4" />Back of the net. Thank you, squad!</span> : <>{money(needed)} from goal · <span className="text-accent">{pct}%</span> of the way</>}</p>
+      <div className="px-5 pb-5">
+        <FundShot pct={pct} label={`${goal.title} fund ${pct}% funded`} className="mt-1 text-pitch-foreground" />
+        <p className="mt-2 text-center text-sm font-semibold">{funded ? <span className="flex items-center justify-center gap-2 text-accent"><PartyPopper className="size-4" />Back of the net. Thank you, squad!</span> : <>{money(needed)} from goal · <span className="text-accent">{pct}%</span> of the way</>}</p>
         {!funded && (donating
           ? <div className="mt-4 rounded-xl bg-card p-4 text-card-foreground"><PaymentSubmission userId={userId} purpose="donation" goalId={goal.id} title="" submitLabel="Send donation" bare /><Button variant="ghost" className="mt-2 w-full" onClick={() => setDonating(false)}>Cancel</Button></div>
-          : <Button variant="accent" size="lg" className="mt-4 w-full" onClick={() => setDonating(true)}><Heart />Kick it closer</Button>)}
+          : <Button variant="accent" className="mt-3 w-full" onClick={() => setDonating(true)}><Heart />Kick it closer</Button>)}
       </div>
       {staff && <EditFundDialog key={`${goal.id}-${editing}`} open={editing} onOpenChange={setEditing} goal={goal} />}
     </section>
