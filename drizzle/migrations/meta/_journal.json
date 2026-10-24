@@ -127,6 +127,13 @@
       "when": 1792880933454,
       "tag": "0018_payment_qr_code",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1792881116396,
+      "tag": "0019_staff_payment_instruction_choice",
+      "breakpoints": true
     }
   ]
 }
