@@ -11,7 +11,7 @@ import { PitchLines } from "@/components/PitchLines";
 // Slim strip above the hero for the active donation goal, so every visitor sees what the squad is raising for.
 export function DonationBanner() {
   const { user } = useAuth();
-  const { data: goals = [] } = useQuery(donationGoalsQuery);
+  const { data: goals = [] } = useQuery({ ...donationGoalsQuery, refetchInterval: 15_000 });
   const goal = goals[0];
   if (!goal || goal.target_amount <= 0) return null;
   const collected = goal.collected_amount;
