@@ -52,30 +52,31 @@ function Dashboard() {
       <PageHeader kicker="My squad" title={<>Hey, <span className="text-accent">{fullName.split(" ")[0]}</span></>} actions={<Button variant="accent" size="lg" asChild><Link to="/">Find a match<ArrowUpRight /></Link></Button>}>
         Your season so far, and every fixture you've signed up for.
       </PageHeader>
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 lg:grid-cols-[340px_1fr]">
+      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-8 sm:py-12 lg:grid-cols-[340px_1fr] lg:gap-10">
         <div className="space-y-4 lg:sticky lg:top-24 lg:self-start">
           <PlayerCard name={fullName} avatar={avatar} role={role} rating={attended} stats={[{ label: "Apps", value: attended }, { label: "Signed", value: data?.length ?? 0 }, { label: "Guests", value: guests }]} />
           <p className="text-center text-xs text-muted-foreground">The big number is your appearances. Show up on Wednesday to raise it.</p>
         </div>
         <div>
-          <div className="mb-8 grid gap-4 sm:grid-cols-3">
+          <div className="mb-8 grid grid-cols-3 gap-2 sm:gap-4">
             {[{ label: "Registrations", value: data?.length ?? 0, icon: CalendarDays, tone: "primary" as const }, { label: "Matches attended", value: attended, icon: Trophy, tone: "accent" as const }, { label: "Guests brought", value: guests, icon: Users, tone: "primary" as const }].map(({ label, value, icon: Icon, tone }) => (
-              <div key={label} className="rounded-2xl border bg-card p-5 shadow-card"><Stat icon={<Icon />} tone={tone} label={label} value={<CountUp value={value} />} /></div>
+              <div key={label} className="min-w-0 rounded-2xl border bg-card p-3 shadow-card sm:p-5"><Stat icon={<Icon />} tone={tone} label={label} value={<CountUp value={value} />} /></div>
             ))}
           </div>
-          <SectionHeading kicker="Fixture list" title="My matches" action={<Button variant="ghost" asChild><Link to="/payments">Payment history<ArrowRight /></Link></Button>} />
+          <SectionHeading kicker="Fixture list" title="My matches" action={<Button variant="ghost" className="-ml-3 sm:ml-0" asChild><Link to="/payments">Payment history<ArrowRight /></Link></Button>} />
           {data && data.length ? (
             <ul className="space-y-3">
               {data.map((r, i) => r.match && (
                 <li key={r.id} className="rise" style={{ animationDelay: `${Math.min(i, 8) * 50}ms` }}>
-                  <Link to="/matches/$id" params={{ id: r.match.id }} className="group flex items-center gap-4 rounded-2xl border bg-card p-3 pr-4 shadow-card transition duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lift">
-                    <span className={cn("flex w-16 shrink-0 flex-col items-center rounded-xl py-2", r.match.status === "published" ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground")}>
+                  <Link to="/matches/$id" params={{ id: r.match.id }} className="group flex items-center gap-3 rounded-2xl border bg-card p-3 pr-3 shadow-card sm:gap-4 sm:pr-4 transition duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lift">
+                    <span className={cn("flex w-14 shrink-0 flex-col sm:w-16 items-center rounded-xl py-2", r.match.status === "published" ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground")}>
                       <span className="font-display text-3xl leading-none">{new Date(r.match.starts_at).toLocaleDateString("en-GB", { day: "2-digit", timeZone: "Asia/Dhaka" })}</span>
                       <span className="text-[10px] font-bold uppercase tracking-widest">{new Date(r.match.starts_at).toLocaleDateString("en-GB", { month: "short", timeZone: "Asia/Dhaka" })}</span>
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate font-display text-2xl leading-none">{r.match.title}</span>
-                      <span className="mt-1 block truncate text-sm text-muted-foreground">{fmtDate(r.match.starts_at)} · {fmtTime(r.match.starts_at)}{r.match.location?.name ? ` · ${r.match.location.name}` : ""}</span>
+                      <span className="block truncate font-display text-xl leading-none sm:text-2xl">{r.match.title}</span>
+                      <span className="mt-1 line-clamp-2 block text-sm text-muted-foreground">{fmtDate(r.match.starts_at)} · {fmtTime(r.match.starts_at)}{r.match.location?.name ? ` · ${r.match.location.name}` : ""}</span>
+                      <Badge variant={statusVariant[r.match.status]} className="mt-1.5 sm:hidden">{statusLabel[r.match.status]}</Badge>
                     </span>
                     {r.guest_count > 0 && <Badge variant="secondary">+{r.guest_count}</Badge>}
                     <Badge variant={statusVariant[r.match.status]} className="hidden sm:inline-flex">{statusLabel[r.match.status]}</Badge>
