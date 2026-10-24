@@ -1,0 +1,1 @@
+ALTER POLICY "Signed-in players read goals" ON public.donation_goals TO authenticated USING ((SELECT auth.uid()) IS NOT NULL AND (public.is_approved((SELECT auth.uid())) OR public.is_staff((SELECT auth.uid()))));
