@@ -52,6 +52,7 @@ function Index() {
 
   return (
     <div>
+      <DonationBanner />
       <section className="bg-moonlight relative overflow-hidden text-pitch-foreground">
         <img src={hero} alt="" width={1600} height={912} className="absolute inset-0 h-full w-full object-cover opacity-30 mix-blend-luminosity" />
         <div className="absolute inset-0 bg-gradient-to-r from-pitch-deep/90 via-pitch/60 to-pitch/20" />
@@ -110,8 +111,6 @@ function Index() {
           <div className="px-3 sm:px-6"><Stat icon={<MapPin />} label="Match venues" value={<CountUp value={venues.length} />} /></div>
         </div>
       </section>
-
-      <DonationBanner />
 
       <section className="mx-auto max-w-6xl px-4 pb-6 pt-16">
         <SectionHeading index="01" kicker="The weekly lineup" title="Upcoming fixtures" action={<Button variant="ghost" asChild><Link to="/history">Match history<ArrowRight /></Link></Button>} />
