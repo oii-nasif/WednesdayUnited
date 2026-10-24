@@ -141,6 +141,13 @@
       "when": 1792881622216,
       "tag": "0020_bind_payment_qr_reads_to_eligible_callers",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1792881707797,
+      "tag": "0021_approved_players_read_donation_goals",
+      "breakpoints": true
     }
   ]
 }
