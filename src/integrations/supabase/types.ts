@@ -344,6 +344,7 @@ export type Database = {
           bank_name: string
           id: string
           instructions: string
+          qr_code_path: string | null
           singleton: boolean
           updated_at: string
         }
@@ -353,6 +354,7 @@ export type Database = {
           bank_name: string
           id?: string
           instructions?: string
+          qr_code_path?: string | null
           singleton?: boolean
           updated_at?: string
         }
@@ -362,6 +364,7 @@ export type Database = {
           bank_name?: string
           id?: string
           instructions?: string
+          qr_code_path?: string | null
           singleton?: boolean
           updated_at?: string
         }

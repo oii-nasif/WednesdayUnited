@@ -1,0 +1,5 @@
+ALTER TABLE public.payment_settings ADD COLUMN IF NOT EXISTS qr_code_path text;
+GRANT SELECT (qr_code_path), INSERT (qr_code_path), UPDATE (qr_code_path) ON public.payment_settings TO authenticated;
+CREATE POLICY "Eligible players read payment QR" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'payment-qr-codes' AND EXISTS (SELECT 1 FROM public.payment_settings s WHERE s.qr_code_path = name));
+CREATE POLICY "Super admin uploads payment QR" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'payment-qr-codes' AND public.has_role(auth.uid(), 'super_admin') AND (storage.foldername(name))[1] = auth.uid()::text AND lower(storage.extension(name)) IN ('png', 'jpg', 'webp'));
+CREATE POLICY "Super admin removes payment QR" ON storage.objects FOR DELETE TO authenticated USING (bucket_id = 'payment-qr-codes' AND public.has_role(auth.uid(), 'super_admin'));
