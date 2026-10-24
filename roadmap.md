@@ -1,5 +1,7 @@
 # Wednesday United roadmap
 
+- [x] Add optional payment QR upload alongside bank details and verify saved image display
+
 - [x] Add donation goal creation for moderators and admins and verify saved goals appear
 - [ ] Enable several active donation funds — blocked by migration ordering: the existing applied timestamp is newer than newly generated migrations; migration 0015 has not taken effect
 

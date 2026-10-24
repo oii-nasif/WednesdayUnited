@@ -12,6 +12,7 @@ import { MAX_PAYMENT, money } from "@/lib/payment-rules";
 import { fmtDate, fmtTime } from "@/lib/matches";
 import { BalanceCard, BalanceText } from "@/components/Balance";
 import { BallFund } from "@/components/BallFund";
+import { BankSettings } from "@/components/BankSettings";
 import { PaymentSubmission } from "@/components/PaymentSubmission";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -57,7 +58,7 @@ function Payments() {
     </PageHeader>
     <div className="mx-auto max-w-6xl px-4 pb-10">
       <div className="relative z-10 -mt-6 mb-8 grid gap-5 lg:grid-cols-[1.1fr_1fr]">
-        <BalanceCard balance={balance} ledger={myLedger}>
+        <BalanceCard balance={balance} ledger={myLedger ?? []}>
           {awaiting > 0 && <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground"><Hourglass className="size-4 text-accent" />{money(awaiting)} awaiting verification</p>}
           {paying
             ? <div className="mt-2"><PayForm userId={userId} due={due} /><Button variant="ghost" className="mt-2 w-full" onClick={() => setPaying(false)}>Cancel</Button></div>
@@ -258,24 +259,3 @@ function AdjustmentDialog({ player, onClose }: { player: { id: string; name: str
   </Dialog>;
 }
 
-function BankSettings() {
-  const { data: settings, error, isLoading } = useQuery(paymentSettingsQuery);
-  const [form, setForm] = useState<{ bank_name: string; account_name: string; account_number: string; instructions: string } | null>(null);
-  const qc = useQueryClient();
-  const save = useMutation({
-    mutationFn: async () => {
-      if (!form) return;
-      const row = { bank_name: form.bank_name.trim(), account_name: form.account_name.trim(), account_number: form.account_number.trim(), instructions: form.instructions.trim(), updated_at: new Date().toISOString() };
-      const { error } = settings ? await supabase.from("payment_settings").update(row).eq("id", settings.id) : await supabase.from("payment_settings").insert(row);
-      if (error) throw error;
-    },
-    onSuccess: () => { toast.success("Bank details saved"); setForm(null); qc.invalidateQueries({ queryKey: ["payment-settings"] }); },
-    onError: (error: { message: string }) => toast.error(error.message),
-  });
-  return <><Button variant="outline" size="lg" className="border-white/25 bg-white/5 text-pitch-foreground hover:border-white/50 hover:bg-white/10 hover:text-pitch-foreground" disabled={isLoading || !!error} onClick={() => setForm({ bank_name: settings?.bank_name ?? "", account_name: settings?.account_name ?? "", account_number: settings?.account_number ?? "", instructions: settings?.instructions ?? "" })}><Landmark className="mr-2 h-4 w-4" />Bank details</Button>
-    <Dialog open={!!form} onOpenChange={(open) => { if (!open && !save.isPending) setForm(null); }}><DialogContent><DialogHeader><DialogTitle>Designated bank account</DialogTitle></DialogHeader>{form && <form id="bank-form" className="grid gap-4" onSubmit={(e) => { e.preventDefault(); save.mutate(); }}>
-      {([ ["bank_name", "Bank name"], ["account_name", "Account holder"], ["account_number", "Account number"] ] as const).map(([key, label]) => <div key={key} className="grid gap-1.5"><Label htmlFor={key}>{label}</Label><Input id={key} required maxLength={120} value={form[key]} onChange={(e) => setForm({ ...form, [key]: e.target.value })} /></div>)}
-      <div className="grid gap-1.5"><Label htmlFor="bank-instructions">Payment instructions</Label><Textarea id="bank-instructions" maxLength={2000} value={form.instructions} onChange={(e) => setForm({ ...form, instructions: e.target.value })} /></div>
-    </form>}<DialogFooter><Button variant="ghost" disabled={save.isPending} onClick={() => setForm(null)}>Close</Button><Button form="bank-form" type="submit" disabled={save.isPending}>{save.isPending ? "Saving…" : "Save"}</Button></DialogFooter></DialogContent></Dialog>
-  </>;
-}
