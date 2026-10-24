@@ -5,7 +5,7 @@ import { donationGoalsQuery } from "@/lib/ledger";
 import { money } from "@/lib/payment-rules";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
-import { FundPitch } from "@/components/FundPitch";
+import { GoalTally } from "@/components/GoalTally";
 
 // Slim strip above the hero for the active donation goal, so every visitor sees what the squad is raising for.
 export function DonationBanner() {
@@ -28,9 +28,9 @@ export function DonationBanner() {
             <h2 className="truncate font-display text-xl leading-none">{goal.title}</h2>
           </div>
         </div>
-        <div className="flex min-w-0 flex-1 items-center gap-3">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center justify-center gap-3 md:justify-start">
           <span className="shrink-0 rounded-md bg-black/40 px-2.5 py-1 font-display text-lg leading-none text-accent tabular ring-1 ring-white/10">{money(collected)}</span>
-          <FundPitch compact pct={pct} label={`${goal.title} fund ${pct}% funded`} className="flex-1" />
+          <GoalTally pct={pct} label={`${goal.title} fund ${pct}% funded`} />
           <span className="shrink-0 rounded-md bg-black/40 px-2.5 py-1 font-display text-lg leading-none tabular ring-1 ring-white/10">{money(goal.target_amount)}</span>
         </div>
         {funded
