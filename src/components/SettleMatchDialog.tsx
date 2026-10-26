@@ -9,7 +9,7 @@ import { GuestStepper } from "@/components/GuestStepper";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PlayerPicker } from "@/components/PlayerPicker";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 
 export type SettleTarget = {
@@ -83,10 +83,7 @@ export function SettleMatchDialog({ match, onClose }: { match: SettleTarget | nu
         </ul> : <p className="px-4 py-6 text-center text-sm text-muted-foreground">Nobody yet. Add the players who played.</p>}
         <div className="flex items-center gap-2 border-t px-4 py-3">
           <UserPlus className="size-4 shrink-0 text-muted-foreground" />
-          <Select value={adding} onValueChange={add}>
-            <SelectTrigger className="flex-1" aria-label="Add a player"><SelectValue placeholder="Add a player who played" /></SelectTrigger>
-            <SelectContent>{available.map((p) => <SelectItem key={p.id} value={p.id}>{p.full_name ?? p.email}</SelectItem>)}</SelectContent>
-          </Select>
+          <PlayerPicker players={available} value={adding} onChange={add} placeholder="Add a player who played" label="Add a player" className="flex-1" />
         </div>
       </section>
       <p className="text-xs text-muted-foreground">Prepayments and credit already on players' balances count toward their share.</p>
