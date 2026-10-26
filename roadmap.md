@@ -1,5 +1,8 @@
 # Wednesday United roadmap
 
+- [x] Players upload a profile photo (300 KB limit) from My profile
+- [ ] Create the public `avatars` bucket in Lovable storage (300 KB, JPEG/PNG/WebP) and apply migration 0024
+
 - [x] Staff add members who have not signed up (placeholder players) and merge them into the real account later
 - [x] Apply migration 0022 (placeholder players), regenerate Supabase types and drop the untyped client views in src/lib/users.ts and src/lib/profile.ts
 

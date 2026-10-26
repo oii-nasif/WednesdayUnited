@@ -1,5 +1,6 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { myProfileQuery } from "@/lib/profile";
 import { useEffect, useRef, useState, type ComponentType } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -72,7 +73,9 @@ export function SiteHeader() {
     navigate({ to: "/", replace: true });
   };
   const name = (user?.user_metadata?.["full_name"] as string | undefined) ?? "Player";
-  const avatar = user?.user_metadata?.["avatar_url"] as string | undefined;
+  // The uploaded profile photo wins over the one that came with the sign-in provider.
+  const { data: profile } = useQuery({ ...myProfileQuery(user?.id ?? ""), enabled: !!user, staleTime: 60_000 });
+  const avatar = profile?.avatar_url ?? (user?.user_metadata?.["avatar_url"] as string | undefined);
 
   return (
     <>
