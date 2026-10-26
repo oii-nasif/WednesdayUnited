@@ -28,3 +28,37 @@ describe("user management permissions", () => {
     expect(rpc).toHaveBeenLastCalledWith("mark_notifications_read", {});
   });
 });
+describe("placeholder members", () => {
+  it("validates the member form like the SQL does", async () => {
+    const { placeholderSchema } = await import("@/lib/placeholder-rules");
+    expect(placeholderSchema.safeParse({ full_name: "A", phone: "" }).success).toBe(false);
+    expect(placeholderSchema.safeParse({ full_name: "Rafi", phone: "abc" }).success).toBe(false);
+    expect(placeholderSchema.safeParse({ full_name: "  Rafi ", phone: " +880 1711-000000 " }).data).toEqual({ full_name: "Rafi", phone: "+880 1711-000000" });
+  });
+  it("only offers approved signed-up accounts as merge targets", async () => {
+    const { mergeTargets } = await import("@/lib/placeholder-rules");
+    const members = [
+      { id: "a", placeholder: true, approval_status: "approved", roles: ["player"] },
+      { id: "b", placeholder: false, approval_status: "pending", roles: ["player"] },
+      { id: "c", placeholder: false, approval_status: "approved", roles: ["player"] },
+      { id: "d", placeholder: false, approval_status: "pending", roles: ["player", "moderator"] },
+    ];
+    expect(mergeTargets(members).map((m) => m.id)).toEqual(["c", "d"]);
+  });
+  it("creates, edits, removes and merges through the staff checked functions", async () => {
+    const { createPlaceholderPlayer, updatePlaceholderPlayer, deletePlaceholderPlayer, mergePlaceholderPlayer } = await import("@/lib/users");
+    rpc.mockResolvedValueOnce({ data: "new-id", error: null });
+    await expect(createPlaceholderPlayer({ full_name: "Rafi", phone: "" })).resolves.toBe("new-id");
+    expect(rpc).toHaveBeenLastCalledWith("create_placeholder_player", { _full_name: "Rafi", _phone: null });
+    rpc.mockResolvedValueOnce({ error: null });
+    await updatePlaceholderPlayer("p1", { full_name: "Rafi Ahmed", phone: "01711000000" });
+    expect(rpc).toHaveBeenLastCalledWith("update_placeholder_player", { _player_id: "p1", _full_name: "Rafi Ahmed", _phone: "01711000000" });
+    rpc.mockResolvedValueOnce({ error: null });
+    await deletePlaceholderPlayer("p1");
+    expect(rpc).toHaveBeenLastCalledWith("delete_placeholder_player", { _player_id: "p1" });
+    rpc.mockResolvedValueOnce({ error: null });
+    await mergePlaceholderPlayer("p1", "real");
+    expect(rpc).toHaveBeenLastCalledWith("merge_placeholder_player", { _placeholder_id: "p1", _target_id: "real" });
+    await expect(createPlaceholderPlayer({ full_name: "X", phone: "" })).rejects.toThrow();
+  });
+});

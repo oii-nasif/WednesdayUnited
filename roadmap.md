@@ -1,5 +1,8 @@
 # Wednesday United roadmap
 
+- [x] Staff add members who have not signed up (placeholder players) and merge them into the real account later
+- [ ] Apply migration 0022 (placeholder players) and regenerate Supabase types; then drop the untyped client views in src/lib/users.ts and src/lib/profile.ts
+
 - [x] Let admins/moderators choose bank details or QR only; verify both saved modes
 
 - [x] Add optional payment QR upload alongside bank details and verify saved image display

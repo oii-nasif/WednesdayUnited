@@ -148,6 +148,13 @@
       "when": 1792881707797,
       "tag": "0021_approved_players_read_donation_goals",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1792882000000,
+      "tag": "0022_placeholder_players",
+      "breakpoints": true
     }
   ]
 }
