@@ -507,6 +507,8 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          phone: string | null
+          placeholder: boolean
           position: string | null
           status: string
         }
@@ -519,6 +521,8 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id: string
+          phone?: string | null
+          placeholder?: boolean
           position?: string | null
           status?: string
         }
@@ -531,6 +535,8 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          phone?: string | null
+          placeholder?: boolean
           position?: string | null
           status?: string
         }
@@ -617,8 +623,16 @@ export type Database = {
       }
     }
     Functions: {
+      create_placeholder_player: {
+        Args: { _full_name: string; _phone?: string }
+        Returns: string
+      }
       decide_player_approval: {
         Args: { decision: string; player_id: string }
+        Returns: undefined
+      }
+      delete_placeholder_player: {
+        Args: { _player_id: string }
         Returns: undefined
       }
       has_role: {
@@ -653,6 +667,10 @@ export type Database = {
           user_id: string
         }[]
       }
+      merge_placeholder_player: {
+        Args: { _placeholder_id: string; _target_id: string }
+        Returns: undefined
+      }
       player_match_dues: {
         Args: { _user_id: string }
         Returns: {
@@ -679,6 +697,10 @@ export type Database = {
       settle_match: {
         Args: { _lineup: Json; _match_id: string; _total_cost: number }
         Returns: number
+      }
+      update_placeholder_player: {
+        Args: { _full_name: string; _phone?: string; _player_id: string }
+        Returns: undefined
       }
     }
     Enums: {
