@@ -1,5 +1,8 @@
 # Wednesday United roadmap
 
+- [x] Home page fund panel: live ticker, donor faces, concrete per-player ask, thanks once you've given
+- [ ] Apply migration 0026 (donation_activity) so the ticker and donor faces light up
+
 - [x] Players upload a profile photo (300 KB limit) from My profile
 - [ ] Create the private `avatars` bucket in Lovable storage (300 KB, JPEG/PNG/WebP) and apply migration 0024
 

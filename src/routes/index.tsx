@@ -52,7 +52,7 @@ function Index() {
 
   return (
     <div>
-      <DonationBanner />
+      <DonationBanner squadSize={nextTotal} />
       <section className="bg-moonlight relative overflow-hidden text-pitch-foreground">
         <img src={hero} alt="" width={1600} height={912} className="absolute inset-0 h-full w-full object-cover opacity-30 mix-blend-luminosity" />
         <div className="absolute inset-0 bg-gradient-to-r from-pitch-deep/90 via-pitch/60 to-pitch/20" />
