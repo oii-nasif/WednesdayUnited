@@ -37,7 +37,7 @@ export async function signAvatarLinksImpl(paths: string[]): Promise<Record<strin
   const key = process.env["SUPABASE_PUBLISHABLE_KEY"]!;
   let userId: string | null = null;
   if (bearer && bearer !== key) {
-    const { data: user } = await supabase.auth.getUser({ headers: { Authorization: `Bearer ${bearer}` } } as never);
+    const { data: user } = await supabase.auth.getUser(bearer);
     userId = user?.user?.id ?? null;
   }
 
