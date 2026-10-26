@@ -56,7 +56,7 @@ export function PaymentSubmission({ userId, purpose = "match", matchId, goalId, 
       <div><dt className="text-muted-foreground">Account name</dt><dd>{settings.account_name}</dd></div>
       <div><dt className="text-muted-foreground">Account number</dt><dd className="font-semibold">{settings.account_number}</dd></div>
     </dl></div>}
-    {settings.payment_method === "qr" && settings.qr_code_path && <PaymentQr path={settings.qr_code_path} />}
+    {settings.payment_method === "qr" && settings.qr_code_path && <PaymentQr path={settings.qr_code_path} accountNumber={settings.account_number} />}
     {settings.instructions && <p className="mb-4 whitespace-pre-wrap break-words text-sm">{settings.instructions}</p>}
       </div>
     {canSubmit && <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); submit.mutate(); }}>
