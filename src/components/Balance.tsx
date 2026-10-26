@@ -16,10 +16,10 @@ export function BalanceCard({ balance, ledger = [], className, children }: { bal
   const charges = ledger.filter((e) => e.kind === "match_charge");
   const last = charges[0];
   return (
-    <section className={cn("ticket flex overflow-hidden rounded-2xl bg-card shadow-lift [--notch:104px] sm:[--notch:128px]", className)}>
-      <div className={cn("relative flex w-[104px] shrink-0 flex-col items-center justify-center gap-1 px-2 py-5 text-center sm:w-[128px]", stubTone[state.tone])}>
+    <section className={cn("ticket flex overflow-hidden rounded-2xl bg-card shadow-lift [--notch:128px] sm:[--notch:160px]", className)}>
+      <div className={cn("relative flex w-[128px] shrink-0 flex-col items-center justify-center gap-1 px-2 py-5 text-center sm:w-[160px]", stubTone[state.tone])}>
         <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.2em] opacity-80"><Wallet className="size-3.5" />Balance</span>
-        <span className="break-all font-display text-3xl leading-none tabular sm:text-4xl">{balance < 0 ? "−" : ""}{money(Math.abs(balance))}</span>
+        <span className="whitespace-nowrap font-display text-3xl leading-none tabular sm:text-4xl">{balance < 0 ? "−" : ""}{money(Math.abs(balance))}</span>
         <span key={state.tone} className="stamp mt-2 -rotate-6 rounded-md border-[3px] border-current px-2 py-0.5 font-display text-sm uppercase tracking-[0.15em]">{stamp[state.tone]}</span>
         <span className="perforation absolute inset-y-3 right-0 w-0.5 opacity-60" />
       </div>

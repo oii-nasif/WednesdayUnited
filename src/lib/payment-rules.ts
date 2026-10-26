@@ -9,7 +9,8 @@ export const paymentSchema = z.object({
 });
 
 export const prepaymentTotal = (amount: number, guests: number) => Math.round(amount * (1 + guests) * 100) / 100;
-export const money = (amount: number) => `৳${amount.toLocaleString("en-BD", { maximumFractionDigits: 2 })}`;
+// Whole taka only: per-head splits produce fractions, but nobody pays ৳308.57.
+export const money = (amount: number) => `৳${Math.round(amount).toLocaleString("en-BD", { maximumFractionDigits: 0 })}`;
 
 // Mirrors settle_match: the total cost is split evenly across every head (players plus guests), rounded to paisa.
 export function splitCost(total: number, heads: number) {
