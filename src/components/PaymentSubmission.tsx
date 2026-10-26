@@ -23,9 +23,10 @@ type Props = {
   submitLabel?: string;
   canSubmit?: boolean;
   bare?: boolean;
+  onSubmitted?: () => void;
 };
 
-export function PaymentSubmission({ userId, purpose = "match", matchId, goalId, requiredAmount = 0, suggestedAmount, title = "Prepayment", submitLabel = "Submit payment", canSubmit = true, bare = false }: Props) {
+export function PaymentSubmission({ userId, purpose = "match", matchId, goalId, requiredAmount = 0, suggestedAmount, title = "Prepayment", submitLabel = "Submit payment", canSubmit = true, bare = false, onSubmitted }: Props) {
   const { data: settings, isLoading, error } = useQuery(paymentSettingsQuery);
   const initial = Math.min(MAX_PAYMENT, suggestedAmount ?? requiredAmount);
   const [amount, setAmount] = useState(initial > 0 ? String(initial) : "");
@@ -36,7 +37,7 @@ export function PaymentSubmission({ userId, purpose = "match", matchId, goalId, 
   const minAmount = Math.min(requiredAmount, MAX_PAYMENT);
   const submit = useMutation({
     mutationFn: () => submitPayment({ userId, purpose, matchId, goalId, amount, transactionId, file, minAmount }),
-    onSuccess: () => { toast.success("Payment submitted for review"); setTransactionId(""); setFile(null); setFileKey((key) => key + 1); invalidateMoney(qc); },
+    onSuccess: () => { toast.success("Payment submitted for review"); setTransactionId(""); setFile(null); setFileKey((key) => key + 1); invalidateMoney(qc); onSubmitted?.(); },
     onError: (error: Error) => toast.error(error.message),
   });
   if (isLoading) return <p className="text-sm text-muted-foreground">Loading payment details…</p>;

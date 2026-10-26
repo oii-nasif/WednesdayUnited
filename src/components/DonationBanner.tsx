@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowUpRight, Heart, PartyPopper, Sparkles } from "lucide-react";
+import { HandCoins, HandHeart, PartyPopper, Sparkles } from "lucide-react";
 import { donationActivityQuery, donationGoalsQuery } from "@/lib/ledger";
 import { paymentsQuery } from "@/lib/payments";
 import { money } from "@/lib/payment-rules";
@@ -12,10 +11,11 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { AvatarPhoto } from "@/components/AvatarPhoto";
 import { CountUp } from "@/components/CountUp";
-import { Football } from "@/components/Football";
 import { FundPitch } from "@/components/FundPitch";
 import { GoalCelebration } from "@/components/GoalCelebration";
 import { PitchLines } from "@/components/PitchLines";
+import { PaymentSubmission } from "@/components/PaymentSubmission";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 // The fund panel above the hero. Three things earn attention without nagging: numbers that move (count-up, live
 // ticker of who just chipped in), a concrete ask ("13 players × ৳220 and it's done"), and a state that knows you
@@ -28,6 +28,7 @@ export function DonationBanner({ squadSize }: { squadSize?: number }) {
   const { data: payments = [] } = useQuery({ ...paymentsQuery(user?.id ?? ""), enabled: !!user && !!goal });
   const pct = goal ? Math.min(100, Math.round((goal.collected_amount / goal.target_amount) * 100)) : 0;
   const [celebrate, setCelebrate] = useState(false);
+  const [giving, setGiving] = useState(false);
   const lastPct = useRef<number | null>(null);
   useEffect(() => {
     if (!goal) return;
@@ -63,9 +64,8 @@ export function DonationBanner({ squadSize }: { squadSize?: number }) {
       <div className="relative mx-auto grid max-w-6xl gap-5 px-4 py-5 md:grid-cols-[minmax(0,15rem)_minmax(0,1fr)_minmax(0,14rem)] md:items-center md:gap-8">
         {/* The ask */}
         <div className="flex min-w-0 items-center gap-4">
-          <span className="relative grid size-14 shrink-0 place-items-center rounded-2xl bg-accent shadow-[0_0_28px_color-mix(in_oklab,var(--accent)_70%,transparent)]">
-            <Football className="ball-spin-slow size-9 drop-shadow" />
-            <span className="absolute -bottom-1.5 -right-1.5 grid size-6 place-items-center rounded-full bg-pitch-deep ring-2 ring-accent"><Heart className="size-3 fill-accent text-accent" /></span>
+          <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-accent text-accent-foreground shadow-[0_0_28px_color-mix(in_oklab,var(--accent)_70%,transparent)]">
+            <HandHeart className="size-8" strokeWidth={1.75} />
           </span>
           <div className="min-w-0">
             <p className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-accent">
@@ -97,8 +97,8 @@ export function DonationBanner({ squadSize }: { squadSize?: number }) {
           {funded ? (
             <p className="flex items-center justify-center gap-2 rounded-xl bg-accent/15 px-3 py-3 text-sm font-semibold text-accent ring-1 ring-accent/40"><PartyPopper className="size-4" />Back of the net. Thank you, squad!</p>
           ) : (
-            <Button variant="accent" size="lg" className="fund-cta h-12 w-full text-base" asChild>
-              <Link to={user ? "/payments" : "/auth"}>{given > 0 ? <><Sparkles />Chip in again</> : <><Heart />Chip in {money(share)}</>}<ArrowUpRight /></Link>
+            <Button variant="accent" size="lg" className="fund-cta h-12 w-full text-base" onClick={() => setGiving(true)}>
+              {given > 0 ? <><Sparkles />Chip in again</> : <><HandCoins />Chip in {money(share)}</>}
             </Button>
           )}
           <p className="text-center text-xs text-pitch-foreground/70">
@@ -108,6 +108,7 @@ export function DonationBanner({ squadSize }: { squadSize?: number }) {
         </div>
       </div>
       {celebrate && <GoalCelebration subtitle={`${goal.title} is fully funded`} onDone={() => setCelebrate(false)} />}
+      {user && <ChipInDialog open={giving} onClose={() => setGiving(false)} userId={user.id} goal={{ id: goal.id, title: goal.title }} collected={collected} target={goal.target_amount} pct={pct} share={share} />}
     </section>
   );
 }
@@ -145,5 +146,29 @@ function DonorStack({ recent, donors }: { recent: { name: string | null; avatar_
       </span>
       <span className="truncate">{names.join(", ")}{rest > 0 ? ` +${rest} more` : ""} chipped in</span>
     </div>
+  );
+}
+
+// Give without leaving the page: pick a round amount or type your own, then the usual transfer form.
+function ChipInDialog({ open, onClose, userId, goal, collected, target, pct, share }: { open: boolean; onClose: () => void; userId: string; goal: { id: string; title: string }; collected: number; target: number; pct: number; share: number }) {
+  const needed = Math.max(0, target - collected);
+  const presets = [...new Set([share, share * 2, Math.min(needed, 1000), 2000].map((n) => Math.min(2000, Math.max(50, Math.round(n)))))].filter((n) => n <= Math.max(needed, 50) || n === share).sort((a, b) => a - b).slice(0, 4);
+  const [amount, setAmount] = useState(share);
+  return (
+    <Dialog open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
+      <DialogContent className="max-h-[90dvh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="font-display text-3xl">Chip in to {goal.title}</DialogTitle>
+          <DialogDescription>{money(collected)} raised of {money(target)} · {money(needed)} to go. Staff verify each transfer before it counts.</DialogDescription>
+        </DialogHeader>
+        <div className="h-2 overflow-hidden rounded-full bg-secondary" aria-hidden="true"><div className="h-full rounded-full bg-accent transition-[width] duration-700" style={{ width: `${pct}%` }} /></div>
+        <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Amount">
+          {presets.map((n) => (
+            <button key={n} type="button" role="radio" aria-checked={amount === n} onClick={() => setAmount(n)} className={cn("rounded-full border px-3.5 py-1.5 font-display text-lg tabular transition", amount === n ? "border-accent bg-accent text-accent-foreground shadow" : "hover:border-accent/50")}>{money(n)}</button>
+          ))}
+        </div>
+        <PaymentSubmission key={amount} userId={userId} purpose="donation" goalId={goal.id} suggestedAmount={amount} title="" submitLabel="Send donation" bare onSubmitted={onClose} />
+      </DialogContent>
+    </Dialog>
   );
 }
