@@ -1,5 +1,6 @@
 import { Mail, Phone, ShieldCheck, UserRoundPlus } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { AvatarPhoto } from "@/components/AvatarPhoto";
 import { Badge } from "@/components/ui/badge";
 
 const approvalLabel: Record<string, string> = { approved: "Approved", pending: "Waiting for approval", rejected: "Not approved" };
@@ -8,7 +9,7 @@ export function ProfileSummary({ profile, role }: { profile: { full_name: string
   const name = profile.full_name ?? "Player";
   return (
     <section className="flex flex-wrap items-center gap-5 rounded-2xl border bg-card p-6 shadow-card">
-      <Avatar className="size-20 ring-4 ring-primary-soft"><AvatarImage src={profile.avatar_url ?? undefined} alt="" /><AvatarFallback className="bg-primary text-2xl text-primary-foreground">{name.slice(0, 1)}</AvatarFallback></Avatar>
+      <Avatar className="size-20 ring-4 ring-primary-soft"><AvatarPhoto src={profile.avatar_url} /><AvatarFallback className="bg-primary text-2xl text-primary-foreground">{name.slice(0, 1)}</AvatarFallback></Avatar>
       <div className="min-w-0 flex-1">
         <h2 className="break-words text-4xl leading-none">{name}</h2>
         {profile.placeholder

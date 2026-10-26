@@ -23,7 +23,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { PlayerPicker } from "@/components/PlayerPicker";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { AvatarPhoto } from "@/components/AvatarPhoto";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/payments")({
@@ -220,7 +221,7 @@ function TeamBalances() {
     </div>
     {!visible.length ? <div className="border-y py-12 text-center text-muted-foreground">{filter === "due" ? "Nobody owes anything." : "No players match."}</div> : <ul className="divide-y border-y">{visible.map((b) => (
       <li key={b.user_id} className="flex flex-wrap items-center gap-4 py-4">
-        <Avatar className="size-10"><AvatarImage src={b.avatar_url ?? undefined} /><AvatarFallback>{(b.full_name ?? "P").slice(0, 1)}</AvatarFallback></Avatar>
+        <Avatar className="size-10"><AvatarPhoto src={b.avatar_url} /><AvatarFallback>{(b.full_name ?? "P").slice(0, 1)}</AvatarFallback></Avatar>
         <div className="min-w-0 flex-1"><Link to="/players/$id" params={{ id: b.user_id }} className="font-semibold hover:text-primary hover:underline">{b.full_name ?? "Player"}</Link>{b.last_activity && <p className="text-xs text-muted-foreground">Last activity {fmtDate(b.last_activity)}</p>}</div>
         <BalanceText balance={b.balance} />
         <Button variant="outline" size="sm" onClick={() => setAdjusting({ id: b.user_id, name: b.full_name ?? "Player" })}>Record cash / adjust</Button>

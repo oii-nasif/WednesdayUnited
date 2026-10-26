@@ -1,5 +1,6 @@
--- Profile photos. The "avatars" bucket is created in Lovable storage: public, 300 KB limit, JPEG/PNG/WebP only.
--- Photos are public because match pages show participant avatars to anyone through player_directory.
+-- Profile photos. The "avatars" bucket is created in Lovable storage: private, 300 KB limit, JPEG/PNG/WebP only.
+-- profiles.avatar_url stores the object path; the app shows photos through short-lived signed links. The read
+-- policy covers anonymous visitors because match pages show participant avatars to anyone through player_directory.
 -- Each player writes only inside a folder named after their own user id.
 CREATE POLICY "Anyone reads profile photos" ON storage.objects FOR SELECT TO anon, authenticated USING (bucket_id = 'avatars');
 CREATE POLICY "Owners upload profile photos" ON storage.objects FOR INSERT TO authenticated

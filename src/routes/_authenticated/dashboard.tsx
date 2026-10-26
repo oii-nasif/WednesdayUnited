@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { myProfileQuery } from "@/lib/profile";
+import { useAvatarUrl } from "@/lib/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { fmtDate, fmtTime } from "@/lib/matches";
@@ -45,7 +47,9 @@ function Dashboard() {
   const attended = data?.filter((r) => r.match?.status === "completed").length ?? 0;
   const guests = data?.reduce((n, r) => n + r.guest_count, 0) ?? 0;
   const fullName = (user?.user_metadata?.["full_name"] as string | undefined) ?? "Player";
-  const avatar = user?.user_metadata?.["avatar_url"] as string | undefined;
+  // The uploaded profile photo wins over the one that came with the sign-in provider.
+  const { data: profile } = useQuery({ ...myProfileQuery(user?.id ?? ""), enabled: !!user });
+  const avatar = useAvatarUrl(profile?.avatar_url ?? (user?.user_metadata?.["avatar_url"] as string | undefined));
   const role = roles.includes("super_admin") ? "Super admin" : roles.includes("moderator") ? "Moderator" : "Player";
   return (
     <div className="page-enter">
