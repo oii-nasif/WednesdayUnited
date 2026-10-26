@@ -3,7 +3,7 @@ import { Football } from "@/components/Football";
 import { cn } from "@/lib/utils";
 
 // Progress bar drawn as a pitch: the fill is the ground the fund has covered and the ball rides its leading edge.
-// Markings show the halfway line and the two penalty areas.
+// Markings show the halfway line, the centre circle and the left penalty area (the right one read as a stray line).
 export function FundPitch({ pct, label, className }: { pct: number; label: string; className?: string }) {
   const clamped = Math.max(0, Math.min(100, pct));
   // Kick off from zero on mount, then advance whenever new donations land.
@@ -20,7 +20,6 @@ export function FundPitch({ pct, label, className }: { pct: number; label: strin
         <span aria-hidden="true" className="absolute inset-y-0 left-1/2 w-px bg-white/30" />
         <span aria-hidden="true" className="absolute left-1/2 top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/30" />
         <span aria-hidden="true" className="absolute inset-y-1 left-1 w-[14%] rounded-r-sm border border-l-0 border-white/20" />
-        <span aria-hidden="true" className="absolute inset-y-1 right-1 w-[14%] rounded-l-sm border border-r-0 border-white/20" />
         {/* Ground covered so far. */}
         <div className="fund-fill absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-accent/70 via-accent to-accent shadow-[0_0_14px_var(--accent)] transition-[width] duration-[1400ms] ease-out" style={{ width: `${shown}%` }} />
       </div>
