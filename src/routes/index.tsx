@@ -63,7 +63,7 @@ function Index() {
         <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 pb-24 pt-14 md:pb-28 md:pt-20 lg:grid-cols-[1.15fr_1fr]">
           <div className="rise">
             <Kicker className="text-pitch-foreground/75">After office · On the pitch</Kicker>
-            <h1 className="mt-5 text-[5.5rem] leading-[0.82] sm:text-9xl lg:text-[9.5rem]">Wednesday<br /><span className="text-accent">United.</span></h1>
+            <h1 className="mt-5 text-[5.5rem] leading-[0.82] tracking-[0.01em] sm:text-9xl lg:text-[9.5rem]">Wednesday<br /><span className="text-accent">United.</span></h1>
             <p className="mt-6 max-w-md text-lg text-pitch-foreground/80">The weekly game for colleagues who'd rather be on the pitch. Grab a spot, bring a mate, play under the moonlight.</p>
             <div className="mt-8 flex flex-wrap gap-3">
               {next ? (
