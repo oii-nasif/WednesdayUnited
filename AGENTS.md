@@ -20,6 +20,7 @@
 - Donation goals use a shared multi-row active-goal query and browser inserts under staff RLS; selecting a fund passes its own ID to donation submissions, preserving separate contribution totals.
 - Payment receipts live in a private owner-folder bucket, with owner/staff reads and short-lived signed URLs; attached receipts cannot be deleted.
 - Payment QR codes use a separate private bucket and a path on payment settings; storage read permissions mirror settings visibility, staff manage instructions under RLS, and payment_method selects one display mode with database-validated targets.
+- Profile photos live in the private avatars bucket with owner/staff-only reads; signed links are created by the signAvatarLinks server function (avatar-sign.*), which allows signed-in members any photo and anonymous visitors only photos of players on non-draft matches — never re-open storage SELECT to anon.
 - Verified payment totals represent contributions only until the settlement ledger is implemented, so they must not be presented as spendable balances.
 - Public participant identities are read from a trigger-synchronized, minimal player directory; private profiles remain owner/staff-only, avoiding exposure of email or other private fields through public match reads.
 - Venue creation uses the browser database client under existing super-admin RLS; Google Maps uses the managed browser Embed API with venue name/address queries, keeping server credentials out of the browser.
