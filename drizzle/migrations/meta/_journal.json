@@ -176,6 +176,13 @@
       "when": 1793011339193,
       "tag": "0025_apply_pending_profile_photos",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1793011340193,
+      "tag": "0026_donation_activity",
+      "breakpoints": true
     }
   ]
 }

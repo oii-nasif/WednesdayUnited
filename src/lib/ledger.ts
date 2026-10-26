@@ -96,6 +96,21 @@ export const donationGoalsQuery = queryOptions({
   },
 });
 
+// Who has chipped in to a goal: counts, this week's total and the latest donors. Null when the caller is not an
+// approved player, which the UI treats as "nothing to show".
+export type DonationActivity = { donor_count: number; donation_count: number; week_amount: number; recent: { name: string | null; avatar_url: string | null; amount: number; at: string }[] };
+export const donationActivityQuery = (goalId: string) =>
+  queryOptions({
+    queryKey: ["donation-goal", "activity", goalId],
+    queryFn: async (): Promise<DonationActivity | null> => {
+      const { data, error } = await db.rpc("donation_activity", { _goal_id: goalId });
+      if (error) throw error;
+      if (!data) return null;
+      const a = data as DonationActivity;
+      return { ...num(a, ["donor_count", "donation_count", "week_amount"]), recent: (a.recent ?? []).map((r) => num(r, ["amount"])) };
+    },
+  });
+
 // Refresh everything that can move when money moves.
 export function invalidateMoney(qc: QueryClient) {
   for (const key of ["payments", "ledger", "balances", "match-dues", "donation-goal", "matches", "match", "notifications"]) void qc.invalidateQueries({ queryKey: [key] });

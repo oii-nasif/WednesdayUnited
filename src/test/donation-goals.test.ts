@@ -32,3 +32,27 @@ describe("donation goals", () => {
     expect(donationGoalInput("Kit", 1000000).target_amount).toBe(1000000);
   });
 });
+describe("fund panel copy", async () => {
+  const { fundShare, fundStage, timeAgo, firstName } = await import("@/lib/donation-rules");
+  it("splits what is left into a round per-player share", () => {
+    expect(fundShare(2800, 13)).toEqual({ players: 13, share: 250 });
+    expect(fundShare(2800, 0)).toEqual({ players: 10, share: 300 });
+    expect(fundShare(120, 20)).toEqual({ players: 20, share: 50 });
+    expect(fundShare(12000, 10)).toEqual({ players: 10, share: 1200 });
+  });
+  it("frames progress in football terms", () => {
+    expect(fundStage(0)).toMatch(/first/);
+    expect(fundStage(50)).toMatch(/half-time/);
+    expect(fundStage(92)).toMatch(/Stoppage/);
+    expect(fundStage(100)).toMatch(/Back of the net/);
+  });
+  it("describes when a donation landed", () => {
+    const now = Date.parse("2026-10-26T12:00:00Z");
+    expect(timeAgo("2026-10-26T11:59:30Z", now)).toBe("just now");
+    expect(timeAgo("2026-10-26T11:15:00Z", now)).toBe("45 min ago");
+    expect(timeAgo("2026-10-26T09:00:00Z", now)).toBe("3 hrs ago");
+    expect(timeAgo("2026-10-24T12:00:00Z", now)).toBe("2 days ago");
+    expect(firstName("Rafi Ahmed")).toBe("Rafi");
+    expect(firstName(null)).toBe("A player");
+  });
+});
