@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { signAvatarLinks } from "@/lib/avatar-sign.functions";
 
 export const AVATAR_MAX_BYTES = 300 * 1024;
 const TYPES: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
@@ -16,7 +17,8 @@ export function validateAvatar(file: File) {
 // bucket, which needs a signed link before a browser can show it.
 export const isStoredAvatar = (value: string | null | undefined): value is string => !!value && !/^(https?:|data:|blob:)/.test(value);
 
-// Signing is batched: every path requested in the same tick goes out as one createSignedUrls call.
+// Signing is batched: every path requested in the same tick goes out as one server call. The server signs
+// the links because the avatars bucket only allows the file's owner and staff to read it directly.
 const pending = new Map<string, ((url: string | null) => void)[]>();
 let flush: ReturnType<typeof setTimeout> | null = null;
 function signAvatar(path: string) {
@@ -26,9 +28,12 @@ function signAvatar(path: string) {
       flush = null;
       const batch = new Map(pending);
       pending.clear();
-      const { data } = await supabase.storage.from(BUCKET).createSignedUrls([...batch.keys()], SIGNED_TTL);
-      const urls = new Map((data ?? []).map((d) => [d.path, d.error ? null : d.signedUrl]));
-      for (const [p, waiters] of batch) for (const w of waiters) w(urls.get(p) ?? null);
+      try {
+        const { urls } = await signAvatarLinks({ data: { paths: [...batch.keys()] } });
+        for (const [p, waiters] of batch) for (const w of waiters) w(urls[p] ?? null);
+      } catch {
+        for (const waiters of batch.values()) for (const w of waiters) w(null);
+      }
     }, 0);
   });
 }
