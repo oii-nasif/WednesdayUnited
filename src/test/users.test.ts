@@ -49,7 +49,7 @@ describe("placeholder members", () => {
     const { createPlaceholderPlayer, updatePlaceholderPlayer, deletePlaceholderPlayer, mergePlaceholderPlayer } = await import("@/lib/users");
     rpc.mockResolvedValueOnce({ data: "new-id", error: null });
     await expect(createPlaceholderPlayer({ full_name: "Rafi", phone: "" })).resolves.toBe("new-id");
-    expect(rpc).toHaveBeenLastCalledWith("create_placeholder_player", { _full_name: "Rafi", _phone: null });
+    expect(rpc).toHaveBeenLastCalledWith("create_placeholder_player", { _full_name: "Rafi" });
     rpc.mockResolvedValueOnce({ error: null });
     await updatePlaceholderPlayer("p1", { full_name: "Rafi Ahmed", phone: "01711000000" });
     expect(rpc).toHaveBeenLastCalledWith("update_placeholder_player", { _player_id: "p1", _full_name: "Rafi Ahmed", _phone: "01711000000" });
