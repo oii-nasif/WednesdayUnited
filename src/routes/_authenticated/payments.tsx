@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { PlayerPicker } from "@/components/PlayerPicker";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -212,6 +213,10 @@ function TeamBalances() {
       <div className="relative min-w-0 flex-1"><Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" /><Input aria-label="Search players" placeholder="Search players" className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} /></div>
       <Select value={filter} onValueChange={setFilter}><SelectTrigger className="w-44" aria-label="Balance filter"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="due">Owes money</SelectItem><SelectItem value="credit">In credit</SelectItem><SelectItem value="all">Everyone</SelectItem></SelectContent></Select>
       <p className="text-sm text-muted-foreground"><span className="font-semibold text-destructive">{money(owed)}</span> owed by {rows.filter((b) => b.balance < 0).length} players</p>
+    </div>
+    <div className="mb-5 flex flex-wrap items-center gap-3 rounded-xl border border-dashed p-3">
+      <p className="text-sm font-semibold">Record cash or adjust any player</p>
+      <PlayerPicker players={rows.map((b) => ({ id: b.user_id, full_name: b.full_name }))} value="" onChange={(id) => { const b = rows.find((x) => x.user_id === id); if (b) setAdjusting({ id: b.user_id, name: b.full_name ?? "Player" }); }} placeholder="Search a player by name" label="Adjust a player" className="w-64 max-w-full" />
     </div>
     {!visible.length ? <div className="border-y py-12 text-center text-muted-foreground">{filter === "due" ? "Nobody owes anything." : "No players match."}</div> : <ul className="divide-y border-y">{visible.map((b) => (
       <li key={b.user_id} className="flex flex-wrap items-center gap-4 py-4">
