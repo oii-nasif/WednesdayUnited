@@ -62,7 +62,7 @@ export function DonationBanner({ squadSize }: { squadSize?: number }) {
       <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-accent via-success to-accent" />
       <div aria-hidden="true" className="fund-glow pointer-events-none absolute -inset-x-[10%] inset-y-0 [background:radial-gradient(45%_140%_at_8%_50%,color-mix(in_oklab,var(--accent)_22%,transparent),transparent_65%),radial-gradient(40%_140%_at_92%_50%,color-mix(in_oklab,var(--success)_16%,transparent),transparent_65%)]" />
       <PitchLines className="text-white/[0.05]" />
-      <div className="relative mx-auto grid max-w-6xl gap-5 px-4 py-5 md:grid-cols-[minmax(0,15rem)_minmax(0,1fr)_minmax(0,14rem)] md:items-center md:gap-8">
+      <div className="relative mx-auto grid max-w-6xl gap-5 px-4 py-5 md:grid-cols-[minmax(0,20rem)_minmax(0,1fr)_minmax(0,14rem)] md:items-center md:gap-6">
         {/* The ask */}
         <div className="flex min-w-0 items-center gap-4">
           <span className="relative grid size-14 shrink-0 place-items-center rounded-2xl bg-accent shadow-[0_0_28px_color-mix(in_oklab,var(--accent)_70%,transparent)]">
@@ -70,7 +70,7 @@ export function DonationBanner({ squadSize }: { squadSize?: number }) {
             <span className="absolute -bottom-1.5 -right-1.5 grid size-6 place-items-center rounded-full bg-pitch-deep ring-2 ring-accent"><Heart className="size-3 fill-accent text-accent" /></span>
           </span>
           <div className="min-w-0">
-            <p className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-accent">
+            <p className="flex items-center gap-2 whitespace-nowrap text-[10px] font-bold uppercase tracking-[0.2em] text-accent">
               Squad fundraiser
               <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-1.5 py-0.5 text-[9px] tracking-wider text-pitch-foreground"><span className="relative flex size-1.5"><span className="absolute inline-flex size-full animate-ping rounded-full bg-success opacity-75" /><span className="relative inline-flex size-1.5 rounded-full bg-success" /></span>Live</span>
             </p>
@@ -127,8 +127,8 @@ function Ticker({ lines }: { lines: string[] }) {
   }, [lines.length, paused]);
   const line = lines[i % Math.max(1, lines.length)] ?? "";
   return (
-    <p className="mt-1.5 h-5 overflow-hidden text-sm text-pitch-foreground/80" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
-      <span key={line} className="ticker-in block truncate">{line}</span>
+    <p className="mt-1.5 h-10 overflow-hidden text-sm leading-5 text-pitch-foreground/80" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
+      <span key={line} className="ticker-in line-clamp-2 block">{line}</span>
     </p>
   );
 }
