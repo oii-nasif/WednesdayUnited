@@ -5,7 +5,8 @@ import { useEffect, useRef, useState, type ComponentType } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { AvatarPhoto } from "@/components/AvatarPhoto";
 import { Football } from "@/components/Football";
 import { cn } from "@/lib/utils";
 import { TeamBadge } from "@/components/TeamBadge";
@@ -100,7 +101,7 @@ export function SiteHeader() {
                 {staffAccount && <PlayerViewToggle on={playerView} onChange={(on) => { setPlayerView(on); if (on && (path.startsWith("/manage") || path.startsWith("/users"))) navigate({ to: "/" }); }} />}
                 <NotificationBell />
                 <Link to="/profile" title="My profile" aria-label="My profile" className={cn("flex items-center gap-2.5 rounded-full bg-white/5 p-1 ring-1 ring-white/10 transition-colors hover:bg-white/10 sm:pr-3.5", path.startsWith("/profile") && "ring-accent")}>
-                  <Avatar className="size-7"><AvatarImage src={avatar} alt="" /><AvatarFallback className="bg-primary text-xs text-primary-foreground">{name.slice(0, 1)}</AvatarFallback></Avatar>
+                  <Avatar className="size-7"><AvatarPhoto src={avatar} /><AvatarFallback className="bg-primary text-xs text-primary-foreground">{name.slice(0, 1)}</AvatarFallback></Avatar>
                   <span className="hidden max-w-32 truncate text-sm font-semibold sm:inline">{name.split(" ")[0]}</span>
                 </Link>
                 <Button size="icon" variant="ghost" className="text-pitch-foreground/70 hover:bg-white/10 hover:text-pitch-foreground" title="Sign out" aria-label="Sign out" onClick={signOut}><LogOut /></Button>

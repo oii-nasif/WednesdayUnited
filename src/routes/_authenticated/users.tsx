@@ -10,7 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { AvatarPhoto } from "@/components/AvatarPhoto";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
@@ -66,7 +67,7 @@ function UsersPage() {
       const role = p.roles.includes("super_admin") ? "Super admin" : staff ? "Moderator" : "Player";
       const name = p.full_name ?? "Player";
       return <li key={p.id} className="flex flex-wrap items-center gap-4 py-5" data-user-id={p.id}>
-        <Avatar className="size-11"><AvatarImage src={p.avatar_url ?? undefined} /><AvatarFallback>{name.slice(0,1)}</AvatarFallback></Avatar>
+        <Avatar className="size-11"><AvatarPhoto src={p.avatar_url} /><AvatarFallback>{name.slice(0,1)}</AvatarFallback></Avatar>
         <div className="min-w-0 flex-1 basis-40"><Link to="/players/$id" params={{ id: p.id }} className="break-words font-semibold hover:text-primary hover:underline">{name}</Link><p className="mt-1 break-all text-xs text-muted-foreground">{p.placeholder ? (p.phone ?? "No phone number") : p.email}</p></div>
         {p.placeholder
           ? <div className="flex flex-wrap items-center gap-2"><Badge variant="outline"><UserRoundPlus className="size-3" />Not signed up</Badge></div>

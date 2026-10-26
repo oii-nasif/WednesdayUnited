@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { AvatarPhoto } from "@/components/AvatarPhoto";
 import { Football } from "@/components/Football";
 import { cn } from "@/lib/utils";
 
@@ -60,7 +61,7 @@ export function PitchLineup({ players, currentUserId }: { players: Player[]; cur
             >
               <span className="relative">
                 <Avatar className={cn("size-9 border-2 border-white shadow-md transition-transform group-hover:scale-115 group-focus-visible:ring-2 group-focus-visible:ring-accent sm:size-11", p.user_id === currentUserId && "border-accent ring-2 ring-accent/60", heldAt && holder === i && "scale-110")}>
-                  <AvatarImage src={p.profile?.avatar_url ?? undefined} alt="" />
+                  <AvatarPhoto src={p.profile?.avatar_url} />
                   <AvatarFallback className="bg-primary text-xs font-semibold text-primary-foreground">{name.slice(0, 1)}</AvatarFallback>
                 </Avatar>
                 {p.guest_count > 0 && <span className="absolute -right-2 -top-1 rounded-full bg-accent px-1.5 text-[10px] font-bold text-accent-foreground shadow">+{p.guest_count}</span>}

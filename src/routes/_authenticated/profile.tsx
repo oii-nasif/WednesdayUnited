@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth";
 import { POSITIONS, myProfileQuery, roleLabel, updateMyPosition, type Position } from "@/lib/profile";
 import { removeAvatar, uploadAvatar, validateAvatar } from "@/lib/avatar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AvatarPhoto } from "@/components/AvatarPhoto";
 import { PageHeader } from "@/components/PageHeader";
 import { ProfileSummary } from "@/components/ProfileSummary";
 import { Button } from "@/components/ui/button";
@@ -99,7 +100,7 @@ function PhotoSection({ userId, name, avatarUrl }: { userId: string; name: strin
       <h2 className="text-4xl leading-none">Profile photo</h2>
       <p className="mt-1 text-sm text-muted-foreground">Shown on team sheets and the squad list. JPG, PNG or WebP, up to 300 KB.</p>
       <div className="mt-5 flex flex-wrap items-center gap-5 rounded-2xl border bg-card p-5">
-        <Avatar className="size-24 ring-4 ring-primary-soft"><AvatarImage src={preview ?? avatarUrl ?? undefined} alt="" /><AvatarFallback className="bg-primary text-3xl text-primary-foreground">{name.slice(0, 1)}</AvatarFallback></Avatar>
+        <Avatar className="size-24 ring-4 ring-primary-soft">{preview ? <AvatarImage src={preview} alt="" /> : <AvatarPhoto src={avatarUrl} />}<AvatarFallback className="bg-primary text-3xl text-primary-foreground">{name.slice(0, 1)}</AvatarFallback></Avatar>
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
           <input ref={input} type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" id="avatar-file" onChange={(e) => choose(e.target.files?.[0] ?? null)} />
           <Button type="button" variant="outline" disabled={busy} onClick={() => input.current?.click()}><Camera />{avatarUrl ? "Choose a new photo" : "Choose a photo"}</Button>

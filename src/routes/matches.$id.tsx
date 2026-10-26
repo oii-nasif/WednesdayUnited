@@ -15,7 +15,8 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { AvatarPhoto } from "@/components/AvatarPhoto";
 import { PaymentSubmission } from "@/components/PaymentSubmission";
 import { paymentsQuery } from "@/lib/payments";
 import { money, prepaymentTotal } from "@/lib/payment-rules";
@@ -165,7 +166,7 @@ function MatchDetail() {
                   <li key={r.id} className={cn("flex items-center gap-3 p-3 transition-colors hover:bg-primary-soft/50", r.user_id === user?.id && "bg-accent-soft")}>
                     <span className="w-6 text-center font-display text-xl text-muted-foreground tabular">{i + 1}</span>
                     <Avatar className="h-9 w-9">
-                      <AvatarImage src={r.profile?.avatar_url ?? undefined} />
+                      <AvatarPhoto src={r.profile?.avatar_url} />
                       <AvatarFallback>{(r.profile?.full_name ?? "?").slice(0, 1)}</AvatarFallback>
                     </Avatar>
                     {isStaff ? <Link to="/players/$id" params={{ id: r.user_id }} className="font-medium hover:text-primary hover:underline">{r.profile?.full_name ?? "Player"}</Link> : <span className="font-medium">{r.profile?.full_name ?? "Player"}</span>}
