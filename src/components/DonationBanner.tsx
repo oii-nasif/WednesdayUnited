@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { HandCoins, HandHeart, PartyPopper, Sparkles } from "lucide-react";
+import { HandCoins, Heart, PartyPopper } from "lucide-react";
 import { donationActivityQuery, donationGoalsQuery } from "@/lib/ledger";
 import { paymentsQuery } from "@/lib/payments";
 import { money } from "@/lib/payment-rules";
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { AvatarPhoto } from "@/components/AvatarPhoto";
 import { CountUp } from "@/components/CountUp";
+import { Football } from "@/components/Football";
 import { FundPitch } from "@/components/FundPitch";
 import { GoalCelebration } from "@/components/GoalCelebration";
 import { PitchLines } from "@/components/PitchLines";
@@ -18,7 +19,7 @@ import { PaymentSubmission } from "@/components/PaymentSubmission";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 // The fund panel above the hero. Three things earn attention without nagging: numbers that move (count-up, live
-// ticker of who just chipped in), a concrete ask ("13 players × ৳220 and it's done"), and a state that knows you
+// ticker of who just pitched in), a concrete ask ("13 players × ৳220 and it's done"), and a state that knows you
 // (thanks you once you've given). Every animation is slow and stops under reduced-motion.
 export function DonationBanner({ squadSize }: { squadSize?: number }) {
   const { user } = useAuth();
@@ -49,8 +50,8 @@ export function DonationBanner({ squadSize }: { squadSize?: number }) {
 
   const lines = [
     fundStage(pct),
-    ...recent.slice(0, 3).map((r) => `${firstName(r.name)} chipped in ${money(r.amount)} · ${timeAgo(r.at)}`),
-    donors > 0 ? `${donors} player${donors === 1 ? " has" : "s have"} chipped in so far` : null,
+    ...recent.slice(0, 3).map((r) => `${firstName(r.name)} pitched in ${money(r.amount)} · ${timeAgo(r.at)}`),
+    donors > 0 ? `${donors} player${donors === 1 ? " has" : "s have"} pitched in so far` : null,
     activity && activity.week_amount > 0 ? `${money(activity.week_amount)} raised this week` : null,
     !funded ? `${money(needed)} to go · ${players} players × ${money(share)} and it's done` : null,
     given > 0 ? `You've given ${money(given)}. Legend.` : null,
@@ -64,8 +65,9 @@ export function DonationBanner({ squadSize }: { squadSize?: number }) {
       <div className="relative mx-auto grid max-w-6xl gap-5 px-4 py-5 md:grid-cols-[minmax(0,15rem)_minmax(0,1fr)_minmax(0,14rem)] md:items-center md:gap-8">
         {/* The ask */}
         <div className="flex min-w-0 items-center gap-4">
-          <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-accent text-accent-foreground shadow-[0_0_28px_color-mix(in_oklab,var(--accent)_70%,transparent)]">
-            <HandHeart className="size-8" strokeWidth={1.75} />
+          <span className="relative grid size-14 shrink-0 place-items-center rounded-2xl bg-accent shadow-[0_0_28px_color-mix(in_oklab,var(--accent)_70%,transparent)]">
+            <Football className="ball-spin-slow size-9 drop-shadow" />
+            <span className="absolute -bottom-1.5 -right-1.5 grid size-6 place-items-center rounded-full bg-pitch-deep ring-2 ring-accent"><Heart className="size-3 fill-accent text-accent" /></span>
           </span>
           <div className="min-w-0">
             <p className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-accent">
@@ -98,7 +100,7 @@ export function DonationBanner({ squadSize }: { squadSize?: number }) {
             <p className="flex items-center justify-center gap-2 rounded-xl bg-accent/15 px-3 py-3 text-sm font-semibold text-accent ring-1 ring-accent/40"><PartyPopper className="size-4" />Back of the net. Thank you, squad!</p>
           ) : (
             <Button variant="accent" size="lg" className="fund-cta h-12 w-full text-base" onClick={() => setGiving(true)}>
-              {given > 0 ? <><Sparkles />Chip in again</> : <><HandCoins />Chip in {money(share)}</>}
+              <HandCoins />{given > 0 ? "Pitch in again" : `Pitch in ${money(share)}`}
             </Button>
           )}
           <p className="text-center text-xs text-pitch-foreground/70">
@@ -133,7 +135,7 @@ function Ticker({ lines }: { lines: string[] }) {
 
 // Faces of the latest donors. Social proof does more than any slogan; an empty stack becomes the first-mover hook.
 function DonorStack({ recent, donors }: { recent: { name: string | null; avatar_url: string | null }[]; donors: number }) {
-  if (!donors) return <p className="text-center text-xs font-semibold text-accent">Be the first to chip in</p>;
+  if (!donors) return <p className="text-center text-xs font-semibold text-accent">Be the first to pitch in</p>;
   const faces = recent.slice(0, 4);
   const names = faces.slice(0, 2).map((r) => firstName(r.name));
   const rest = donors - names.length;
@@ -144,7 +146,7 @@ function DonorStack({ recent, donors }: { recent: { name: string | null; avatar_
           <Avatar key={i} className="size-6 ring-2 ring-pitch-deep"><AvatarPhoto src={r.avatar_url} /><AvatarFallback className="bg-primary text-[10px] text-primary-foreground">{firstName(r.name).slice(0, 1)}</AvatarFallback></Avatar>
         ))}
       </span>
-      <span className="truncate">{names.join(", ")}{rest > 0 ? ` +${rest} more` : ""} chipped in</span>
+      <span className="truncate">{names.join(", ")}{rest > 0 ? ` +${rest} more` : ""} pitched in</span>
     </div>
   );
 }
@@ -156,10 +158,10 @@ function ChipInDialog({ open, onClose, userId, goal, collected, target, pct, sha
   const [amount, setAmount] = useState(share);
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
-      <DialogContent className="max-h-[90dvh] overflow-y-auto">
+      <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-3xl">
         <DialogHeader>
-          <DialogTitle className="font-display text-3xl">Chip in to {goal.title}</DialogTitle>
-          <DialogDescription>{money(collected)} raised of {money(target)} · {money(needed)} to go. Staff verify each transfer before it counts.</DialogDescription>
+          <DialogTitle className="font-display text-3xl">Pitch in for {goal.title}</DialogTitle>
+          <DialogDescription>{money(collected)} raised of {money(target)} · {money(needed)} to go.</DialogDescription>
         </DialogHeader>
         <div className="h-2 overflow-hidden rounded-full bg-secondary" aria-hidden="true"><div className="h-full rounded-full bg-accent transition-[width] duration-700" style={{ width: `${pct}%` }} /></div>
         <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Amount">
@@ -167,7 +169,7 @@ function ChipInDialog({ open, onClose, userId, goal, collected, target, pct, sha
             <button key={n} type="button" role="radio" aria-checked={amount === n} onClick={() => setAmount(n)} className={cn("rounded-full border px-3.5 py-1.5 font-display text-lg tabular transition", amount === n ? "border-accent bg-accent text-accent-foreground shadow" : "hover:border-accent/50")}>{money(n)}</button>
           ))}
         </div>
-        <PaymentSubmission key={amount} userId={userId} purpose="donation" goalId={goal.id} suggestedAmount={amount} title="" submitLabel="Send donation" bare onSubmitted={onClose} />
+        <PaymentSubmission key={amount} userId={userId} purpose="donation" goalId={goal.id} suggestedAmount={amount} title="" submitLabel="Send donation" bare split onSubmitted={onClose} />
       </DialogContent>
     </Dialog>
   );
