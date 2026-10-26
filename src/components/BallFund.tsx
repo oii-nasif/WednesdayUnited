@@ -7,6 +7,7 @@ import { money } from "@/lib/payment-rules";
 import { CountUp } from "@/components/CountUp";
 import { FundShot } from "@/components/FundShot";
 import { PaymentSubmission } from "@/components/PaymentSubmission";
+import { PayDialog } from "@/components/PayDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -65,9 +66,12 @@ function FundCard({ goal, userId, staff, onCreate }: { goal: DonationGoal; userI
       <div className="px-5 pb-5">
         <FundShot pct={pct} label={`${goal.title} fund ${pct}% funded`} className="mt-1 text-pitch-foreground" />
         <p className="mt-2 text-center text-sm font-semibold">{funded ? <span className="flex items-center justify-center gap-2 text-accent"><PartyPopper className="size-4" />Back of the net. Thank you, squad!</span> : <>{money(needed)} from goal · <span className="text-accent">{pct}%</span> of the way</>}</p>
-        {!funded && (donating
-          ? <div className="mt-4 rounded-xl bg-card p-4 text-card-foreground"><PaymentSubmission userId={userId} purpose="donation" goalId={goal.id} title="" submitLabel="Send donation" bare /><Button variant="ghost" className="mt-2 w-full" onClick={() => setDonating(false)}>Cancel</Button></div>
-          : <Button variant="accent" className="mt-3 w-full" onClick={() => setDonating(true)}><Heart />Kick it closer</Button>)}
+        {!funded && <>
+          <Button variant="accent" className="mt-3 w-full" onClick={() => setDonating(true)}><Heart />Kick it closer</Button>
+          <PayDialog open={donating} onClose={() => setDonating(false)} title={`Contribute to ${goal.title}`} description={`${money(collected)} raised of ${money(goal.target_amount)} · ${money(needed)} to go.`}>
+            <PaymentSubmission userId={userId} purpose="donation" goalId={goal.id} title="" submitLabel="Send donation" bare split onSubmitted={() => setDonating(false)} />
+          </PayDialog>
+        </>}
       </div>
       {staff && <EditFundDialog key={`${goal.id}-${editing}`} open={editing} onOpenChange={setEditing} goal={goal} />}
     </section>
