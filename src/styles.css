@@ -110,10 +110,11 @@
     color: var(--color-foreground);
     font-family: var(--font-sans);
   }
-  h1, h2, h3 {
+  /* Bebas Neue is condensed by design; a little tracking keeps headings and display numbers from reading crammed. */
+  h1, h2, h3, .font-display {
     font-family: var(--font-display);
     font-weight: 400;
-    letter-spacing: 0.01em;
+    letter-spacing: 0.045em;
   }
   body { letter-spacing: 0; }
   button, a, input { -webkit-tap-highlight-color: transparent; }
