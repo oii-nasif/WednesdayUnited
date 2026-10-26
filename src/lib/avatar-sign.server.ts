@@ -6,12 +6,12 @@ import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 
 const SIGNED_TTL = 12 * 60 * 60; // seconds
-const PUBLISHABLE_CACHE: { client: ReturnType<typeof createClient<Database>> } = { client: undefined as never };
+let publicClient: ReturnType<typeof createClient<Database>> | null = null;
 
 // Publishable client for the caller's identity and the anonymous visibility check. New-format sb_ keys are
 // opaque, not JWTs: send apikey, never a bearer of the key itself.
 function publishableClient() {
-  if (!PUBLISHABLE_CACHE.client) {
+  if (!publicClient) {
     const key = process.env["SUPABASE_PUBLISHABLE_KEY"]!;
     const url = process.env["SUPABASE_URL"]!;
     const shim = (init?: RequestInit) => {
@@ -20,12 +20,12 @@ function publishableClient() {
       headers.set("apikey", key);
       return { ...init, headers };
     };
-    PUBLISHABLE_CACHE.client = createClient<Database>(url, key, {
+    publicClient = createClient<Database>(url, key, {
       auth: { persistSession: false, autoRefreshToken: false },
       global: { fetch: (input, init) => fetch(input, shim(init)) },
     });
   }
-  return PUBLISHABLE_CACHE.client;
+  return publicClient;
 }
 
 // attachSupabaseAuth adds the bearer only when the browser has a session, so signed-in callers carry it and
@@ -41,7 +41,8 @@ export async function signAvatarLinksImpl(paths: string[]): Promise<Record<strin
     userId = user?.user?.id ?? null;
   }
 
-  const ownerIds = [...new Set(paths.map((p) => p.split("/")[0]))];
+  const ownerOf = (path: string) => path.split("/")[0] ?? "";
+  const ownerIds = [...new Set(paths.map(ownerOf))];
   if (userId) {
     const own = ownerIds.indexOf(userId);
     if (own >= 0) ownerIds.splice(own, 1);
@@ -52,12 +53,14 @@ export async function signAvatarLinksImpl(paths: string[]): Promise<Record<strin
     const { data: visible, error } = await supabase.from("registrations").select("user_id").in("user_id", ownerIds);
     if (error) throw new Error("Could not verify photo visibility");
     const allowed = new Set((visible ?? []).map((r) => r.user_id as string));
-    if (paths.some((p) => !allowed.has(p.split("/")[0]))) return {};
+    if (paths.some((p) => !allowed.has(ownerOf(p)))) return {};
   }
 
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data: signed } = await supabaseAdmin.storage.from("avatars").createSignedUrls(paths, SIGNED_TTL);
   const urls: Record<string, string | null> = {};
-  for (const item of signed ?? []) urls[item.path] = item.error ? null : item.signedUrl;
+  for (const item of signed ?? []) {
+    if (item.path) urls[item.path] = item.error ? null : item.signedUrl;
+  }
   return urls;
 }

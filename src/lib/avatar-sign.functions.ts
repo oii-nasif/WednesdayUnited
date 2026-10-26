@@ -9,10 +9,12 @@ const PATH_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/
 
 export const signAvatarLinks = createServerFn({ method: "POST" })
   .inputValidator((input: { paths: string[] }) => {
-    const paths = (input as { paths?: unknown } | null | undefined)?.paths;
-    if (!Array.isArray(paths) || paths.length === 0 || paths.length > MAX_PATHS || paths.some((p) => typeof p !== "string" || !PATH_RE.test(p))) {
-      throw new Error("Invalid photo path");
+    const paths: string[] = [];
+    for (const p of (input as { paths?: unknown } | null | undefined)?.paths ?? []) {
+      if (typeof p !== "string" || !PATH_RE.test(p)) throw new Error("Invalid photo path");
+      paths.push(p);
     }
+    if (paths.length === 0 || paths.length > MAX_PATHS) throw new Error("Invalid photo path");
     return { paths };
   })
   .handler(async ({ data }) => {
