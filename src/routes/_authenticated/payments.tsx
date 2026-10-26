@@ -11,6 +11,7 @@ import { balanceQuery, balancesQuery, invalidateMoney, ledgerKindLabel, ledgerQu
 import { MAX_PAYMENT, money } from "@/lib/payment-rules";
 import { fmtDate, fmtTime } from "@/lib/matches";
 import { BalanceCard, BalanceText } from "@/components/Balance";
+import { PayDialog } from "@/components/PayDialog";
 import { BallFund } from "@/components/BallFund";
 import { BankSettings } from "@/components/BankSettings";
 import { PaymentSubmission } from "@/components/PaymentSubmission";
@@ -62,9 +63,10 @@ function Payments() {
       <div className="relative z-10 -mt-6 mb-8 grid gap-5 lg:grid-cols-[1.1fr_1fr]">
         <BalanceCard balance={balance} ledger={myLedger ?? []}>
           {awaiting > 0 && <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground"><Hourglass className="size-4 text-accent" />{money(awaiting)} awaiting verification</p>}
-          {paying
-            ? <div className="mt-2"><PayForm userId={userId} due={due} /><Button variant="ghost" className="mt-2 w-full" onClick={() => setPaying(false)}>Cancel</Button></div>
-            : <Button variant={due ? "destructive" : "accent"} className="mt-4 w-full" onClick={() => setPaying(true)}>{due ? `Pay ${money(Math.min(due, MAX_PAYMENT))}` : <><Plus />Pay in advance</>}</Button>}
+          <Button variant={due ? "destructive" : "accent"} className="mt-4 w-full" onClick={() => setPaying(true)}>{due ? `Pay ${money(Math.min(due, MAX_PAYMENT))}` : <><Plus />Pay in advance</>}</Button>
+          <PayDialog open={paying} onClose={() => setPaying(false)} title={due ? "Pay off your balance" : "Pay in advance"} description={due ? `You owe ${money(due)}. Pick what the transfer is for, then send the details.` : "Credit goes to your balance and covers your next matches."}>
+            <PayForm userId={userId} due={due} onSubmitted={() => setPaying(false)} />
+          </PayDialog>
           <p className="mt-2 text-xs text-muted-foreground">Match costs are split per head after each game, guests included, and come off this balance.</p>
         </BalanceCard>
         <BallFund userId={userId} staff={isStaff} />
@@ -92,7 +94,7 @@ function Payments() {
 }
 
 // Players choose what the payment is for. A chosen match is paid off first; "My balance" goes to the oldest due.
-function PayForm({ userId, due }: { userId: string; due: number }) {
+function PayForm({ userId, due, onSubmitted }: { userId: string; due: number; onSubmitted: () => void }) {
   const { data } = useQuery(payableMatchesQuery(userId));
   const [target, setTarget] = useState("balance");
   const owing = data?.due.find((d) => d.match_id === target);
@@ -110,7 +112,7 @@ function PayForm({ userId, due }: { userId: string; due: number }) {
         </SelectContent>
       </Select>
     </div>
-    <PaymentSubmission key={target} userId={userId} purpose={target === "balance" ? "advance" : "match"} matchId={target === "balance" ? undefined : target} requiredAmount={upcoming?.prepayment ?? 0} suggestedAmount={suggested} title="" submitLabel="Submit payment" bare />
+    <PaymentSubmission key={target} userId={userId} purpose={target === "balance" ? "advance" : "match"} matchId={target === "balance" ? undefined : target} requiredAmount={upcoming?.prepayment ?? 0} suggestedAmount={suggested} title="" submitLabel="Submit payment" bare split onSubmitted={onSubmitted} />
   </div>;
 }
 
