@@ -1,4 +1,5 @@
 import { queryOptions } from "@tanstack/react-query";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import type { Role } from "@/lib/auth";
 
@@ -15,15 +16,19 @@ export const positionLabel = (v: string | null) => POSITIONS.find((p) => p.value
 
 export const roleLabel = (roles: Role[]) => (roles.includes("super_admin") ? "Super admin" : roles.includes("moderator") ? "Moderator" : "Player");
 
-const PROFILE_SELECT = "id, full_name, email, avatar_url, approval_status, created_at, position";
+const PROFILE_SELECT = "id, full_name, email, phone, avatar_url, approval_status, placeholder, created_at, position";
+type ProfileRow = { id: string; full_name: string | null; email: string | null; phone: string | null; avatar_url: string | null; approval_status: string; placeholder: boolean; created_at: string; position: string | null };
+// phone and placeholder come from migration 0022 and are not in the generated types yet.
+const db = supabase as unknown as SupabaseClient;
 
 export const myProfileQuery = (userId: string) =>
   queryOptions({
     queryKey: ["my-profile", userId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("profiles").select(PROFILE_SELECT).eq("id", userId).single();
+      const { data, error } = await db.from("profiles").select(PROFILE_SELECT).eq("id", userId).single();
       if (error) throw error;
-      return { ...data, position: isPosition(data.position) ? data.position : null };
+      const row = data as ProfileRow;
+      return { ...row, position: isPosition(row.position) ? row.position : null };
     },
   });
 
@@ -33,7 +38,7 @@ export const playerProfileQuery = (playerId: string) =>
     queryKey: ["player-profile", playerId],
     queryFn: async () => {
       const [profile, roles, regs] = await Promise.all([
-        supabase.from("profiles").select(PROFILE_SELECT).eq("id", playerId).maybeSingle(),
+        db.from("profiles").select(PROFILE_SELECT).eq("id", playerId).maybeSingle(),
         supabase.from("user_roles").select("role").eq("user_id", playerId),
         supabase.from("registrations").select("id, guest_count, match:matches(id, title, starts_at, status)").eq("user_id", playerId),
       ]);
@@ -41,9 +46,10 @@ export const playerProfileQuery = (playerId: string) =>
       if (roles.error) throw roles.error;
       if (regs.error) throw regs.error;
       if (!profile.data) return null;
+      const row = profile.data as ProfileRow;
       return {
-        ...profile.data,
-        position: isPosition(profile.data.position) ? profile.data.position : null,
+        ...row,
+        position: isPosition(row.position) ? row.position : null,
         roles: (roles.data ?? []).map((r) => r.role as Role),
         registrations: (regs.data ?? []).sort((a, b) => (b.match?.starts_at ?? "").localeCompare(a.match?.starts_at ?? "")),
       };
