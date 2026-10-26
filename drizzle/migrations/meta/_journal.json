@@ -162,6 +162,13 @@
       "when": 1793009434895,
       "tag": "0023_apply_placeholder_players",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1793009435895,
+      "tag": "0024_profile_photos",
+      "breakpoints": true
     }
   ]
 }
