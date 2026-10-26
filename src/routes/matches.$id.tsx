@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { AvatarPhoto } from "@/components/AvatarPhoto";
 import { PaymentSubmission } from "@/components/PaymentSubmission";
+import { PayDialog } from "@/components/PayDialog";
 import { paymentsQuery } from "@/lib/payments";
 import { money, prepaymentTotal } from "@/lib/payment-rules";
 import { matchDuesQuery, settlementOf, type MatchDue } from "@/lib/ledger";
@@ -210,7 +211,7 @@ function MatchDetail() {
                   <Button variant="outline" className="w-full" onClick={() => leave.mutate(mine.id)}>Leave match</Button>
                 </>
               )}
-              {settlement?.settled_at && <MyShare due={dues?.get(mine.user_id)} />}
+              {settlement?.settled_at && user && <MyShare due={dues?.get(mine.user_id)} matchId={id} userId={user.id} title={m.title} />}
               {m.prepayment_required && user && (m.status === "published" || m.status === "completed") && <>
                 {(payments ?? []).filter((p) => p.match_id === id).map((p) => <p key={p.id} className="text-sm"><Badge variant={p.status === "rejected" ? "destructive" : "secondary"} className="capitalize">{p.status}</Badge> {money(Number(p.amount))}{p.review_note && <span className="mt-1 block break-words text-muted-foreground">{p.review_note}</span>}</p>)}
                 {m.status === "published" && <PaymentSubmission key={`${id}-${mine.guest_count}`} matchId={id} userId={user.id} requiredAmount={prepaymentTotal(Number(m.prepayment_amount ?? 0), mine.guest_count)} />}
@@ -313,13 +314,20 @@ function SettlementSummary({ total, perHead, dues }: { total: number; perHead: n
   );
 }
 
-function MyShare({ due }: { due: MatchDue | undefined }) {
+function MyShare({ due, matchId, userId, title }: { due: MatchDue | undefined; matchId: string; userId: string; title: string }) {
+  const [paying, setPaying] = useState(false);
   if (!due) return null;
   const paid = due.due <= 0;
   return (
     <div className={cn("rounded-xl border p-3 text-sm", paid ? "border-success/40 bg-success/10" : "border-destructive/40 bg-destructive/10")}>
       <p className="flex items-center justify-between gap-3"><span>Your share</span><strong className="tabular">{money(due.charged)}</strong></p>
-      {paid ? <p className="mt-1 font-semibold text-success">Paid. Thanks!</p> : <p className="mt-1 font-semibold text-destructive">{money(due.due)} still due. <Link to="/payments" className="underline">Pay now</Link></p>}
+      {paid ? <p className="mt-1 font-semibold text-success">Paid. Thanks!</p> : <>
+        <p className="mt-1 font-semibold text-destructive">{money(due.due)} still due.</p>
+        <Button variant="destructive" className="mt-3 w-full" onClick={() => setPaying(true)}><Wallet />Pay {money(due.due)}</Button>
+        <PayDialog open={paying} onClose={() => setPaying(false)} title={`Pay for ${title}`} description={`${money(due.due)} of your ${money(due.charged)} share is still due. Staff verify the transfer and credit it to this match.`}>
+          <PaymentSubmission userId={userId} purpose="match" matchId={matchId} suggestedAmount={due.due} title="" submitLabel="Submit payment" bare split onSubmitted={() => setPaying(false)} />
+        </PayDialog>
+      </>}
     </div>
   );
 }
