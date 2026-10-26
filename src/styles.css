@@ -248,3 +248,15 @@
 .stamp { animation: stamp 0.45s cubic-bezier(0.2, 1.4, 0.4, 1) both; }
 @keyframes stamp { from { opacity: 0; transform: rotate(-6deg) scale(1.8); } to { opacity: 1; transform: rotate(-6deg) scale(1); } }
 @media (prefers-reduced-motion: reduce) { .stamp { animation: none; } }
+
+/* Donation banner: a light sweeps along the covered ground so the bar reads as live. */
+.fund-fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 20%, rgb(255 255 255 / 0.45) 50%, transparent 80%);
+  background-size: 200% 100%;
+  animation: fund-sweep 2.6s ease-in-out infinite;
+}
+@keyframes fund-sweep { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .fund-fill::after { animation: none; } }
