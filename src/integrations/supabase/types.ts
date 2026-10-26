@@ -635,6 +635,7 @@ export type Database = {
         Args: { _player_id: string }
         Returns: undefined
       }
+      donation_activity: { Args: { _goal_id: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
