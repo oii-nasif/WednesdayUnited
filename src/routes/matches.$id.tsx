@@ -16,7 +16,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PaymentSubmission } from "@/components/PaymentSubmission";
 import { paymentsQuery } from "@/lib/payments";
 import { money, prepaymentTotal } from "@/lib/payment-rules";
@@ -27,6 +26,7 @@ import { BallLoader, Football } from "@/components/Football";
 import { GoalCelebration } from "@/components/GoalCelebration";
 import { GuestStepper } from "@/components/GuestStepper";
 import { PitchLineup } from "@/components/PitchLineup";
+import { PlayerPicker } from "@/components/PlayerPicker";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/matches/$id")({
@@ -287,12 +287,7 @@ function StaffAdd({ matchId, existing, onDone }: { matchId: string; existing: st
     <div className="mt-4 rounded-xl border border-dashed p-4">
       <p className="mb-2 text-sm font-semibold">Moderator: add a player manually</p>
       <div className="flex flex-wrap gap-2">
-        <Select value={userId} onValueChange={setUserId}>
-          <SelectTrigger className="w-60"><SelectValue placeholder="Choose player" /></SelectTrigger>
-          <SelectContent>
-            {available.map((p) => <SelectItem key={p.id} value={p.id}>{p.full_name ?? p.email}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        <PlayerPicker players={available} value={userId} onChange={setUserId} className="w-60 max-w-full" />
         <Input type="number" min={0} max={20} value={guests} onChange={(e) => setGuests(Number(e.target.value))} className="w-20" aria-label="Guests" />
         <Button disabled={!userId || add.isPending} onClick={() => add.mutate()}>Add</Button>
       </div>
