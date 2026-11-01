@@ -16,6 +16,7 @@ import { Football } from "@/components/Football";
 import { PitchLines } from "@/components/PitchLines";
 import { Moon } from "@/components/Moon";
 import { DonationBanner } from "@/components/DonationBanner";
+import { HomeBalance } from "@/components/HomeBalance";
 import { Kicker, SectionHeading, Stat } from "@/components/PageHeader";
 import { cn } from "@/lib/utils";
 
@@ -155,16 +156,7 @@ function Index() {
         </ol>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 pb-20">
-        <div className="relative overflow-hidden rounded-3xl bg-accent px-8 py-12 text-accent-foreground md:px-14">
-          <PitchLines className="text-white/15" />
-          <div className="relative">
-            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-accent-foreground/80">On the training ground</p>
-            <p className="mt-2 font-display text-5xl leading-none md:text-6xl">New features are warming up.</p>
-            <p className="mt-3 max-w-xl text-accent-foreground/85">Some parts of the website are still in development. Hang tight.</p>
-          </div>
-        </div>
-      </section>
+      <HomeBalance />
     </div>
   );
 }

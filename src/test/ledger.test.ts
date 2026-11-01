@@ -23,6 +23,26 @@ describe("ledger client", () => {
     expect(calls.insert).toHaveBeenLastCalledWith(expect.objectContaining({ purpose: "match", match_id: "m1", goal_id: null }));
   });
 
+  it("adds a donation to a match payment as one transfer", async () => {
+    await submitPayment({ ...base, purpose: "match", matchId: "m1", donation: { goalId: "g1", amount: 100 } });
+    expect(calls.insert).toHaveBeenLastCalledWith(expect.objectContaining({ purpose: "match", match_id: "m1", goal_id: "g1", amount: 600, donation_amount: 100 }));
+  });
+
+  it("sends no donation fields without a donation, and ignores one on donation payments", async () => {
+    await submitPayment({ ...base, purpose: "advance" });
+    expect(calls.insert.mock.lastCall?.[0]).not.toHaveProperty("donation_amount");
+    await submitPayment({ ...base, purpose: "donation", goalId: "g2", donation: { goalId: "g1", amount: 100 } });
+    expect(calls.insert.mock.lastCall?.[0]).toMatchObject({ goal_id: "g2", amount: 500 });
+    expect(calls.insert.mock.lastCall?.[0]).not.toHaveProperty("donation_amount");
+  });
+
+  it("caps payment plus donation at 2000 and rejects empty donations", async () => {
+    await expect(submitPayment({ ...base, purpose: "advance", amount: "1950", donation: { goalId: "g1", amount: 100 } })).rejects.toThrow(/together/);
+    await expect(submitPayment({ ...base, purpose: "advance", donation: { goalId: "g1", amount: 0 } })).rejects.toThrow(/donation/);
+    await expect(submitPayment({ ...base, purpose: "advance", donation: { goalId: "g1", amount: Number.NaN } })).rejects.toThrow(/donation/);
+    expect(calls.insert).not.toHaveBeenCalled();
+  });
+
   it("refuses payments over the 2000 limit before sending anything", async () => {
     await expect(submitPayment({ ...base, purpose: "advance", amount: "2500" })).rejects.toThrow(/2000/);
     expect(calls.insert).not.toHaveBeenCalled();

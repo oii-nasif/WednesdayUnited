@@ -8,6 +8,14 @@ export const paymentSchema = z.object({
   transaction_id: z.string().trim().min(1, "Enter the transaction ID").max(120),
 });
 
+// A donation added to a match or balance payment rides on the same transfer, so the ৳2000 cap covers both.
+export function withDonation(amount: number, donation: number) {
+  if (!(donation > 0) || Math.abs(donation * 100 - Math.round(donation * 100)) >= 0.0001) throw new Error("Enter a donation above zero, with at most two decimal places");
+  const total = Math.round((amount + donation) * 100) / 100;
+  if (total > MAX_PAYMENT) throw new Error(`Payment and donation together can be at most ৳${MAX_PAYMENT}`);
+  return total;
+}
+
 export const prepaymentTotal = (amount: number, guests: number) => Math.round(amount * (1 + guests) * 100) / 100;
 // Whole taka only: per-head splits produce fractions, but nobody pays ৳308.57.
 export const money = (amount: number) => `৳${Math.round(amount).toLocaleString("en-BD", { maximumFractionDigits: 0 })}`;

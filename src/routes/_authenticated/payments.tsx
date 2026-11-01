@@ -2,19 +2,18 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Check, Hourglass, Image, Landmark, Plus, Search, X } from "lucide-react";
+import { Check, Hourglass, Image, Landmark, Search, X } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { paymentsQuery, paymentSettingsQuery, purposeLabel, type PaymentRow } from "@/lib/payments";
-import { balanceQuery, balancesQuery, invalidateMoney, ledgerKindLabel, ledgerQuery, payableMatchesQuery, recordAdjustment, type LedgerEntry } from "@/lib/ledger";
-import { MAX_PAYMENT, money } from "@/lib/payment-rules";
+import { balanceQuery, balancesQuery, invalidateMoney, ledgerKindLabel, ledgerQuery, recordAdjustment, type LedgerEntry } from "@/lib/ledger";
+import { money } from "@/lib/payment-rules";
 import { fmtDate, fmtTime } from "@/lib/matches";
 import { BalanceCard, BalanceText } from "@/components/Balance";
-import { PayDialog } from "@/components/PayDialog";
+import { PayBalanceButton } from "@/components/PayBalance";
 import { BallFund } from "@/components/BallFund";
 import { BankSettings } from "@/components/BankSettings";
-import { PaymentSubmission } from "@/components/PaymentSubmission";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -52,9 +51,7 @@ function Payments() {
   const { data: balance = 0 } = useQuery(balanceQuery(userId));
   const { data: myLedger } = useQuery(ledgerQuery(userId));
   const { data: team, isLoading, error } = useQuery({ ...paymentsQuery(userId, true), enabled: isStaff });
-  const awaiting = mine.filter((p) => p.status === "pending" && p.purpose !== "donation").reduce((sum, p) => sum + Number(p.amount), 0);
-  const [paying, setPaying] = useState(false);
-  const due = balance < 0 ? -balance : 0;
+  const awaiting = mine.filter((p) => p.status === "pending" && p.purpose !== "donation").reduce((sum, p) => sum + Number(p.amount) - Number(p.donation_amount ?? 0), 0);
   return <div className="page-enter">
     <PageHeader compact kicker="Contributions" title={<>Pay<span className="text-accent">ments</span></>} actions={isStaff ? <BankSettings /> : undefined}>
       Your balance, what each match cost you, and what you've paid.
@@ -63,10 +60,7 @@ function Payments() {
       <div className="relative z-10 -mt-6 mb-8 grid gap-5 lg:grid-cols-[1.1fr_1fr]">
         <BalanceCard balance={balance} ledger={myLedger ?? []}>
           {awaiting > 0 && <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground"><Hourglass className="size-4 text-accent" />{money(awaiting)} awaiting verification</p>}
-          <Button variant={due ? "destructive" : "accent"} className="mt-4 w-full" onClick={() => setPaying(true)}>{due ? `Pay ${money(Math.min(due, MAX_PAYMENT))}` : <><Plus />Pay in advance</>}</Button>
-          <PayDialog open={paying} onClose={() => setPaying(false)} title={due ? "Pay off your balance" : "Pay in advance"} description={due ? `You owe ${money(due)}. Pick what the transfer is for, then send the details.` : "Credit goes to your balance and covers your next matches."}>
-            <PayForm userId={userId} due={due} onSubmitted={() => setPaying(false)} />
-          </PayDialog>
+          <PayBalanceButton userId={userId} balance={balance} className="mt-4" />
           <p className="mt-2 text-xs text-muted-foreground">Match costs are split per head after each game, guests included, and come off this balance.</p>
         </BalanceCard>
         <BallFund userId={userId} staff={isStaff} />
@@ -93,33 +87,10 @@ function Payments() {
   </div>;
 }
 
-// Players choose what the payment is for. A chosen match is paid off first; "My balance" goes to the oldest due.
-function PayForm({ userId, due, onSubmitted }: { userId: string; due: number; onSubmitted: () => void }) {
-  const { data } = useQuery(payableMatchesQuery(userId));
-  const [target, setTarget] = useState("balance");
-  const owing = data?.due.find((d) => d.match_id === target);
-  const upcoming = data?.upcoming.find((u) => u.match_id === target);
-  const suggested = owing ? owing.due : upcoming ? upcoming.prepayment : due;
-  return <div className="space-y-3">
-    <div className="grid gap-1.5">
-      <Label htmlFor="pay-for">What are you paying for?</Label>
-      <Select value={target} onValueChange={setTarget}>
-        <SelectTrigger id="pay-for"><SelectValue /></SelectTrigger>
-        <SelectContent>
-          <SelectItem value="balance">My balance{due ? ` (due ${money(due)})` : " (pay in advance)"}</SelectItem>
-          {data?.due.map((d) => <SelectItem key={d.match_id} value={d.match_id}>{d.title} · {fmtDate(d.starts_at)} · due {money(d.due)}</SelectItem>)}
-          {data?.upcoming.map((u) => <SelectItem key={u.match_id} value={u.match_id}>{u.title} · {fmtDate(u.starts_at)}{u.prepayment ? ` · prepay ${money(u.prepayment)}` : " · upcoming"}</SelectItem>)}
-        </SelectContent>
-      </Select>
-    </div>
-    <PaymentSubmission key={target} userId={userId} purpose={target === "balance" ? "advance" : "match"} matchId={target === "balance" ? undefined : target} requiredAmount={upcoming?.prepayment ?? 0} suggestedAmount={suggested} title="" submitLabel="Submit payment" bare split onSubmitted={onSubmitted} />
-  </div>;
-}
-
 function PaymentTable({ rows, staff }: { rows: PaymentRow[]; staff: boolean }) {
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
-  const [review, setReview] = useState<{ id: string; decision: "verified" | "rejected"; amount: number; purpose: PaymentRow["purpose"] } | null>(null);
+  const [review, setReview] = useState<{ id: string; decision: "verified" | "rejected"; amount: number; donation: number; purpose: PaymentRow["purpose"] } | null>(null);
   const [note, setNote] = useState("");
   const [receipt, setReceipt] = useState<string | null>(null);
   const [opening, setOpening] = useState<string | null>(null);
@@ -152,15 +123,15 @@ function PaymentTable({ rows, staff }: { rows: PaymentRow[]; staff: boolean }) {
         <tbody className="divide-y">{visible.map((p) => <tr key={p.id}>
           {staff && <td data-label="Player" className="p-3"><Link to="/players/$id" params={{ id: p.user_id }} className="hover:text-primary hover:underline">{p.profile?.full_name ?? "Player"}</Link></td>}
           <td data-label="For" className="p-3">{p.match_id ? <><Link to="/matches/$id" params={{ id: p.match_id }} className="text-primary hover:underline">{p.match ? fmtDate(p.match.starts_at) : "Match"}</Link><p className="text-xs text-muted-foreground">{p.match?.location?.name ?? "Venue TBA"}</p></> : <span className="font-medium">{purposeLabel[p.purpose]}</span>}</td>
-          <td data-label="Amount" className="whitespace-nowrap p-3 font-semibold">{money(Number(p.amount))}</td>
+          <td data-label="Amount" className="whitespace-nowrap p-3 font-semibold">{money(Number(p.amount))}{Number(p.donation_amount ?? 0) > 0 && <p className="text-xs font-normal text-muted-foreground">incl. {money(Number(p.donation_amount))} donation</p>}</td>
           <td data-label="Transaction" className="max-w-48 break-words p-3">{p.transaction_id}<p className="mt-1 text-xs text-muted-foreground">{fmtDate(p.created_at)} · {fmtTime(p.created_at)}</p></td>
           <td data-label="Status" className="p-3"><Badge variant={p.status === "verified" ? "default" : p.status === "rejected" ? "destructive" : "secondary"} className="capitalize">{p.status}</Badge>{p.review_note && <p className="mt-2 max-w-52 break-words text-xs text-muted-foreground">{p.review_note}</p>}</td>
-          <td className="p-3"><div className="flex gap-1">{p.receipt_path && <Button variant="outline" size="icon" aria-label="View screenshot" title="View screenshot" disabled={opening === p.receipt_path} onClick={() => { if (p.receipt_path) openReceipt(p.receipt_path); }}><Image className="h-4 w-4" /></Button>}{staff && p.status === "pending" && <><Button size="icon" variant="outline" aria-label="Verify payment" title="Verify payment" onClick={() => { setReview({ id: p.id, decision: "verified", amount: Number(p.amount), purpose: p.purpose }); setNote(""); }}><Check className="h-4 w-4 text-success" /></Button><Button size="icon" variant="outline" aria-label="Reject payment" title="Reject payment" onClick={() => { setReview({ id: p.id, decision: "rejected", amount: Number(p.amount), purpose: p.purpose }); setNote(""); }}><X className="h-4 w-4 text-destructive" /></Button></>}</div></td>
+          <td className="p-3"><div className="flex gap-1">{p.receipt_path && <Button variant="outline" size="icon" aria-label="View screenshot" title="View screenshot" disabled={opening === p.receipt_path} onClick={() => { if (p.receipt_path) openReceipt(p.receipt_path); }}><Image className="h-4 w-4" /></Button>}{staff && p.status === "pending" && <><Button size="icon" variant="outline" aria-label="Verify payment" title="Verify payment" onClick={() => { setReview({ id: p.id, decision: "verified", amount: Number(p.amount), donation: Number(p.donation_amount ?? 0), purpose: p.purpose }); setNote(""); }}><Check className="h-4 w-4 text-success" /></Button><Button size="icon" variant="outline" aria-label="Reject payment" title="Reject payment" onClick={() => { setReview({ id: p.id, decision: "rejected", amount: Number(p.amount), donation: Number(p.donation_amount ?? 0), purpose: p.purpose }); setNote(""); }}><X className="h-4 w-4 text-destructive" /></Button></>}</div></td>
         </tr>)}</tbody>
       </table>
     </div>}
     <Dialog open={!!review} onOpenChange={(open) => { if (!open && !mutation.isPending) setReview(null); }}><DialogContent><DialogHeader><DialogTitle>{review?.decision === "verified" ? "Verify payment?" : "Reject payment?"}</DialogTitle></DialogHeader>
-      <p className="text-sm text-muted-foreground">{review?.decision === "verified" ? `Confirm that ${money(review.amount)} has reached the designated account. ${review.purpose === "donation" ? "It will be added to the fund." : "It will be credited to the player's balance."}` : "The player will see your rejection reason. Nothing is credited."}</p>
+      <p className="text-sm text-muted-foreground">{review?.decision === "verified" ? `Confirm that ${money(review.amount)} has reached the designated account. ${review.purpose === "donation" ? "It will be added to the fund." : review.donation > 0 ? `${money(review.amount - review.donation)} will be credited to the player's balance and ${money(review.donation)} added to the fund.` : "It will be credited to the player's balance."}` : "The player will see your rejection reason. Nothing is credited."}</p>
       <Label htmlFor="review-note">{review?.decision === "rejected" ? "Rejection reason" : "Note (optional)"}</Label><Textarea id="review-note" maxLength={1000} value={note} onChange={(e) => setNote(e.target.value)} />
       <DialogFooter><Button variant="ghost" disabled={mutation.isPending} onClick={() => setReview(null)}>Back</Button><Button disabled={mutation.isPending || (review?.decision === "rejected" && !note.trim())} variant={review?.decision === "rejected" ? "destructive" : "default"} onClick={() => mutation.mutate()}>{mutation.isPending ? "Saving…" : "Confirm"}</Button></DialogFooter>
     </DialogContent></Dialog>
