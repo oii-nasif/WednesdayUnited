@@ -1,7 +1,7 @@
 import { queryOptions, type QueryClient } from "@tanstack/react-query";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { paymentSchema, validateReceipt } from "@/lib/payment-rules";
+import { paymentSchema, validateReceipt, withDonation } from "@/lib/payment-rules";
 import { donationGoalInput } from "@/lib/donation-rules";
 
 // Ledger tables, views and RPCs come from migration 0010. Until the generated Supabase types include them, this file
@@ -116,10 +116,13 @@ export function invalidateMoney(qc: QueryClient) {
   for (const key of ["payments", "ledger", "balances", "match-dues", "donation-goal", "matches", "match", "notifications"]) void qc.invalidateQueries({ queryKey: [key] });
 }
 
-export async function submitPayment(input: { userId: string; purpose: PaymentPurpose; matchId?: string | undefined; goalId?: string | undefined; amount: string; transactionId: string; file: File | null; minAmount?: number | undefined }) {
+// `donation` adds a fund donation to a match or balance payment: one transfer, split by review_payment (migration 0029).
+export async function submitPayment(input: { userId: string; purpose: PaymentPurpose; matchId?: string | undefined; goalId?: string | undefined; amount: string; transactionId: string; file: File | null; minAmount?: number | undefined; donation?: { goalId: string; amount: number } | null | undefined }) {
   const parsed = paymentSchema.safeParse({ amount: input.amount, transaction_id: input.transactionId });
   if (!parsed.success) throw new Error(parsed.error.issues[0]?.message ?? "Check payment details");
   if (input.minAmount && parsed.data.amount < input.minAmount) throw new Error(`Pay at least ৳${input.minAmount} for you and your guests`);
+  const donation = input.purpose !== "donation" ? input.donation ?? null : null;
+  const total = donation ? withDonation(parsed.data.amount, donation.amount) : parsed.data.amount;
   let path: string | null = null;
   if (input.file) {
     validateReceipt(input.file);
@@ -129,8 +132,10 @@ export async function submitPayment(input: { userId: string; purpose: PaymentPur
     if (error) throw error;
   }
   const { error } = await db.from("payments").insert({
-    ...parsed.data, user_id: input.userId, purpose: input.purpose, receipt_path: path,
-    match_id: input.purpose === "match" ? input.matchId : null, goal_id: input.purpose === "donation" ? input.goalId : null,
+    ...parsed.data, amount: total, user_id: input.userId, purpose: input.purpose, receipt_path: path,
+    match_id: input.purpose === "match" ? input.matchId : null, goal_id: input.purpose === "donation" ? input.goalId : donation?.goalId ?? null,
+    // Only sent with a donation, so plain payments keep working before migration 0029 is applied.
+    ...(donation ? { donation_amount: donation.amount } : {}),
   });
   if (error) {
     if (path) await supabase.storage.from("payment-receipts").remove([path]);

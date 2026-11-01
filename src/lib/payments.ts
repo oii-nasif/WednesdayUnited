@@ -16,8 +16,8 @@ async function fetchPayments(userId: string, team: boolean) {
     if (!team) query = query.eq("user_id", userId);
     const { data, error } = await query;
     if (error) throw error;
-    // purpose/goal_id and the now-optional match_id come from migration 0010, ahead of the generated types.
-    return (data ?? []) as (Omit<NonNullable<typeof data>[number], "match_id"> & { match_id: string | null; purpose: PaymentPurpose; goal_id: string | null })[];
+    // purpose/goal_id, the now-optional match_id (0010) and donation_amount (0029) are ahead of the generated types.
+    return (data ?? []) as (Omit<NonNullable<typeof data>[number], "match_id"> & { match_id: string | null; purpose: PaymentPurpose; goal_id: string | null; donation_amount?: number | null })[];
 }
 
 export const purposeLabel: Record<PaymentPurpose, string> = { match: "Match", advance: "Balance top-up", donation: "Donation" };
