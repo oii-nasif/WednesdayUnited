@@ -97,7 +97,7 @@ export function MatchCard({ match }: Props) {
           <div className="mt-4 flex items-center gap-2 border-t border-dashed pt-3 text-sm">
             <Users className="size-4 text-accent" />
             <span className="font-bold tabular">{total}{match.player_limit ? <span className="text-muted-foreground">/{match.player_limit}</span> : ""}</span>
-            <span className="text-muted-foreground">{over ? "played" : "playing"} · {guestCount(match.registrations)} guests</span>
+            <span className="truncate text-muted-foreground">{over ? "played" : "playing"} · {guestCount(match.registrations)} guests</span>
             <QuickJoin match={match} />
           </div>
           {over && (
@@ -133,11 +133,11 @@ function QuickJoin({ match }: Props) {
   });
 
   if (state === "joined") {
-    return <span className="ml-auto flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-success"><Check className="size-3.5" />You're in</span>;
+    return <span className="ml-auto flex shrink-0 items-center gap-1 whitespace-nowrap text-xs font-bold uppercase tracking-wider text-success"><Check className="size-3.5" />You're in</span>;
   }
   if (state !== "join") return null;
   return (
-    <Button size="sm" variant="accent" className="group/join pointer-events-auto relative ml-auto" disabled={join.isPending} onClick={() => join.mutate()}>
+    <Button size="sm" variant="accent" className="group/join pointer-events-auto relative ml-auto shrink-0" disabled={join.isPending} onClick={() => join.mutate()}>
       <Football className={join.isPending ? "size-4 animate-spin" : "size-4 transition-transform duration-500 group-hover/join:rotate-[360deg]"} />
       {join.isPending ? "Joining…" : "Join"}
     </Button>

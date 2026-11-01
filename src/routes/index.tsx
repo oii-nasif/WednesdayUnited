@@ -127,9 +127,9 @@ function Index() {
           </div>
         </div>
         {isLoading ? (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-60 rounded-2xl" />)}</div>
+          <div className="grid gap-6 lg:grid-cols-2">{[0, 1].map((i) => <Skeleton key={i} className="h-60 rounded-2xl" />)}</div>
         ) : visible.length ? (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 lg:grid-cols-2">
             {visible.map((m, i) => <div key={m.id} className="rise" style={{ animationDelay: `${i * 70}ms` }}><MatchCard match={m} /></div>)}
           </div>
         ) : (
