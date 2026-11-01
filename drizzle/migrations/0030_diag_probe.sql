@@ -1,0 +1,1 @@
+ALTER TABLE public.payments ADD COLUMN diag_probe_marker numeric;
