@@ -1,0 +1,1 @@
+COMMENT ON COLUMN public.payments.diag_probe_marker IS 'DEPRECATED: unused diagnostic probe column from a setup check; safe to remove in a later cleanup migration.';
