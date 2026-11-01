@@ -377,6 +377,8 @@ export type Database = {
         Row: {
           amount: number
           created_at: string
+          diag_probe_marker: number | null
+          donation_amount: number
           goal_id: string | null
           id: string
           match_id: string | null
@@ -392,6 +394,8 @@ export type Database = {
         Insert: {
           amount: number
           created_at?: string
+          diag_probe_marker?: number | null
+          donation_amount?: number
           goal_id?: string | null
           id?: string
           match_id?: string | null
@@ -407,6 +411,8 @@ export type Database = {
         Update: {
           amount?: number
           created_at?: string
+          diag_probe_marker?: number | null
+          donation_amount?: number
           goal_id?: string | null
           id?: string
           match_id?: string | null

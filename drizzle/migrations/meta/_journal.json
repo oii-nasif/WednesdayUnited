@@ -204,6 +204,20 @@
       "when": 1793571555715,
       "tag": "0029_payment_donation_split",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1793572477090,
+      "tag": "0030_diag_probe",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1793572523438,
+      "tag": "0031_deprecate_diag_probe_marker",
+      "breakpoints": true
     }
   ]
 }
