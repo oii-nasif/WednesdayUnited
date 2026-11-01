@@ -76,6 +76,24 @@ export function registrationOpen(m: { status: string; registration_deadline: str
   return m.status === "published" && (!m.registration_deadline || new Date(m.registration_deadline) > new Date());
 }
 
+export async function joinMatch(matchId: string, userId: string, guests = 0) {
+  const { error } = await supabase.from("registrations").insert({ match_id: matchId, user_id: userId, guest_count: guests });
+  if (error) throw error.message.includes("duplicate") ? new Error("You're already registered.") : error;
+}
+
+// What the match card offers the viewer: a one-tap join, a "you're in" marker, or nothing.
+export function quickJoinState(
+  m: { status: string; registration_deadline: string | null; player_limit: number | null; registrations: { user_id: string; guest_count: number }[] },
+  viewer: { userId: string | undefined; canJoin: boolean; isStaff: boolean },
+): "join" | "joined" | null {
+  if (!viewer.userId || m.status !== "published") return null;
+  if (m.registrations.some((r) => r.user_id === viewer.userId)) return "joined";
+  if (!viewer.canJoin || !registrationOpen(m)) return null;
+  // The DB player-limit trigger lets staff overfill a match.
+  if (!viewer.isStaff && m.player_limit && participantCount(m.registrations) + 1 > m.player_limit) return null;
+  return "join";
+}
+
 export function spotsLabel(total: number, limit: number | null) {
   if (!limit) return null;
   const left = limit - total;
