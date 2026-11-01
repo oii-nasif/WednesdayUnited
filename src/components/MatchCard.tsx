@@ -1,7 +1,14 @@
-import { Link } from "@tanstack/react-router";
-import { ArrowUpRight, Clock, MapPin, Users } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { ArrowUpRight, Check, Clock, MapPin, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { fmtTime, participantCount, guestCount, spotsLabel } from "@/lib/matches";
+import { Button } from "@/components/ui/button";
+import { fmtTime, participantCount, guestCount, spotsLabel, joinMatch, quickJoinState } from "@/lib/matches";
+import { useAuth } from "@/lib/auth";
+import { useApproval } from "@/lib/approval";
+import { canJoinWithApproval } from "@/lib/approval-rules";
+import { money, prepaymentTotal } from "@/lib/payment-rules";
 import { Football } from "@/components/Football";
 import { cn } from "@/lib/utils";
 
@@ -12,8 +19,11 @@ type Props = {
     starts_at: string;
     status: string;
     player_limit: number | null;
+    registration_deadline: string | null;
+    prepayment_required: boolean;
+    prepayment_amount: number | null;
     location: { name: string; area: string | null } | null;
-    registrations: { guest_count: number }[];
+    registrations: { user_id: string; guest_count: number }[];
   };
 };
 
@@ -54,12 +64,14 @@ export function MatchCard({ match }: Props) {
   const tight = !!match.player_limit && match.player_limit - total <= 3;
   const over = match.status === "completed" || match.status === "cancelled";
   return (
-    <Link
-      to="/matches/$id"
-      params={{ id: match.id }}
-      className="group block rounded-2xl drop-shadow-[0_10px_18px_oklch(0.3_0.1_262/0.12)] transition-[filter,translate] duration-300 hover:-translate-y-1 hover:drop-shadow-[0_22px_30px_oklch(0.3_0.12_262/0.22)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
-    >
-      <div className="ticket flex min-h-full overflow-hidden rounded-2xl bg-card [--notch:88px]">
+    <div className="group relative rounded-2xl drop-shadow-[0_10px_18px_oklch(0.3_0.1_262/0.12)] transition-[filter,translate] duration-300 hover:-translate-y-1 hover:drop-shadow-[0_22px_30px_oklch(0.3_0.12_262/0.22)]">
+      <Link
+        to="/matches/$id"
+        params={{ id: match.id }}
+        aria-label={`${match.title} match details`}
+        className="absolute inset-0 rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+      />
+      <div className="ticket pointer-events-none relative flex min-h-full overflow-hidden rounded-2xl bg-card [--notch:88px]">
         <div className={cn("relative flex w-[88px] shrink-0 flex-col items-center justify-center gap-0.5 py-5", stubTone[match.status])}>
           <span className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-75">{dhaka(date, { weekday: "short" })}</span>
           <span className="font-display text-5xl leading-none">{dhaka(date, { day: "2-digit" })}</span>
@@ -86,6 +98,7 @@ export function MatchCard({ match }: Props) {
             <Users className="size-4 text-accent" />
             <span className="font-bold tabular">{total}{match.player_limit ? <span className="text-muted-foreground">/{match.player_limit}</span> : ""}</span>
             <span className="text-muted-foreground">{over ? "played" : "playing"} · {guestCount(match.registrations)} guests</span>
+            <QuickJoin match={match} />
           </div>
           {over && (
             <span className={cn("pointer-events-none absolute bottom-4 right-4 -rotate-12 rounded-md border-2 px-2 py-0.5 font-display text-xl tracking-wider opacity-80", match.status === "completed" ? "border-primary text-primary" : "border-destructive text-destructive")}>
@@ -94,6 +107,39 @@ export function MatchCard({ match }: Props) {
           )}
         </div>
       </div>
-    </Link>
+    </div>
+  );
+}
+
+// One-tap join from the card, with no guests; guests and payment are handled on the match page.
+function QuickJoin({ match }: Props) {
+  const { user, isStaff } = useAuth();
+  const approval = useApproval();
+  const qc = useQueryClient();
+  const navigate = useNavigate();
+  const state = quickJoinState(match, { userId: user?.id, canJoin: canJoinWithApproval(approval.data ?? null, isStaff), isStaff });
+  const join = useMutation({
+    mutationFn: () => joinMatch(match.id, user!.id),
+    onSuccess: () => {
+      const due = match.prepayment_required ? prepaymentTotal(Number(match.prepayment_amount ?? 0), 0) : 0;
+      toast.success(`You're in for ${match.title}!`, due ? {
+        description: `Prepayment of ${money(due)} is due.`,
+        action: { label: "Pay now", onClick: () => navigate({ to: "/matches/$id", params: { id: match.id } }) },
+      } : undefined);
+      qc.invalidateQueries({ queryKey: ["matches"] });
+      qc.invalidateQueries({ queryKey: ["match", match.id] });
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : (e as { message?: string })?.message ?? "Could not join this match"),
+  });
+
+  if (state === "joined") {
+    return <span className="ml-auto flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-success"><Check className="size-3.5" />You're in</span>;
+  }
+  if (state !== "join") return null;
+  return (
+    <Button size="sm" variant="accent" className="group/join pointer-events-auto relative ml-auto" disabled={join.isPending} onClick={() => join.mutate()}>
+      <Football className={join.isPending ? "size-4 animate-spin" : "size-4 transition-transform duration-500 group-hover/join:rotate-[360deg]"} />
+      {join.isPending ? "Joining…" : "Join"}
+    </Button>
   );
 }

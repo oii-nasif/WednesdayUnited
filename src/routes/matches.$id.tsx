@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useApproval } from "@/lib/approval";
 import { canJoinWithApproval } from "@/lib/approval-rules";
-import { matchQuery, fmtDate, fmtTime, participantCount, guestCount, registrationOpen, spotsLabel } from "@/lib/matches";
+import { matchQuery, fmtDate, fmtTime, participantCount, guestCount, registrationOpen, spotsLabel, joinMatch } from "@/lib/matches";
 import { statusVariant, statusLabel } from "@/components/MatchCard";
 import { PitchLines } from "@/components/PitchLines";
 import { Countdown } from "@/components/Countdown";
@@ -71,11 +71,10 @@ function MatchDetail() {
     mutationFn: async () => {
       if (!user) throw new Error("Sign in to join this match");
       if (!canJoinWithApproval(approval.data ?? null, isStaff)) throw new Error("Your account needs squad approval before joining matches.");
-      const { error } = await supabase.from("registrations").insert({ match_id: id, user_id: user.id, guest_count: guests });
-      if (error) throw error;
+      await joinMatch(id, user.id, guests);
     },
     onSuccess: () => { setCelebrating(true); toast.success("You're in!"); refresh(); },
-    onError: (e) => toast.error(errMsg(e).includes("duplicate") ? "You're already registered." : errMsg(e)),
+    onError: (e) => toast.error(errMsg(e)),
   });
   const updateGuests = useMutation({
     mutationFn: async ({ regId, n }: { regId: string; n: number }) => {
