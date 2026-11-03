@@ -693,6 +693,15 @@ export type Database = {
         Args: { _amount: number; _note?: string; _player_id: string }
         Returns: undefined
       }
+      record_cash_donation: {
+        Args: {
+          _amount: number
+          _goal_id: string
+          _note?: string
+          _player_id: string
+        }
+        Returns: string
+      }
       review_payment: {
         Args: { decision: string; note?: string; payment_id: string }
         Returns: undefined
