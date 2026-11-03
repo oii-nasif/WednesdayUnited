@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 type Venue = { name: string; address: string | null; area: string | null; maps_url: string | null };
 
 export function VenueMap({ venue }: { venue: Venue }) {
-  const key = import.meta.env['VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY'];
   const query = [venue.name, venue.address, venue.area, "Bangladesh"].filter(Boolean).join(", ");
-  const url = `https://www.google.com/maps/embed/v1/place?key=${encodeURIComponent(key ?? "")}&q=${encodeURIComponent(query)}`;
+  // Keyless embed: works on any domain (wednesdayunited.me included) with no API key or billing. Unofficial, so if
+  // Google ever drops it, switch back to the Maps Embed API (maps/embed/v1/place) with a key allowed on our domains.
+  const url = `https://maps.google.com/maps?q=${encodeURIComponent(query)}&output=embed`;
   const directions = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
 
   return (
@@ -24,7 +25,7 @@ export function VenueMap({ venue }: { venue: Venue }) {
           </div>
           <Button variant="outline" asChild><a href={directions} target="_blank" rel="noreferrer"><Navigation />Directions</a></Button>
         </div>
-        {key ? <iframe title={`Google Maps — ${venue.name}`} src={url} className="h-80 w-full border-t" loading="lazy" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen /> : <p className="border-t p-6 text-sm text-muted-foreground">Google Maps is not configured yet.</p>}
+        <iframe title={`Google Maps — ${venue.name}`} src={url} className="h-80 w-full border-t" loading="lazy" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen />
       </div>
     </section>
   );
