@@ -7,7 +7,7 @@ vi.mock("@/integrations/supabase/client", () => ({
     storage: { from: () => ({ upload: async () => ({ error: null }), remove: async () => ({}) }) },
   },
 }));
-import { matchDuesQuery, settleMatch, submitPayment, recordAdjustment } from "@/lib/ledger";
+import { matchDuesQuery, settleMatch, submitPayment, recordAdjustment, recordCashDonation } from "@/lib/ledger";
 
 const base = { userId: "u1", amount: "500", transactionId: " TX-1 ", file: null };
 
@@ -57,6 +57,14 @@ describe("ledger client", () => {
     calls.rpc.mockResolvedValueOnce({ data: null, error: null });
     await recordAdjustment("u2", 300, "  ");
     expect(calls.rpc).toHaveBeenLastCalledWith("record_adjustment", { _player_id: "u2", _amount: 300, _note: null });
+  });
+
+  it("records cash donations through the staff-checked function", async () => {
+    calls.rpc.mockResolvedValueOnce({ data: null, error: { message: "Only moderators can record cash donations" } });
+    await expect(recordCashDonation("g1", "u2", 500, "Cash")).rejects.toThrow("Only moderators");
+    calls.rpc.mockResolvedValueOnce({ data: "p1", error: null });
+    await recordCashDonation("g1", "u2", 500, "  ");
+    expect(calls.rpc).toHaveBeenLastCalledWith("record_cash_donation", { _goal_id: "g1", _player_id: "u2", _amount: 500, _note: null });
   });
 
   it("maps match dues by player with numeric amounts", async () => {

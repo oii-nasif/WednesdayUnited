@@ -152,6 +152,8 @@ const rpc = async (fn: string, args: Record<string, unknown>) => {
 export type LineupEntry = { user_id: string; guest_count: number };
 export const settleMatch = async (matchId: string, totalCost: number, lineup: LineupEntry[]) => Number(await rpc("settle_match", { _match_id: matchId, _total_cost: totalCost, _lineup: lineup }));
 export const recordAdjustment = (playerId: string, amount: number, note: string) => rpc("record_adjustment", { _player_id: playerId, _amount: amount, _note: note.trim() || null });
+// Cash handed to a moderator for a fund: filed as a verified donation from that player (migration 0032).
+export const recordCashDonation = (goalId: string, playerId: string, amount: number, note: string) => rpc("record_cash_donation", { _goal_id: goalId, _player_id: playerId, _amount: amount, _note: note.trim() || null });
 
 export async function saveDonationGoal(goal: { id: string; title: string; target_amount: number }) {
   const { data, error } = await supabase.from("donation_goals").update(donationGoalInput(goal.title, goal.target_amount)).eq("id", goal.id).select("id");
