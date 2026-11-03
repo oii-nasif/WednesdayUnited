@@ -32,7 +32,7 @@ export function SiteFooter() {
         </div>
       </div>
       <div className="relative mx-auto mt-12 flex max-w-6xl flex-wrap justify-between gap-2 border-t border-white/10 px-4 pt-6 text-xs text-pitch-foreground/45">
-        <span>Wednesday United · after-office football</span>
+        <span>Wednesday United · after-office football · <Link to="/privacy" className="hover:text-accent">Privacy</Link> · <Link to="/terms" className="hover:text-accent">Terms</Link></span>
         <span>Every Wednesday, under the moonlight.</span>
       </div>
     </footer>
