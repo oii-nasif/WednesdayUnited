@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Heart, Pencil, PartyPopper, Plus } from "lucide-react";
-import { donationGoalsQuery, invalidateMoney, saveDonationGoal, createDonationGoal, type DonationGoal } from "@/lib/ledger";
+import { Banknote, Heart, Pencil, PartyPopper, Plus } from "lucide-react";
+import { balancesQuery, donationGoalsQuery, invalidateMoney, recordCashDonation, saveDonationGoal, createDonationGoal, type DonationGoal } from "@/lib/ledger";
+import { PlayerPicker } from "@/components/PlayerPicker";
+import { Textarea } from "@/components/ui/textarea";
 import { money } from "@/lib/payment-rules";
 import { CountUp } from "@/components/CountUp";
 import { FundShot } from "@/components/FundShot";
@@ -32,6 +34,7 @@ export function BallFund({ userId, staff }: { userId: string; staff: boolean }) 
 function FundCard({ goal, userId, staff, onCreate }: { goal: DonationGoal; userId: string; staff: boolean; onCreate: () => void }) {
   const [donating, setDonating] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [recordingCash, setRecordingCash] = useState(false);
   const collected = goal.collected_amount;
   const needed = Math.max(0, goal.target_amount - collected);
   const pct = Math.min(100, Math.round((collected / goal.target_amount) * 100));
@@ -48,6 +51,7 @@ function FundCard({ goal, userId, staff, onCreate }: { goal: DonationGoal; userI
           <div className="flex shrink-0 items-center gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider"><span className="relative flex size-2"><span className="absolute inline-flex size-full animate-ping rounded-full bg-success opacity-75" /><span className="relative inline-flex size-2 rounded-full bg-success" /></span>Live</span>
             {staff && <Button size="icon" variant="ghost" className="size-8 text-pitch-foreground/80 hover:bg-white/10 hover:text-pitch-foreground" title="Create goal" aria-label="Create goal" onClick={onCreate}><Plus /></Button>}
+            {staff && <Button size="icon" variant="ghost" className="size-8 text-pitch-foreground/80 hover:bg-white/10 hover:text-pitch-foreground" title="Record cash donation" aria-label="Record cash donation" onClick={() => setRecordingCash(true)}><Banknote /></Button>}
             {staff && <Button size="icon" variant="ghost" className="size-8 text-pitch-foreground/80 hover:bg-white/10 hover:text-pitch-foreground" title="Edit fund" aria-label="Edit fund" onClick={() => setEditing(true)}><Pencil /></Button>}
           </div>
         </div>
@@ -74,8 +78,39 @@ function FundCard({ goal, userId, staff, onCreate }: { goal: DonationGoal; userI
         </>}
       </div>
       {staff && <EditFundDialog key={`${goal.id}-${editing}`} open={editing} onOpenChange={setEditing} goal={goal} />}
+      {staff && <CashDonationDialog key={`cash-${goal.id}-${recordingCash}`} open={recordingCash} onOpenChange={setRecordingCash} goal={goal} />}
     </section>
   );
+}
+
+// Cash handed to a moderator: credited to the fund straight away as a verified donation from the chosen player.
+function CashDonationDialog({ open, onOpenChange, goal }: { open: boolean; onOpenChange: (open: boolean) => void; goal: DonationGoal }) {
+  const qc = useQueryClient();
+  const { data: players = [] } = useQuery({ ...balancesQuery, enabled: open });
+  const [playerId, setPlayerId] = useState("");
+  const [amount, setAmount] = useState("");
+  const [note, setNote] = useState("");
+  const save = useMutation({
+    mutationFn: () => {
+      const n = Number(amount);
+      if (!playerId) throw new Error("Choose who gave the cash");
+      if (!(n > 0)) throw new Error("Enter an amount above zero");
+      return recordCashDonation(goal.id, playerId, n, note);
+    },
+    onSuccess: () => { toast.success(`Cash donation added to ${goal.title}`); invalidateMoney(qc); onOpenChange(false); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  return <Dialog open={open} onOpenChange={(o) => { if (!save.isPending) onOpenChange(o); }}>
+    <DialogContent className="max-h-[90dvh] overflow-y-auto">
+      <DialogHeader><DialogTitle className="font-display text-3xl">Record cash donation</DialogTitle><DialogDescription>Added to {goal.title} right away as a verified donation, logged with your name.</DialogDescription></DialogHeader>
+      <form id="cash-donation-form" className="grid gap-4" onSubmit={(e) => { e.preventDefault(); save.mutate(); }}>
+        <div className="grid gap-1.5"><Label>Donor</Label><PlayerPicker players={players.map((b) => ({ id: b.user_id, full_name: b.full_name }))} value={playerId} onChange={setPlayerId} placeholder="Search a player by name" label="Donor" className="w-full" /></div>
+        <div className="grid gap-1.5"><Label htmlFor="cash-amount">Amount (৳)</Label><Input id="cash-amount" required type="number" min={0.01} max={100000} step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} /></div>
+        <div className="grid gap-1.5"><Label htmlFor="cash-note">Note (optional)</Label><Textarea id="cash-note" maxLength={500} placeholder="e.g. Handed over at the pitch" value={note} onChange={(e) => setNote(e.target.value)} /></div>
+      </form>
+      <DialogFooter><Button variant="ghost" disabled={save.isPending} onClick={() => onOpenChange(false)}>Cancel</Button><Button type="submit" form="cash-donation-form" disabled={save.isPending}>{save.isPending ? "Saving…" : "Record donation"}</Button></DialogFooter>
+    </DialogContent>
+  </Dialog>;
 }
 
 function EditFundDialog({ open, onOpenChange, goal, onCreated }: { open: boolean; onOpenChange: (open: boolean) => void; goal?: { id: string; title: string; target_amount: number }; onCreated?: (id: string) => void }) {
