@@ -218,6 +218,13 @@
       "when": 1793572523438,
       "tag": "0031_deprecate_diag_probe_marker",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1793736328669,
+      "tag": "0032_staff_cash_donations",
+      "breakpoints": true
     }
   ]
 }
