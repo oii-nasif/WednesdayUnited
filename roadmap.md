@@ -50,3 +50,6 @@
   - [ ] Apply migration 0010 and regenerate Supabase types to drop the untyped view in src/lib/ledger.ts
 - [ ] Phase 3: player profiles & stats, match photos
 - [ ] Phase 4: admin pages (users/roles, locations, financial overview, audit log viewer, settings)
+
+- [x] Donor thank-you popup on first load (10s auto-close, close button)
+- [ ] Collect payments from customers — waiting on user answer (app already uses bank/QR transfers)
