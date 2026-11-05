@@ -19,6 +19,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { ApprovalNotice } from "@/components/ApprovalNotice";
 import { PitchLines } from "@/components/PitchLines";
 import { Toaster } from "@/components/ui/sonner";
+import { DonorPopup } from "@/components/DonorPopup";
 import { supabase } from "@/integrations/supabase/client";
 
 function NotFoundComponent() {
@@ -131,6 +132,7 @@ function RootComponent() {
         </main>
         {!isAuthPage && <SiteFooter />}
         <Toaster richColors position="top-center" />
+        <DonorPopup />
       </AuthProvider>
     </QueryClientProvider>
   );
