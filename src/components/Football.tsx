@@ -48,13 +48,16 @@ function circle(centre: V3, radius: number, n = 40): V3[] {
   });
 }
 
+// A solid tapered band: apex a, base corners b and c, kept between fractions t0 and t1 of the way out.
+const arm = (a: V3, b: V3, c: V3, t0: number, t1: number) => path(curved([mix(a, b, t0), mix(a, b, t1), mix(a, c, t1), mix(a, c, t0)], 3));
+
 // Parallel hatch lines inside a tapering wedge: apex a, base corners b and c. Lines run parallel to the
 // base at constant thickness, so the group reads as a fan of stripes that widen toward the seam.
-function wedge(a: V3, b: V3, c: V3, from = 0.14, to = 1, d = 0.075, step = 0.16) {
+function wedge(a: V3, b: V3, c: V3, from = 0.16, to = 0.96, d = 0.03, step = 0.075) {
   let out = "";
   for (let t = from; t <= to + 1e-9; t += step) {
     const t2 = Math.min(t + d, to);
-    out += path(curved([mix(a, b, t), mix(a, b, t2), mix(a, c, t2), mix(a, c, t)], 2));
+    out += path(curved([mix(a, b, t), mix(a, b, t2), mix(a, c, t2), mix(a, c, t)], 1));
   }
   return out;
 }
