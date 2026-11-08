@@ -97,17 +97,19 @@ const FLAME = "#e63312";
 const SLATE = "#686e74";
 
 const ART: Record<BallDesign, { base: string; rim: string; layers: Layer[] }> = {
-  // Molten F5C3555, the ball the squad actually plays with: white panels carrying tapering wedge fans of
-  // parallel hatch lines — black from one corner, red-orange from another so they cross-hatch over the
-  // panel — anchored by solid grey blocks, with every fourth panel left plain as on the real ball.
+  // Molten F5C3555, the ball the squad actually plays with: white panels under print that clusters at the
+  // seam junctions — fine fans of parallel hatch lines in black and red-orange crossing at opposing angles
+  // over each panel, anchored by solid grey arms and red-orange blocks at the corners, with some panels
+  // left plain. Seams stay as faint stitching.
   molten: {
     base: "#fbfbfa",
     rim: INK,
     layers: [
-      { d: TRIANGLES.map((t, i) => { if (i % 4 === 3) return ""; const { p, q, r, m } = corner(t, i); return path(curved([mix(p, q, 0.32), mix(p, r, 0.32), m], 4)); }).join(""), fill: SLATE },
-      { d: TRIANGLES.map((t, i) => { if (i % 4 === 3) return ""; const { p, q, r, m } = corner(t, i); return wedge(m, mix(q, p, 0.5), mix(q, r, 0.5)); }).join(""), fill: INK },
-      { d: TRIANGLES.map((t, i) => { if (i % 4 === 3) return ""; const { p, q, r, m } = corner(t, i); return wedge(m, mix(r, p, 0.5), mix(r, q, 0.5)); }).join(""), fill: FLAME },
-      { d: TRIANGLES.map((t) => path(curved(t, 10))).join(""), fill: "none", stroke: "#b4bccb", width: 0.9 },
+      { d: TRIANGLES.map((t, i) => { if (i % 5 === 4) return ""; const { p, q, r, m } = corner(t, i); return arm(m, mix(p, q, 0.4), mix(p, r, 0.4), 0.16, 0.9); }).join(""), fill: SLATE },
+      { d: TRIANGLES.map((t, i) => { if (i % 5 === 4) return ""; const { p, q, r, m } = corner(t, i); return arm(m, mix(q, p, 0.5), mix(q, r, 0.5), 0.66, 0.94); }).join(""), fill: FLAME },
+      { d: TRIANGLES.map((t, i) => { if (i % 5 === 4) return ""; const { p, q, r, m } = corner(t, i); return wedge(m, mix(q, p, 0.72), mix(q, r, 0.72)); }).join(""), fill: INK },
+      { d: TRIANGLES.map((t, i) => { if (i % 5 === 4) return ""; const { p, q, r, m } = corner(t, i); return wedge(m, mix(r, p, 0.72), mix(r, q, 0.72)); }).join(""), fill: FLAME },
+      { d: [...HEXAGONS, ...PENTAGONS].map((h) => path(curved(h, 6))).join(""), fill: "none", stroke: "#d5dae2", width: 0.6 },
     ],
   },
   classic: {
