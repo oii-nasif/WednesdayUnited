@@ -20,15 +20,24 @@ describe("default ball design", () => {
   });
 });
 
-// The print is built from projected 3D geometry, so a broken projection shows up as NaN coordinates.
-describe("molten ball artwork", () => {
-  it("renders hatch wedges without broken geometry", () => {
+// The default ball is a photo of the ball the squad bought, cut to a circle; the drawn designs are built
+// from projected 3D geometry, where a broken projection shows up as NaN coordinates.
+describe("ball artwork", () => {
+  it("shows the photographed Molten as the default", () => {
     const { container } = render(<Football design="molten" />);
-    const d = Array.from(container.querySelectorAll("path"))
-      .map((p) => p.getAttribute("d") ?? "")
-      .join(" ");
-    expect(d).not.toContain("NaN");
-    expect(d.length).toBeGreaterThan(1000);
+    const img = container.querySelector("image");
+    expect(img?.getAttribute("href")).toContain("ball-molten");
     expect(container.querySelector("circle")?.getAttribute("fill")).toBe("#fbfbfa");
+  });
+
+  it("draws the other designs without broken geometry", () => {
+    for (const design of ["classic", "tango", "rihla"] as const) {
+      const { container } = render(<Football design={design} />);
+      const d = Array.from(container.querySelectorAll("path"))
+        .map((p) => p.getAttribute("d") ?? "")
+        .join(" ");
+      expect(d).not.toContain("NaN");
+      expect(d.length).toBeGreaterThan(1000);
+    }
   });
 });

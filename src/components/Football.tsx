@@ -1,6 +1,7 @@
 import { useId, type CSSProperties } from "react";
 import { cn } from "@/lib/utils";
 import { useBallDesign, type BallDesign } from "@/lib/ball-design";
+import moltenBall from "@/assets/ball-molten.webp";
 
 // Ball artwork is drawn on a real sphere: shapes are built in 3D, turned toward the viewer and projected,
 // so panels bulge naturally. Everything is computed once at module load.
@@ -48,20 +49,6 @@ function circle(centre: V3, radius: number, n = 40): V3[] {
   });
 }
 
-// A solid tapered band: apex a, base corners b and c, kept between fractions t0 and t1 of the way out.
-const arm = (a: V3, b: V3, c: V3, t0: number, t1: number) => path(curved([mix(a, b, t0), mix(a, b, t1), mix(a, c, t1), mix(a, c, t0)], 3));
-
-// Parallel hatch lines inside a tapering wedge: apex a, base corners b and c. Lines run parallel to the
-// base at constant thickness, so the group reads as a fan of stripes that widen toward the seam.
-function wedge(a: V3, b: V3, c: V3, from = 0.16, to = 0.96, d = 0.03, step = 0.075) {
-  let out = "";
-  for (let t = from; t <= to + 1e-9; t += step) {
-    const t2 = Math.min(t + d, to);
-    out += path(curved([mix(a, b, t), mix(a, b, t2), mix(a, c, t2), mix(a, c, t)], 1));
-  }
-  return out;
-}
-
 // Truncated icosahedron: 12 pentagons around the icosahedron vertices, 20 hexagons around its faces.
 const VERTS = family([0, 1, 3 * PHI], [1, 2 + PHI, 2 * PHI], [PHI, 2, 2 * PHI + 1]).map(norm);
 function face(dir: V3, n: number): V3[] {
@@ -91,27 +78,13 @@ type Layer = { d: string; fill: string; stroke?: string; width?: number; evenodd
 const BLUE = "oklch(0.45 0.19 262)";
 const NAVY = "oklch(0.24 0.07 264)";
 const ORANGE = "oklch(0.7 0.19 48)";
-// The new ball's own print colours: black and red-orange hatch lines, grey anchor blocks on white.
+// The new ball's own print colour: the dark outline drawn around the photo.
 const INK = "#1a1a1d";
-const FLAME = "#e63312";
-const SLATE = "#686e74";
 
-const ART: Record<BallDesign, { base: string; rim: string; layers: Layer[] }> = {
-  // Molten F5C3555, the ball the squad actually plays with: white panels under print that clusters at the
-  // seam junctions — fine fans of parallel hatch lines in black and red-orange crossing at opposing angles
-  // over each panel, anchored by solid grey arms and red-orange blocks at the corners, with some panels
-  // left plain. Seams stay as faint stitching.
-  molten: {
-    base: "#fbfbfa",
-    rim: INK,
-    layers: [
-      { d: TRIANGLES.map((t, i) => { if (i % 5 === 4) return ""; const { p, q, r, m } = corner(t, i); return arm(m, mix(p, q, 0.4), mix(p, r, 0.4), 0.16, 0.9); }).join(""), fill: SLATE },
-      { d: TRIANGLES.map((t, i) => { if (i % 5 === 4) return ""; const { p, q, r, m } = corner(t, i); return arm(m, mix(q, p, 0.5), mix(q, r, 0.5), 0.66, 0.94); }).join(""), fill: FLAME },
-      { d: TRIANGLES.map((t, i) => { if (i % 5 === 4) return ""; const { p, q, r, m } = corner(t, i); return wedge(m, mix(q, p, 0.72), mix(q, r, 0.72)); }).join(""), fill: INK },
-      { d: TRIANGLES.map((t, i) => { if (i % 5 === 4) return ""; const { p, q, r, m } = corner(t, i); return wedge(m, mix(r, p, 0.72), mix(r, q, 0.72)); }).join(""), fill: FLAME },
-      { d: [...HEXAGONS, ...PENTAGONS].map((h) => path(curved(h, 6))).join(""), fill: "none", stroke: "#d5dae2", width: 0.6 },
-    ],
-  },
+const ART: Record<BallDesign, { base: string; rim: string; layers: Layer[]; image?: string }> = {
+  // Molten F5C3555 (size 5) is the ball the squad actually plays with, so the site shows the real thing:
+  // a photo of it, cut to a circle and lit like the other balls. The three drawn designs stay selectable.
+  molten: { base: "#fbfbfa", rim: INK, image: moltenBall, layers: [] },
   classic: {
     base: "#fbfbfa",
     rim: "#171b26",
@@ -159,7 +132,11 @@ export function Football({ className, style, design }: { className?: string; sty
       </defs>
       <g clipPath={`url(#${id}c)`} strokeLinejoin="round">
         <circle r={R} fill={art.base} />
-        {art.layers.map((l, i) => <path key={i} d={l.d} fill={l.fill} fillRule={l.evenodd ? "evenodd" : "nonzero"} stroke={l.stroke} strokeWidth={l.width} />)}
+        {art.image ? (
+          <image href={art.image} x={-R} y={-R} width={R * 2} height={R * 2} preserveAspectRatio="xMidYMid slice" />
+        ) : (
+          art.layers.map((l, i) => <path key={i} d={l.d} fill={l.fill} fillRule={l.evenodd ? "evenodd" : "nonzero"} stroke={l.stroke} strokeWidth={l.width} />)
+        )}
         <circle r={R} fill={`url(#${id}h)`} />
       </g>
       <circle r={R} fill="none" stroke={art.rim} strokeOpacity="0.75" strokeWidth="1.4" />
