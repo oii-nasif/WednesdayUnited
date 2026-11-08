@@ -1,6 +1,7 @@
 import { useId, type CSSProperties } from "react";
 import { cn } from "@/lib/utils";
 import { useBallDesign, type BallDesign } from "@/lib/ball-design";
+import moltenBall from "@/assets/ball-molten.webp";
 
 // Ball artwork is drawn on a real sphere: shapes are built in 3D, turned toward the viewer and projected,
 // so panels bulge naturally. Everything is computed once at module load.
@@ -77,8 +78,13 @@ type Layer = { d: string; fill: string; stroke?: string; width?: number; evenodd
 const BLUE = "oklch(0.45 0.19 262)";
 const NAVY = "oklch(0.24 0.07 264)";
 const ORANGE = "oklch(0.7 0.19 48)";
+// The new ball's own print colour: the dark outline drawn around the photo.
+const INK = "#1a1a1d";
 
-const ART: Record<BallDesign, { base: string; rim: string; layers: Layer[] }> = {
+const ART: Record<BallDesign, { base: string; rim: string; layers: Layer[]; image?: string }> = {
+  // Molten F5C3555 (size 5) is the ball the squad actually plays with, so the site shows the real thing:
+  // a photo of it, cut to a circle and lit like the other balls. The three drawn designs stay selectable.
+  molten: { base: "#fbfbfa", rim: INK, image: moltenBall, layers: [] },
   classic: {
     base: "#fbfbfa",
     rim: "#171b26",
@@ -126,7 +132,11 @@ export function Football({ className, style, design }: { className?: string; sty
       </defs>
       <g clipPath={`url(#${id}c)`} strokeLinejoin="round">
         <circle r={R} fill={art.base} />
-        {art.layers.map((l, i) => <path key={i} d={l.d} fill={l.fill} fillRule={l.evenodd ? "evenodd" : "nonzero"} stroke={l.stroke} strokeWidth={l.width} />)}
+        {art.image ? (
+          <image href={art.image} x={-R} y={-R} width={R * 2} height={R * 2} preserveAspectRatio="xMidYMid slice" />
+        ) : (
+          art.layers.map((l, i) => <path key={i} d={l.d} fill={l.fill} fillRule={l.evenodd ? "evenodd" : "nonzero"} stroke={l.stroke} strokeWidth={l.width} />)
+        )}
         <circle r={R} fill={`url(#${id}h)`} />
       </g>
       <circle r={R} fill="none" stroke={art.rim} strokeOpacity="0.75" strokeWidth="1.4" />
