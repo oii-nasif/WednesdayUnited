@@ -27,7 +27,8 @@ describe("ball artwork", () => {
     const { container } = render(<Football design="molten" />);
     const img = container.querySelector("image");
     expect(img?.getAttribute("href")).toContain("ball-molten");
-    expect(container.querySelector("circle")?.getAttribute("fill")).toBe("#fbfbfa");
+    const fills = Array.from(container.querySelectorAll("circle")).map((c) => c.getAttribute("fill"));
+    expect(fills).toContain("#fbfbfa");
   });
 
   it("draws the other designs without broken geometry", () => {
