@@ -59,7 +59,7 @@ function FundCard({ goal, userId, staff, onCreate, onOpenArchive }: { goal: Dona
             <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-accent"><Heart className="size-4 animate-pulse" />Fundraiser</p>
             <h3 className="mt-1 break-words text-3xl leading-none">{goal.title}</h3>
           </div>
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider"><span className="relative flex size-2"><span className="absolute inline-flex size-full animate-ping rounded-full bg-success opacity-75" /><span className="relative inline-flex size-2 rounded-full bg-success" /></span>Live</span>
             {staff && <Button size="icon" variant="ghost" className="size-8 text-pitch-foreground/80 hover:bg-white/10 hover:text-pitch-foreground" title="Create goal" aria-label="Create goal" onClick={onCreate}><Plus /></Button>}
             {staff && <Button size="icon" variant="ghost" className="size-8 text-pitch-foreground/80 hover:bg-white/10 hover:text-pitch-foreground" title="Fund archive" aria-label="Fund archive" onClick={onOpenArchive}><Archive /></Button>}
