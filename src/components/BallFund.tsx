@@ -23,13 +23,15 @@ export function BallFund({ userId, staff }: { userId: string; staff: boolean }) 
   const { data: goals = [], isLoading, error } = useQuery({ ...donationGoalsQuery, refetchInterval: 15_000 });
   const [selected, setSelected] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [archiveOpen, setArchiveOpen] = useState(false);
   const goal = goals.find((g) => g.id === selected) ?? goals[0];
   return <div className="min-w-0">
     {isLoading ? <p className="text-sm text-muted-foreground">Loading donation goals…</p> : error ? <p className="text-sm text-destructive">Could not load donation goals.</p> : <>
-      {goal ? <FundCard key={goal.id} goal={goal} userId={userId} staff={staff} onCreate={() => setCreating(true)} /> : <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed bg-card py-8 text-center text-sm text-muted-foreground">No active donation goals.{staff && <Button variant="outline" size="sm" onClick={() => setCreating(true)}><Plus />Create goal</Button>}</div>}
+      {goal ? <FundCard key={goal.id} goal={goal} userId={userId} staff={staff} onCreate={() => setCreating(true)} onOpenArchive={() => setArchiveOpen(true)} /> : <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed bg-card py-8 text-center text-sm text-muted-foreground">No active donation goals.{staff && <div className="flex flex-wrap justify-center gap-2"><Button variant="outline" size="sm" onClick={() => setCreating(true)}><Plus />Create goal</Button><Button variant="ghost" size="sm" onClick={() => setArchiveOpen(true)}><Archive />Fund archive</Button></div>}</div>}
       {goals.length > 1 && <div className="mt-3 grid gap-1.5"><Label htmlFor="donation-goal">Choose a fund</Label><Select value={goal?.id} onValueChange={setSelected}><SelectTrigger id="donation-goal" className="w-full"><SelectValue /></SelectTrigger><SelectContent>{goals.map((g) => <SelectItem key={g.id} value={g.id}>{g.title}</SelectItem>)}</SelectContent></Select></div>}
     </>}
     {staff && <EditFundDialog key={`create-${creating}`} open={creating} onOpenChange={setCreating} onCreated={setSelected} />}
+    {staff && <FundArchiveDialog open={archiveOpen} onOpenChange={setArchiveOpen} />}
   </div>;
 }
 
