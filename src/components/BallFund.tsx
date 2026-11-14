@@ -54,7 +54,7 @@ function FundCard({ goal, userId, staff, onCreate, onOpenArchive }: { goal: Dona
     <section className="relative overflow-hidden rounded-2xl bg-pitch-deep text-pitch-foreground shadow-lift ring-1 ring-white/10">
       {/* Scoreboard: raised vs target, read like a half-time score. */}
       <div className="bg-gradient-to-r from-pitch via-pitch-deep to-pitch px-5 pb-3 pt-4">
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-accent"><Heart className="size-4 animate-pulse" />Fundraiser</p>
             <h3 className="mt-1 break-words text-3xl leading-none">{goal.title}</h3>
