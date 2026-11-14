@@ -62,8 +62,10 @@ function FundCard({ goal, userId, staff, onCreate, onOpenArchive }: { goal: Dona
           <div className="flex shrink-0 items-center gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider"><span className="relative flex size-2"><span className="absolute inline-flex size-full animate-ping rounded-full bg-success opacity-75" /><span className="relative inline-flex size-2 rounded-full bg-success" /></span>Live</span>
             {staff && <Button size="icon" variant="ghost" className="size-8 text-pitch-foreground/80 hover:bg-white/10 hover:text-pitch-foreground" title="Create goal" aria-label="Create goal" onClick={onCreate}><Plus /></Button>}
+            {staff && <Button size="icon" variant="ghost" className="size-8 text-pitch-foreground/80 hover:bg-white/10 hover:text-pitch-foreground" title="Fund archive" aria-label="Fund archive" onClick={onOpenArchive}><Archive /></Button>}
             {staff && <Button size="icon" variant="ghost" className="size-8 text-pitch-foreground/80 hover:bg-white/10 hover:text-pitch-foreground" title="Record cash donation" aria-label="Record cash donation" onClick={() => setRecordingCash(true)}><Banknote /></Button>}
             {staff && <Button size="icon" variant="ghost" className="size-8 text-pitch-foreground/80 hover:bg-white/10 hover:text-pitch-foreground" title="Edit fund" aria-label="Edit fund" onClick={() => setEditing(true)}><Pencil /></Button>}
+            {staff && <Button size="icon" variant="ghost" className="size-8 text-pitch-foreground/80 hover:bg-white/10 hover:text-pitch-foreground" title={`Hide ${goal.title}`} aria-label={`Hide ${goal.title}`} onClick={() => setConfirmHide(true)}><EyeOff /></Button>}
           </div>
         </div>
         <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
