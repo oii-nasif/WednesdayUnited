@@ -35,8 +35,8 @@ describe("donation goals", () => {
     expect(db.eq).toHaveBeenCalledWith("active", false);
   });
   it("hides a fund without deleting its donation history", async () => {
-    db.update.mockReturnValue(db); db.select.mockReturnValue(db);
-    db.eq.mockResolvedValue({ data: [{ id: "ball" }], error: null });
+    db.update.mockReturnValue(db); db.eq.mockReturnValue(db);
+    db.select.mockResolvedValue({ data: [{ id: "ball" }], error: null });
     await setDonationGoalActive("ball", false);
     expect(db.update).toHaveBeenCalledWith({ active: false });
     expect(db.eq).toHaveBeenCalledWith("id", "ball");
