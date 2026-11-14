@@ -225,6 +225,13 @@
       "when": 1793736328669,
       "tag": "0032_staff_cash_donations",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1794685964485,
+      "tag": "0033_donor_campaign_visibility",
+      "breakpoints": true
     }
   ]
 }
