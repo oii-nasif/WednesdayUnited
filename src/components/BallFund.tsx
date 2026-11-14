@@ -35,10 +35,17 @@ export function BallFund({ userId, staff }: { userId: string; staff: boolean }) 
   </div>;
 }
 
-function FundCard({ goal, userId, staff, onCreate }: { goal: DonationGoal; userId: string; staff: boolean; onCreate: () => void }) {
+function FundCard({ goal, userId, staff, onCreate, onOpenArchive }: { goal: DonationGoal; userId: string; staff: boolean; onCreate: () => void; onOpenArchive: () => void }) {
+  const qc = useQueryClient();
   const [donating, setDonating] = useState(false);
   const [editing, setEditing] = useState(false);
   const [recordingCash, setRecordingCash] = useState(false);
+  const [confirmHide, setConfirmHide] = useState(false);
+  const hide = useMutation({
+    mutationFn: () => setDonationGoalActive(goal.id, false),
+    onSuccess: () => { toast.success(`${goal.title} moved to the fund archive`); invalidateMoney(qc); setConfirmHide(false); },
+    onError: (e: Error) => toast.error(e.message),
+  });
   const collected = goal.collected_amount;
   const needed = Math.max(0, goal.target_amount - collected);
   const pct = Math.min(100, Math.round((collected / goal.target_amount) * 100));
