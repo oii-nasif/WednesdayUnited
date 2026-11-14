@@ -50,6 +50,7 @@ describe("donation goals", () => {
     expect(db.eq).toHaveBeenCalledWith("id", "old-ball");
   });
   it("preserves staff permission errors from the database", async () => {
+    db.insert.mockReturnValue(db); db.select.mockReturnValue(db);
     db.single.mockResolvedValue({ data: null, error: new Error("Staff only") });
     await expect(createDonationGoal({ title: "Team kit", target_amount: 5000 })).rejects.toThrow("Staff only");
   });
