@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Banknote, Heart, Pencil, PartyPopper, Plus } from "lucide-react";
-import { balancesQuery, donationGoalsQuery, invalidateMoney, recordCashDonation, saveDonationGoal, createDonationGoal, type DonationGoal } from "@/lib/ledger";
+import { Archive, Banknote, EyeOff, Heart, Pencil, PartyPopper, Plus, RotateCcw } from "lucide-react";
+import { archivedDonationGoalsQuery, balancesQuery, donationGoalsQuery, invalidateMoney, recordCashDonation, saveDonationGoal, createDonationGoal, setDonationGoalActive, type DonationGoal } from "@/lib/ledger";
 import { PlayerPicker } from "@/components/PlayerPicker";
 import { Textarea } from "@/components/ui/textarea";
 import { money } from "@/lib/payment-rules";
@@ -15,6 +15,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { fmtDate } from "@/lib/matches";
 
 // The match ball fund: progress toward the target, so every donation visibly moves the bar.
 export function BallFund({ userId, staff }: { userId: string; staff: boolean }) {
