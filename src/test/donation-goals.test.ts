@@ -40,7 +40,7 @@ describe("donation goals", () => {
     await setDonationGoalActive("ball", false);
     expect(db.update).toHaveBeenCalledWith({ active: false });
     expect(db.eq).toHaveBeenCalledWith("id", "ball");
-    expect(db.insert).not.toHaveBeenCalledWith(expect.objectContaining({ active: false }));
+    expect(db.delete).not.toHaveBeenCalled();
   });
   it("makes an archived fund live again", async () => {
     db.update.mockReturnValue(db); db.select.mockReturnValue(db);
