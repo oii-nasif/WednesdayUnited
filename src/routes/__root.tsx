@@ -17,6 +17,7 @@ import { AuthProvider } from "@/lib/auth";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ApprovalNotice } from "@/components/ApprovalNotice";
+import { DonorPopup } from "@/components/DonorPopup";
 import { PitchLines } from "@/components/PitchLines";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
