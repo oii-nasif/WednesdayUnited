@@ -102,6 +102,31 @@ function FundCard({ goal, userId, staff, onCreate, onOpenArchive }: { goal: Dona
   );
 }
 
+function FundArchiveDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+  const qc = useQueryClient();
+  const { data: goals = [], isLoading, error, refetch } = useQuery({ ...archivedDonationGoalsQuery, enabled: open });
+  const restore = useMutation({
+    mutationFn: (id: string) => setDonationGoalActive(id, true),
+    onSuccess: () => { toast.success("Fund is live again"); invalidateMoney(qc); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  return <Dialog open={open} onOpenChange={(next) => { if (!restore.isPending) onOpenChange(next); }}>
+    <DialogContent className="max-h-[90dvh] max-w-2xl overflow-y-auto">
+      <DialogHeader><DialogTitle className="font-display text-3xl">Fund archive</DialogTitle><DialogDescription>Hidden funds keep their donation totals and history. Make one live again to show it to players.</DialogDescription></DialogHeader>
+      {isLoading ? <p className="py-6 text-sm text-muted-foreground">Loading archived funds…</p> : error ? <div className="flex items-center gap-3 py-4"><p className="text-sm text-destructive">Could not load archived funds.</p><Button variant="outline" size="sm" onClick={() => refetch()}>Retry</Button></div> : goals.length === 0 ? <p className="rounded-xl border border-dashed py-8 text-center text-sm text-muted-foreground">No hidden funds yet.</p> : <ul className="grid gap-3">
+        {goals.map((goal) => <li key={goal.id} className="rounded-xl border bg-muted/30 p-4">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0"><h3 className="break-words font-semibold">{goal.title}</h3><p className="mt-1 text-xs text-muted-foreground">Created {fmtDate(goal.created_at)}</p></div>
+            <Button size="sm" variant="outline" disabled={restore.isPending} onClick={() => restore.mutate(goal.id)}><RotateCcw />{restore.isPending && restore.variables === goal.id ? "Restoring…" : "Make live again"}</Button>
+          </div>
+          <div className="mt-3 grid grid-cols-2 gap-3 text-sm"><div><p className="text-xs uppercase tracking-wider text-muted-foreground">Raised</p><p className="font-display text-2xl text-accent">{money(goal.collected_amount)}</p></div><div><p className="text-xs uppercase tracking-wider text-muted-foreground">Target</p><p className="font-display text-2xl">{money(goal.target_amount)}</p></div></div>
+        </li>)}
+      </ul>}
+      <DialogFooter><Button variant="ghost" disabled={restore.isPending} onClick={() => onOpenChange(false)}>Close</Button></DialogFooter>
+    </DialogContent>
+  </Dialog>;
+}
+
 // Cash handed to a moderator: credited to the fund straight away as a verified donation from the chosen player.
 function CashDonationDialog({ open, onOpenChange, goal }: { open: boolean; onOpenChange: (open: boolean) => void; goal: DonationGoal }) {
   const qc = useQueryClient();
