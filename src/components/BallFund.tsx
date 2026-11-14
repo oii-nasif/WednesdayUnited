@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Banknote, Heart, Pencil, PartyPopper, Plus } from "lucide-react";
-import { balancesQuery, donationGoalsQuery, invalidateMoney, recordCashDonation, saveDonationGoal, createDonationGoal, type DonationGoal } from "@/lib/ledger";
+import { Archive, Banknote, EyeOff, Heart, Pencil, PartyPopper, Plus, RotateCcw } from "lucide-react";
+import { archivedDonationGoalsQuery, balancesQuery, donationGoalsQuery, invalidateMoney, recordCashDonation, saveDonationGoal, createDonationGoal, setDonationGoalActive, type DonationGoal } from "@/lib/ledger";
 import { PlayerPicker } from "@/components/PlayerPicker";
 import { Textarea } from "@/components/ui/textarea";
 import { money } from "@/lib/payment-rules";
@@ -15,26 +15,37 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { fmtDate } from "@/lib/matches";
 
 // The match ball fund: progress toward the target, so every donation visibly moves the bar.
 export function BallFund({ userId, staff }: { userId: string; staff: boolean }) {
   const { data: goals = [], isLoading, error } = useQuery({ ...donationGoalsQuery, refetchInterval: 15_000 });
   const [selected, setSelected] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [archiveOpen, setArchiveOpen] = useState(false);
   const goal = goals.find((g) => g.id === selected) ?? goals[0];
   return <div className="min-w-0">
     {isLoading ? <p className="text-sm text-muted-foreground">Loading donation goals…</p> : error ? <p className="text-sm text-destructive">Could not load donation goals.</p> : <>
-      {goal ? <FundCard key={goal.id} goal={goal} userId={userId} staff={staff} onCreate={() => setCreating(true)} /> : <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed bg-card py-8 text-center text-sm text-muted-foreground">No active donation goals.{staff && <Button variant="outline" size="sm" onClick={() => setCreating(true)}><Plus />Create goal</Button>}</div>}
+      {goal ? <FundCard key={goal.id} goal={goal} userId={userId} staff={staff} onCreate={() => setCreating(true)} onOpenArchive={() => setArchiveOpen(true)} /> : <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed bg-card py-8 text-center text-sm text-muted-foreground">No active donation goals.{staff && <div className="flex flex-wrap justify-center gap-2"><Button variant="outline" size="sm" onClick={() => setCreating(true)}><Plus />Create goal</Button><Button variant="ghost" size="sm" onClick={() => setArchiveOpen(true)}><Archive />Fund archive</Button></div>}</div>}
       {goals.length > 1 && <div className="mt-3 grid gap-1.5"><Label htmlFor="donation-goal">Choose a fund</Label><Select value={goal?.id} onValueChange={setSelected}><SelectTrigger id="donation-goal" className="w-full"><SelectValue /></SelectTrigger><SelectContent>{goals.map((g) => <SelectItem key={g.id} value={g.id}>{g.title}</SelectItem>)}</SelectContent></Select></div>}
     </>}
     {staff && <EditFundDialog key={`create-${creating}`} open={creating} onOpenChange={setCreating} onCreated={setSelected} />}
+    {staff && <FundArchiveDialog open={archiveOpen} onOpenChange={setArchiveOpen} />}
   </div>;
 }
 
-function FundCard({ goal, userId, staff, onCreate }: { goal: DonationGoal; userId: string; staff: boolean; onCreate: () => void }) {
+function FundCard({ goal, userId, staff, onCreate, onOpenArchive }: { goal: DonationGoal; userId: string; staff: boolean; onCreate: () => void; onOpenArchive: () => void }) {
+  const qc = useQueryClient();
   const [donating, setDonating] = useState(false);
   const [editing, setEditing] = useState(false);
   const [recordingCash, setRecordingCash] = useState(false);
+  const [confirmHide, setConfirmHide] = useState(false);
+  const hide = useMutation({
+    mutationFn: () => setDonationGoalActive(goal.id, false),
+    onSuccess: () => { toast.success(`${goal.title} moved to the fund archive`); invalidateMoney(qc); setConfirmHide(false); },
+    onError: (e: Error) => toast.error(e.message),
+  });
   const collected = goal.collected_amount;
   const needed = Math.max(0, goal.target_amount - collected);
   const pct = Math.min(100, Math.round((collected / goal.target_amount) * 100));
@@ -43,16 +54,18 @@ function FundCard({ goal, userId, staff, onCreate }: { goal: DonationGoal; userI
     <section className="relative overflow-hidden rounded-2xl bg-pitch-deep text-pitch-foreground shadow-lift ring-1 ring-white/10">
       {/* Scoreboard: raised vs target, read like a half-time score. */}
       <div className="bg-gradient-to-r from-pitch via-pitch-deep to-pitch px-5 pb-3 pt-4">
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-accent"><Heart className="size-4 animate-pulse" />Fundraiser</p>
             <h3 className="mt-1 break-words text-3xl leading-none">{goal.title}</h3>
           </div>
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider"><span className="relative flex size-2"><span className="absolute inline-flex size-full animate-ping rounded-full bg-success opacity-75" /><span className="relative inline-flex size-2 rounded-full bg-success" /></span>Live</span>
             {staff && <Button size="icon" variant="ghost" className="size-8 text-pitch-foreground/80 hover:bg-white/10 hover:text-pitch-foreground" title="Create goal" aria-label="Create goal" onClick={onCreate}><Plus /></Button>}
+            {staff && <Button size="icon" variant="ghost" className="size-8 text-pitch-foreground/80 hover:bg-white/10 hover:text-pitch-foreground" title="Fund archive" aria-label="Fund archive" onClick={onOpenArchive}><Archive /></Button>}
             {staff && <Button size="icon" variant="ghost" className="size-8 text-pitch-foreground/80 hover:bg-white/10 hover:text-pitch-foreground" title="Record cash donation" aria-label="Record cash donation" onClick={() => setRecordingCash(true)}><Banknote /></Button>}
             {staff && <Button size="icon" variant="ghost" className="size-8 text-pitch-foreground/80 hover:bg-white/10 hover:text-pitch-foreground" title="Edit fund" aria-label="Edit fund" onClick={() => setEditing(true)}><Pencil /></Button>}
+            {staff && <Button size="icon" variant="ghost" className="size-8 text-pitch-foreground/80 hover:bg-white/10 hover:text-pitch-foreground" title={`Hide ${goal.title}`} aria-label={`Hide ${goal.title}`} onClick={() => setConfirmHide(true)}><EyeOff /></Button>}
           </div>
         </div>
         <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
@@ -79,8 +92,39 @@ function FundCard({ goal, userId, staff, onCreate }: { goal: DonationGoal; userI
       </div>
       {staff && <EditFundDialog key={`${goal.id}-${editing}`} open={editing} onOpenChange={setEditing} goal={goal} />}
       {staff && <CashDonationDialog key={`cash-${goal.id}-${recordingCash}`} open={recordingCash} onOpenChange={setRecordingCash} goal={goal} />}
+      <AlertDialog open={confirmHide} onOpenChange={(open) => { if (!hide.isPending) setConfirmHide(open); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader><AlertDialogTitle>Hide {goal.title}?</AlertDialogTitle><AlertDialogDescription>Players will no longer see this fund or be able to donate to it. Its {money(collected)} raised and full history stay in the staff archive, and you can make it live again later.</AlertDialogDescription></AlertDialogHeader>
+          <AlertDialogFooter><AlertDialogCancel disabled={hide.isPending}>Keep live</AlertDialogCancel><AlertDialogAction disabled={hide.isPending} onClick={(event) => { event.preventDefault(); hide.mutate(); }}>{hide.isPending ? "Hiding…" : "Hide fund"}</AlertDialogAction></AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   );
+}
+
+function FundArchiveDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+  const qc = useQueryClient();
+  const { data: goals = [], isLoading, error, refetch } = useQuery({ ...archivedDonationGoalsQuery, enabled: open });
+  const restore = useMutation({
+    mutationFn: (id: string) => setDonationGoalActive(id, true),
+    onSuccess: () => { toast.success("Fund is live again"); invalidateMoney(qc); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  return <Dialog open={open} onOpenChange={(next) => { if (!restore.isPending) onOpenChange(next); }}>
+    <DialogContent className="max-h-[90dvh] max-w-2xl overflow-y-auto">
+      <DialogHeader><DialogTitle className="font-display text-3xl">Fund archive</DialogTitle><DialogDescription>Hidden funds keep their donation totals and history. Make one live again to show it to players.</DialogDescription></DialogHeader>
+      {isLoading ? <p className="py-6 text-sm text-muted-foreground">Loading archived funds…</p> : error ? <div className="flex items-center gap-3 py-4"><p className="text-sm text-destructive">Could not load archived funds.</p><Button variant="outline" size="sm" onClick={() => refetch()}>Retry</Button></div> : goals.length === 0 ? <p className="rounded-xl border border-dashed py-8 text-center text-sm text-muted-foreground">No hidden funds yet.</p> : <ul className="grid gap-3">
+        {goals.map((goal) => <li key={goal.id} className="rounded-xl border bg-muted/30 p-4">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0"><h3 className="break-words font-semibold">{goal.title}</h3><p className="mt-1 text-xs text-muted-foreground">Created {fmtDate(goal.created_at)}</p></div>
+            <Button size="sm" variant="outline" disabled={restore.isPending} onClick={() => restore.mutate(goal.id)}><RotateCcw />{restore.isPending && restore.variables === goal.id ? "Restoring…" : "Make live again"}</Button>
+          </div>
+          <div className="mt-3 grid grid-cols-2 gap-3 text-sm"><div><p className="text-xs uppercase tracking-wider text-muted-foreground">Raised</p><p className="font-display text-2xl text-accent">{money(goal.collected_amount)}</p></div><div><p className="text-xs uppercase tracking-wider text-muted-foreground">Target</p><p className="font-display text-2xl">{money(goal.target_amount)}</p></div></div>
+        </li>)}
+      </ul>}
+      <DialogFooter><Button variant="ghost" disabled={restore.isPending} onClick={() => onOpenChange(false)}>Close</Button></DialogFooter>
+    </DialogContent>
+  </Dialog>;
 }
 
 // Cash handed to a moderator: credited to the fund straight away as a verified donation from the chosen player.

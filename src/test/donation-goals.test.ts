@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-const db = vi.hoisted(() => ({ insert: vi.fn(), select: vi.fn(), eq: vi.fn(), order: vi.fn(), single: vi.fn() }));
+const db = vi.hoisted(() => ({ insert: vi.fn(), update: vi.fn(), delete: vi.fn(), select: vi.fn(), eq: vi.fn(), order: vi.fn(), single: vi.fn() }));
 vi.mock("@/integrations/supabase/client", () => ({ supabase: { from: () => db } }));
-import { createDonationGoal, donationGoalsQuery } from "@/lib/ledger";
+import { archivedDonationGoalsQuery, createDonationGoal, donationGoalsQuery, setDonationGoalActive } from "@/lib/ledger";
 import { donationGoalInput } from "@/lib/donation-rules";
 
 describe("donation goals", () => {
@@ -23,7 +23,34 @@ describe("donation goals", () => {
     expect(goals.map((g) => g.id)).toEqual(["kit", "ball"]);
     expect(db.eq).toHaveBeenCalledWith("active", true);
   });
+  it("reads only hidden funds in the staff archive", async () => {
+    db.select.mockReturnValue(db); db.eq.mockReturnValue(db);
+    db.order.mockReturnValueOnce(db).mockResolvedValueOnce({ data: [
+      { id: "old-ball", title: "Old ball", target_amount: 3500, collected_amount: 2400, active: false, created_at: "2026-11-01T00:00:00Z" },
+    ], error: null });
+    const read = archivedDonationGoalsQuery.queryFn;
+    if (!read) throw new Error("Missing archive reader");
+    const goals = await read({} as never);
+    expect(goals.map((g) => g.id)).toEqual(["old-ball"]);
+    expect(db.eq).toHaveBeenCalledWith("active", false);
+  });
+  it("hides a fund without deleting its donation history", async () => {
+    db.update.mockReturnValue(db); db.eq.mockReturnValue(db);
+    db.select.mockResolvedValue({ data: [{ id: "ball" }], error: null });
+    await setDonationGoalActive("ball", false);
+    expect(db.update).toHaveBeenCalledWith({ active: false });
+    expect(db.eq).toHaveBeenCalledWith("id", "ball");
+    expect(db.delete).not.toHaveBeenCalled();
+  });
+  it("makes an archived fund live again", async () => {
+    db.update.mockReturnValue(db); db.eq.mockReturnValue(db);
+    db.select.mockResolvedValue({ data: [{ id: "old-ball" }], error: null });
+    await setDonationGoalActive("old-ball", true);
+    expect(db.update).toHaveBeenCalledWith({ active: true });
+    expect(db.eq).toHaveBeenCalledWith("id", "old-ball");
+  });
   it("preserves staff permission errors from the database", async () => {
+    db.insert.mockReturnValue(db); db.select.mockReturnValue(db);
     db.single.mockResolvedValue({ data: null, error: new Error("Staff only") });
     await expect(createDonationGoal({ title: "Team kit", target_amount: 5000 })).rejects.toThrow("Staff only");
   });
