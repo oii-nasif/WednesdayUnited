@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-const db = vi.hoisted(() => ({ insert: vi.fn(), update: vi.fn(), select: vi.fn(), eq: vi.fn(), order: vi.fn(), single: vi.fn() }));
+const db = vi.hoisted(() => ({ insert: vi.fn(), update: vi.fn(), delete: vi.fn(), select: vi.fn(), eq: vi.fn(), order: vi.fn(), single: vi.fn() }));
 vi.mock("@/integrations/supabase/client", () => ({ supabase: { from: () => db } }));
 import { archivedDonationGoalsQuery, createDonationGoal, donationGoalsQuery, setDonationGoalActive } from "@/lib/ledger";
 import { donationGoalInput } from "@/lib/donation-rules";
