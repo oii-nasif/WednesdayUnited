@@ -1,27 +1,34 @@
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { X } from "lucide-react";
-import donorImage from "@/assets/donor_appreciation.png.asset.json";
+import { activeDonorCampaignQuery, DONOR_ARTWORK } from "@/lib/donor-campaigns";
 
 const SHOW_MS = 10_000;
 
-/** Thank-you card for top donors, shown once per page load, auto-closes after 10s. */
+/** A live thank-you card from the admin archive, shown once per page load. */
 export function DonorPopup() {
+  const { data: campaign } = useQuery(activeDonorCampaignQuery);
   const [open, setOpen] = useState(false);
+  const artwork = campaign ? DONOR_ARTWORK[campaign.asset_key] : undefined;
 
   useEffect(() => {
+    if (!campaign || !artwork) {
+      setOpen(false);
+      return;
+    }
     setOpen(true);
-    const t = window.setTimeout(() => setOpen(false), SHOW_MS);
-    return () => window.clearTimeout(t);
-  }, []);
+    const timer = window.setTimeout(() => setOpen(false), SHOW_MS);
+    return () => window.clearTimeout(timer);
+  }, [campaign, artwork]);
 
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    const onKey = (event: KeyboardEvent) => event.key === "Escape" && setOpen(false);
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
 
-  if (!open) return null;
+  if (!open || !artwork) return null;
 
   return (
     <div
@@ -31,12 +38,8 @@ export function DonorPopup() {
       className="fixed inset-0 z-[100] flex items-center justify-center bg-foreground/70 p-4 animate-in fade-in"
       onClick={() => setOpen(false)}
     >
-      <div className="relative w-full max-w-[min(90vw,80dvh)]" onClick={(e) => e.stopPropagation()}>
-        <img
-          src={donorImage.url}
-          alt="Thank you, our top donors: Md. Rakibul Alam Tanvi, Md. Jahangir Alam and Md. Kausar"
-          className="w-full rounded-lg shadow-2xl"
-        />
+      <div className="relative w-full max-w-[min(90vw,80dvh)]" onClick={(event) => event.stopPropagation()}>
+        <img src={artwork.url} alt={artwork.alt} className="w-full rounded-lg shadow-2xl" />
         <button
           type="button"
           aria-label="Close"

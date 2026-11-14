@@ -74,6 +74,57 @@ export type Database = {
         }
         Relationships: []
       }
+      donor_campaigns: {
+        Row: {
+          active: boolean
+          asset_key: string
+          changed_by: string | null
+          created_at: string
+          hidden_at: string | null
+          id: string
+          live_at: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          asset_key: string
+          changed_by?: string | null
+          created_at?: string
+          hidden_at?: string | null
+          id?: string
+          live_at?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          asset_key?: string
+          changed_by?: string | null
+          created_at?: string
+          hidden_at?: string | null
+          id?: string
+          live_at?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "donor_campaigns_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "player_balances"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "donor_campaigns_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ledger_entries: {
         Row: {
           amount: number
@@ -704,6 +755,10 @@ export type Database = {
       }
       review_payment: {
         Args: { decision: string; note?: string; payment_id: string }
+        Returns: undefined
+      }
+      set_donor_campaign_visibility: {
+        Args: { campaign_id: string; make_live: boolean }
         Returns: undefined
       }
       set_player_role: {

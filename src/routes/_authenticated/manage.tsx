@@ -25,6 +25,7 @@ import { VenueManagement } from "@/components/VenueManagement";
 import { DeleteConfirmation, type DeleteTarget } from "@/components/DeleteConfirmation";
 import { PageHeader, Stat } from "@/components/PageHeader";
 import { CountUp } from "@/components/CountUp";
+import { DonorCampaignAdmin } from "@/components/DonorCampaignAdmin";
 
 export const Route = createFileRoute("/_authenticated/manage")({
   head: () => ({
@@ -60,7 +61,7 @@ type Form = {
 const empty: Form = { title: "", starts_at: "", location_id: "", description: "", registration_deadline: "", player_limit: "", max_guests: String(DEFAULT_MAX_GUESTS), prepayment_required: false, prepayment_amount: "" };
 
 function Manage() {
-  const { isStaff, loading } = useAuth();
+  const { isStaff, isAdmin, loading } = useAuth();
   const qc = useQueryClient();
   const { data: matches } = useQuery({ ...matchesQuery("all"), enabled: isStaff });
   const { data: locations } = useQuery(locationsQuery);
@@ -124,6 +125,7 @@ function Manage() {
         <div className="px-3 sm:px-6"><Stat icon={<Users />} tone="accent" label="Participants" value={<CountUp value={(matches ?? []).reduce((n, m) => n + participantCount(m.registrations), 0)} />} /></div>
         <div className="px-3 sm:px-6"><Stat icon={<MapPin />} label="Venues" value={<CountUp value={locations?.length ?? 0} />} /></div>
       </div>
+      {isAdmin && <DonorCampaignAdmin />}
       <Tabs defaultValue="matches">
         <TabsList><TabsTrigger value="matches">Matches</TabsTrigger><TabsTrigger value="venues">Venues</TabsTrigger></TabsList>
         <TabsContent value="matches">
