@@ -88,9 +88,19 @@ export const payableMatchesQuery = (userId: string) =>
   });
 
 export const donationGoalsQuery = queryOptions({
-  queryKey: ["donation-goal"],
+  queryKey: ["donation-goal", "active"],
   queryFn: async () => {
     const { data, error } = await supabase.from("donation_goals").select("*").eq("active", true).order("created_at", { ascending: false }).order("id");
+    if (error) throw error;
+    return (data ?? []).map((goal) => num(goal as DonationGoal, ["target_amount", "collected_amount"]));
+  },
+});
+
+// Staff history only: hidden funds keep their totals and can be restored without changing past donations.
+export const archivedDonationGoalsQuery = queryOptions({
+  queryKey: ["donation-goal", "archived"],
+  queryFn: async () => {
+    const { data, error } = await supabase.from("donation_goals").select("*").eq("active", false).order("created_at", { ascending: false }).order("id");
     if (error) throw error;
     return (data ?? []).map((goal) => num(goal as DonationGoal, ["target_amount", "collected_amount"]));
   },
@@ -159,6 +169,12 @@ export async function saveDonationGoal(goal: { id: string; title: string; target
   const { data, error } = await supabase.from("donation_goals").update(donationGoalInput(goal.title, goal.target_amount)).eq("id", goal.id).select("id");
   if (error) throw error;
   if (!data?.length) throw new Error("You don't have permission to edit this fund");
+}
+
+export async function setDonationGoalActive(id: string, active: boolean) {
+  const { data, error } = await supabase.from("donation_goals").update({ active }).eq("id", id).select("id");
+  if (error) throw error;
+  if (!data?.length) throw new Error("You don't have permission to change this fund");
 }
 
 export async function createDonationGoal(goal: { title: string; target_amount: number }) {

@@ -232,6 +232,13 @@
       "when": 1794685964485,
       "tag": "0033_donor_campaign_visibility",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1794686499967,
+      "tag": "0034_retire_donor_campaigns",
+      "breakpoints": true
     }
   ]
 }
