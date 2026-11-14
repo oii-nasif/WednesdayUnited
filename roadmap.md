@@ -52,5 +52,5 @@
 - [ ] Phase 4: admin pages (users/roles, locations, financial overview, audit log viewer, settings)
 
 - [x] Donor thank-you popup on first load (10s auto-close, close button)
-- [ ] Super-admin donor banner archive with hide/show control on every public page
+- [x] Super-admin donor banner archive with hide/show control on every public page
 - [ ] Collect payments from customers — waiting on user answer (app already uses bank/QR transfers)
