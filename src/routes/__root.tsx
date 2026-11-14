@@ -131,6 +131,7 @@ function RootComponent() {
           <Outlet />
         </main>
         {!isAuthPage && <SiteFooter />}
+        <DonorPopup />
         <Toaster richColors position="top-center" />
       </AuthProvider>
     </QueryClientProvider>

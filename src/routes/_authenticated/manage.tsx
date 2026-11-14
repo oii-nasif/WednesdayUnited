@@ -61,7 +61,7 @@ type Form = {
 const empty: Form = { title: "", starts_at: "", location_id: "", description: "", registration_deadline: "", player_limit: "", max_guests: String(DEFAULT_MAX_GUESTS), prepayment_required: false, prepayment_amount: "" };
 
 function Manage() {
-  const { isStaff, loading } = useAuth();
+  const { isStaff, isAdmin, loading } = useAuth();
   const qc = useQueryClient();
   const { data: matches } = useQuery({ ...matchesQuery("all"), enabled: isStaff });
   const { data: locations } = useQuery(locationsQuery);
