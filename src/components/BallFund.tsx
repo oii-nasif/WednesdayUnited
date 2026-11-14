@@ -92,6 +92,12 @@ function FundCard({ goal, userId, staff, onCreate, onOpenArchive }: { goal: Dona
       </div>
       {staff && <EditFundDialog key={`${goal.id}-${editing}`} open={editing} onOpenChange={setEditing} goal={goal} />}
       {staff && <CashDonationDialog key={`cash-${goal.id}-${recordingCash}`} open={recordingCash} onOpenChange={setRecordingCash} goal={goal} />}
+      <AlertDialog open={confirmHide} onOpenChange={(open) => { if (!hide.isPending) setConfirmHide(open); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader><AlertDialogTitle>Hide {goal.title}?</AlertDialogTitle><AlertDialogDescription>Players will no longer see this fund or be able to donate to it. Its {money(collected)} raised and full history stay in the staff archive, and you can make it live again later.</AlertDialogDescription></AlertDialogHeader>
+          <AlertDialogFooter><AlertDialogCancel disabled={hide.isPending}>Keep live</AlertDialogCancel><AlertDialogAction disabled={hide.isPending} onClick={(event) => { event.preventDefault(); hide.mutate(); }}>{hide.isPending ? "Hiding…" : "Hide fund"}</AlertDialogAction></AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   );
 }
