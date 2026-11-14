@@ -25,7 +25,6 @@ import { VenueManagement } from "@/components/VenueManagement";
 import { DeleteConfirmation, type DeleteTarget } from "@/components/DeleteConfirmation";
 import { PageHeader, Stat } from "@/components/PageHeader";
 import { CountUp } from "@/components/CountUp";
-import { DonorCampaignAdmin } from "@/components/DonorCampaignAdmin";
 
 export const Route = createFileRoute("/_authenticated/manage")({
   head: () => ({

@@ -52,5 +52,6 @@
 - [ ] Phase 4: admin pages (users/roles, locations, financial overview, audit log viewer, settings)
 
 - [x] Donor thank-you popup on first load (10s auto-close, close button)
-- [x] Super-admin donor banner archive with hide/show control on every public page
+- [ ] Let staff hide donation funds, view their history and make them live again
+- [ ] Remove the mistaken donor website-banner archive and retire its unused backend access
 - [ ] Collect payments from customers — waiting on user answer (app already uses bank/QR transfers)

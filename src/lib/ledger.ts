@@ -16,7 +16,7 @@ export type LedgerEntry = {
 };
 export type PlayerBalance = { user_id: string; full_name: string | null; avatar_url: string | null; balance: number; last_activity: string | null };
 export type MatchDue = { user_id: string; charged: number; covered: number; due: number };
-export type DonationGoal = { id: string; title: string; target_amount: number; collected_amount: number; active: boolean };
+export type DonationGoal = { id: string; title: string; target_amount: number; collected_amount: number; active: boolean; created_at: string };
 export type PaymentPurpose = "match" | "advance" | "donation";
 
 export const ledgerKindLabel: Record<LedgerKind, string> = { payment: "Payment", match_charge: "Match cost", charge_reversal: "Cost reversed", adjustment: "Adjustment" };
