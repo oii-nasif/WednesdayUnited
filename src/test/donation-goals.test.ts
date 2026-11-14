@@ -43,8 +43,8 @@ describe("donation goals", () => {
     expect(db.delete).not.toHaveBeenCalled();
   });
   it("makes an archived fund live again", async () => {
-    db.update.mockReturnValue(db); db.select.mockReturnValue(db);
-    db.eq.mockResolvedValue({ data: [{ id: "old-ball" }], error: null });
+    db.update.mockReturnValue(db); db.eq.mockReturnValue(db);
+    db.select.mockResolvedValue({ data: [{ id: "old-ball" }], error: null });
     await setDonationGoalActive("old-ball", true);
     expect(db.update).toHaveBeenCalledWith({ active: true });
     expect(db.eq).toHaveBeenCalledWith("id", "old-ball");
